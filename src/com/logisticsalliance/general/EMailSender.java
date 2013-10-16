@@ -75,6 +75,7 @@ public class EMailSender {
 			String trl = "Trial "+trials[0]+" to send email";
 			System.out.println(trl);
 			log.debug(trl);
+			s = null;
 		}
 		return s;
 	}

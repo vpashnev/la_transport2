@@ -34,10 +34,10 @@ public class EMailReports {
 		}
 	}
 
-	private String getFileListMsg() {
+	private String getRnFileListMsg() {
 		StringBuilder b = new StringBuilder(256);
-		int sz = ShipmentDataDb.allDcFiles.size();
-		String[] arr = ShipmentDataDb.allDcFiles.toArray(new String[sz]);
+		int sz = ShipmentDataDb.dailyRnFiles.size();
+		String[] arr = ShipmentDataDb.dailyRnFiles.toArray(new String[sz]);
 		Arrays.sort(arr);
 		for (int i = 0; i != sz; i++) {
 			b.append(arr[i]); b.append("<br>"); b.append('\r'); b.append('\n');
@@ -48,7 +48,7 @@ public class EMailReports {
 	void sendRnFileList(EmailSent es) throws Exception {
 		if (es.emailUnsent == null || es.emailSentOnlyToBbc != null) {
 			int[] trials = {0};
-			String m = getFileListMsg();
+			String m = getRnFileListMsg();
 			Session s = EMailSender.send(null, es, es.rnFileListTo,
 				"List of processed files", m, null, trials);
 			while (s == null && trials[0] < 20) {

@@ -150,7 +150,7 @@ public class NotificationDb {
 			cal.set(Calendar.MINUTE, 0);
 			cal.set(Calendar.SECOND, 0);
 			cal.set(Calendar.MILLISECOND, 0);
-			t0 = new Timestamp(cal.getTime().getTime());
+			t0 = new Timestamp(cal.getTime().getTime()+timeAheadInMins);
 			return t0;
 		}
 		else {

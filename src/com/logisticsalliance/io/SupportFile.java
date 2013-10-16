@@ -3,6 +3,9 @@ package com.logisticsalliance.io;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -63,6 +66,25 @@ public class SupportFile {
 		finally {
 			zos.closeEntry();
 			zos.close();
+		}
+	}
+	public static String readText(File f) throws Exception {
+		char[] buffer = new char[4096];
+		StringWriter out = new StringWriter();
+		FileReader in = new FileReader(f);
+		try {
+			int n;
+			while ((n = in.read(buffer)) != -1) {
+				out.write(buffer, 0, n);
+			}
+			return out.toString();
+		}
+		finally {
+			try {
+				out.close();
+				in.close();
+			}
+			catch(IOException e) { }
 		}
 	}
 }

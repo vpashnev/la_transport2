@@ -40,6 +40,12 @@ public class App {
 		new File(appDir, "log").mkdir();
 		configureLog4j(appDir);
 
+		File f = new File(appDir, "DsScript.sql");
+		if (f.exists()) {
+			String sql = SupportFile.readText(f);
+			StoreScheduleDb.sqlCommands = sql.split("\\ ;");
+		}
+		
 		Properties appProps = new Properties();
 		appProps.load(new FileReader(new File(appDir, "app.properties")));
 

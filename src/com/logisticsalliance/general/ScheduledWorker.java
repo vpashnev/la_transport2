@@ -156,7 +156,7 @@ public class ScheduledWorker implements Runnable {
 					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH)) {
 					emailReports.send(emailSent);
 					curDate = c;
-					ShipmentDataDb.allDcFiles.clear();
+					ShipmentDataDb.updateDailyRnFiles(cf.getConnection(), null);
 					ShipmentDataDb.localDcMissing.clear();
 					NotificationDb.clearCarriersNotFound();
 					ShipmentDb.clearCarriersNotFound();

@@ -39,7 +39,7 @@ public class DeliveryNote implements Serializable {
 				sb.append('=');
 				sb.append(getTotalPallets(c.cmdty));
 			}
-			else if (c.equals("EVT")) {
+			else if (c.cmdty.equals("EVT")) {
 				sb.append('2');
 			}
 			sb.append(','); sb.append(' ');
@@ -81,13 +81,13 @@ public class DeliveryNote implements Serializable {
 			N_A : SupportTime.HH_mm_Format.format(targetOpen), 8);
 		tb.addProperty20("User files", firstUserFile+(nextUserFile == null ? "":
 			", modified "+nextUserFile), 80);
-		tb.add('_', 72);
+		tb.add('_', 120);
 		tb.newLine();
 		tb.addCell(RnColumns.ORDER_N, 26, false, false);
 		tb.addCell(RnColumns.PALLETS, 8, true, false);
 		tb.addCell("User files", 14, false, true);
 		tb.newLine();
-		tb.add('_', 72);
+		tb.add('_', 120);
 		tb.newLine();
 		for (Iterator<DeliveryItem> it = items.iterator(); it.hasNext();) {
 			DeliveryItem e = it.next();
@@ -101,7 +101,7 @@ public class DeliveryNote implements Serializable {
 				",modified "+e.dsNextUserFile), 112, false, true);
 			tb.newLine();
 		}
-		tb.add('_', 72);
+		tb.add('_', 120);
 		tb.newLine();
 		tb.addCell("Total:", 26, false, false);
 		tb.addCell(totalPallets == 0 ? getTotalPallets(null) : totalPallets, 8, true, true);

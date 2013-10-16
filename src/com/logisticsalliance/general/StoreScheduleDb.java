@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import com.logisticsalliance.io.SupportFile;
 import com.logisticsalliance.sql.ConnectFactory;
 import com.logisticsalliance.sql.ConnectFactory1;
+import com.logisticsalliance.sql.SqlSupport;
 import com.logisticsalliance.util.SupportTime;
 
 /**
@@ -32,6 +33,8 @@ public class StoreScheduleDb {
 		"{call la.update_scheduled_delivery(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}",
 		SQL_RESET_IN_USE = "UPDATE la.hstore_schedule SET in_use=NULL WHERE ship_date IS NULL",
 		SQL_DELETE_NOT_IN_USE = "DELETE FROM la.hstore_schedule WHERE in_use IS NULL";
+
+	static String[] sqlCommands;
 
 	static void update(File dsFolder, File dsaFolder) throws Exception {
 		int[] rowCount = {0};
@@ -56,6 +59,9 @@ public class StoreScheduleDb {
 					log.debug("Deleted store scheduled deliveries: "+n);
 				}
 				st1.close();
+				if (sqlCommands != null) {
+					SqlSupport.update(con, sqlCommands);
+				}
 				con.commit();
 				st.close();
 				ScheduledWorker.move(fs, dsaFolder);

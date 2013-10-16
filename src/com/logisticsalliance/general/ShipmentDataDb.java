@@ -15,6 +15,7 @@ import java.sql.Types;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,9 +44,11 @@ public class ShipmentDataDb {
 	private static final String SQL = "{call la.update_shipment_data(?,?,?,?,?,?," +
 		"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}",
 		SQL_CLEAN_EVT = "{call la.clean_evt(?,?)}",
+		SQL_READ_DAILY_RN_FILES = "SELECT daily_rn_files FROM la.henvr",
+		SQL_UPDATE_DAILY_RN_FILES = "UPDATE la.henvr SET daily_rn_files=?",
 		SQL_LOCAL_STORES = "SELECT status,n,local_dc from la.hstore_profile";
 
-	static HashSet<String> allDcFiles = new HashSet<String>();
+	static HashSet<String> dailyRnFiles = new HashSet<String>();
 	static HashSet<Integer> localDcMissing = new HashSet<Integer>();
 	private static int delFound;
 
@@ -81,6 +84,42 @@ public class ShipmentDataDb {
 			log.debug("Check for local DC : Properties "+localDcMap.size()+", Stores "+count);
 		}
 	}
+	static void updateDailyRnFiles(Connection con,
+		ArrayList<String> rnFiles) throws Exception {
+		if (rnFiles == null) {
+			try {
+				PreparedStatement st = con.prepareStatement(SQL_UPDATE_DAILY_RN_FILES);
+				st.setNull(1, Types.VARCHAR);
+				st.executeUpdate();
+				con.commit();
+				st.close();
+			}
+			finally { ConnectFactory1.close(con);}
+		}
+		else {
+			PreparedStatement st = con.prepareStatement(SQL_UPDATE_DAILY_RN_FILES),
+				st1 = con.prepareStatement(SQL_READ_DAILY_RN_FILES);
+			ResultSet rs = st1.executeQuery();
+			if (rs.next()) {
+				String v = rs.getString(1);
+				if (v != null) {
+					dailyRnFiles.clear();
+					String[] arr = v.split("\\,");
+					dailyRnFiles.addAll(Arrays.asList(arr));
+				}
+			}
+			rs.close(); st1.close();
+			dailyRnFiles.addAll(rnFiles);
+			StringBuilder sb = new StringBuilder(256);
+			for (Iterator<String> it = dailyRnFiles.iterator(); it.hasNext();) {
+				if (sb.length() != 0) { sb.append(',');}
+				sb.append(it.next());
+			}
+			st.setString(1, sb.toString());
+			st.executeUpdate();
+			st.close();
+		}
+	}
 	static void update(File rnFolder, File rnaFolder, RnColumns rnCols,
 		HashMap<Integer,String> localDcMap) throws Exception {
 		Row r = new Row();
@@ -88,7 +127,7 @@ public class ShipmentDataDb {
 		try {
 			File[] fs = rnFolder.listFiles(new UpExtFilter());
 			if (fs.length != 0) {
-				ArrayList<String> dcFiles = new ArrayList<String>(8);
+				ArrayList<String> rnFiles = new ArrayList<String>(8);
 				HashMap<Long,String> evtMap = new HashMap<Long,String>(8);
 				con = ConnectFactory1.one().getConnection();
 				checkLocalDCs(con.prepareStatement(SQL_LOCAL_STORES), localDcMap);
@@ -98,12 +137,12 @@ public class ShipmentDataDb {
 					File f = fs[i];
 					update(f, st, r, rnCols, evtMap);
 					log.debug("Rows updated for the file "+f);
-					dcFiles.add(r.dc+" - "+f.getName());
+					rnFiles.add(r.dc+" - "+f.getName());
 				}
 				cleanEvt(st1, evtMap);
+				updateDailyRnFiles(con, rnFiles);
 				con.commit();
 				st.close(); st1.close();
-				allDcFiles.addAll(dcFiles);
 				ScheduledWorker.move(fs, rnaFolder);
 			}
 		}
