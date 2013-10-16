@@ -26,7 +26,7 @@ public class DeliveryNote implements Serializable {
 	int storeN, totalPallets;
 	Date shipDate, delDate;
 	Time arrivalTime, serviceTime, delTimeFrom, delTimeTo, targetOpen;
-	String id, routeN, province, delCarrier, firstUserFile, nextUserFile;
+	String id, routeN, addKey, province, delCarrier, firstUserFile, nextUserFile;
 	ArrayList<Cmdty> cmdtyList = new ArrayList<Cmdty>(4);
 	ArrayList<DeliveryItem> items = new ArrayList<DeliveryItem>(32);
 
@@ -34,13 +34,17 @@ public class DeliveryNote implements Serializable {
 		StringBuilder sb = new StringBuilder(32);
 		for (Iterator<Cmdty> it = cmdtyList.iterator(); it.hasNext();) {
 			Cmdty c = it.next();
-			sb.append(c.cmdty);
 			if (totalPallets) {
+				sb.append(c.cmdty);
 				sb.append('=');
 				sb.append(getTotalPallets(c.cmdty));
 			}
-			else if (c.cmdty.equals("EVT")) {
-				sb.append('2');
+			else {
+				String v = addKey.isEmpty() ? c.cmdty : addKey;
+				sb.append(v);
+				if (v.equals("EVT")) {
+					sb.append('2');
+				}
 			}
 			sb.append(','); sb.append(' ');
 		}

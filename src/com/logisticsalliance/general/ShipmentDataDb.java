@@ -42,7 +42,7 @@ public class ShipmentDataDb {
 	public static final DecimalFormat sizeFormat = new DecimalFormat("#.####");
 
 	private static final String SQL = "{call la.update_shipment_data(?,?,?,?,?,?," +
-		"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}",
+		"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}",
 		SQL_CLEAN_EVT = "{call la.clean_evt(?,?)}",
 		SQL_READ_DAILY_RN_FILES = "SELECT daily_rn_files FROM la.henvr",
 		SQL_UPDATE_DAILY_RN_FILES = "UPDATE la.henvr SET daily_rn_files=?",
@@ -225,6 +225,11 @@ public class ShipmentDataDb {
 		r.lw = getCellValue(line, RnColumns.COMMODITY, rnCols);
 		checkDcOrLw(r.lw);
 		r.routeN = getCellValue(line, RnColumns.ROUTE_N, rnCols);
+		int rn = Integer.parseInt(r.routeN);
+		if (rn >= 10000 && rn < 10001) {
+			r.addKey = "EVT";
+		}
+		else { r.addKey = " ";}
 		v = getCellValue(line, RnColumns.ORDER_N, rnCols);
 		if (v != null && v.length() > 4) {
 			String v1 = v.substring(4);
@@ -242,13 +247,14 @@ public class ShipmentDataDb {
 		r.units = getQty(line, RnColumns.UNITS, rnCols);
 		r.weight = getQty(line, RnColumns.WEIGHT, rnCols);
 		r.cube = getQty(line, RnColumns.CUBE, rnCols);
-		if (r.storeN != k.storeN || !r.cmdty.equals(k.cmdty) ||
-			!r.shipDate.equals(k.shipDate) || !r.dc.equals(k.dc)) {
+		if (r.storeN != k.storeN || !r.cmdty.equals(k.cmdty) || !r.shipDate.equals(k.shipDate) ||
+			!r.dc.equals(k.dc) || !r.addKey.equals(k.addKey)) {
 			i[0] = 1;
 			k.storeN = r.storeN;
 			k.cmdty = r.cmdty;
 			k.shipDate = r.shipDate;
 			k.dc = r.dc;
+			k.addKey = r.addKey;
 			r.n = 0;
 			Calendar c = Calendar.getInstance(); c.setTime(d);
 			r.shipDay = c.get(Calendar.DAY_OF_WEEK)-1;
@@ -302,14 +308,15 @@ public class ShipmentDataDb {
 		st.setTime(14, r.totalServiceTime);
 		st.setTime(15, r.totalTravelTime);
 		st.setString(16, r.equipSize);
-		st.setString(17, r.orderN);
-		st.setString(18, r.orderType);
-		st.setString(19, r.lw);
-		st.setDouble(20, r.pallets);
-		st.setDouble(21, r.units);
-		st.setDouble(22, r.weight);
-		st.setDouble(23, r.cube);
-		st.setString(24, userFile);
+		st.setString(17, r.addKey);
+		st.setString(18, r.orderN);
+		st.setString(19, r.orderType);
+		st.setString(20, r.lw);
+		st.setDouble(21, r.pallets);
+		st.setDouble(22, r.units);
+		st.setDouble(23, r.weight);
+		st.setDouble(24, r.cube);
+		st.setString(25, userFile);
 		st.registerOutParameter(1, Types.BIGINT);
 		try {
 			st.execute();
@@ -375,7 +382,7 @@ public class ShipmentDataDb {
 	private static class Key {
 		private int storeN;
 		private Date shipDate;
-		private String cmdty, dc;
+		private String cmdty, dc, addKey;
 	}
 	private static class Row {
 		private long n;
@@ -383,7 +390,7 @@ public class ShipmentDataDb {
 		private Date shipDate;
 		private Time dcDepartTime, prevTravelTime, arrivalTime, serviceTime,
 			totalServiceTime, totalTravelTime;
-		private String cmdty, routeN, stopN, dc, equipSize, orderN, orderType, lw;
+		private String cmdty, routeN, stopN, dc, equipSize, orderN, orderType, lw, addKey;
 		private double pallets, units, weight, cube;
 	}
 	private static class UpExtFilter implements FileFilter {

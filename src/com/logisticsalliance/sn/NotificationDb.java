@@ -37,7 +37,7 @@ public class NotificationDb {
 	private final static String SQL_SEL_DELIVERIES =
 		"SELECT " +
 		"sd.store_n, sd.cmdty, dc, sd.ship_date, sd.del_date, route_n, arrival_time, service_time," +
-		"order_n, pallets, del_time_from, del_time_to, province, del_carrier, target_open," +
+		"add_key, order_n, pallets, del_time_from, del_time_to, province, del_carrier, target_open," +
 		"sd.first_user_file, sd.next_user_file, rno.first_user_file, rno.next_user_file," +
 		"sts.first_user_file, sts.next_user_file, sts.ship_date " +
 		//",TIMESTAMP(sd.del_date,del_time_from) AS del_dateTime " +
@@ -56,7 +56,7 @@ public class NotificationDb {
 		"rno.lw NOT IN ('40','45','50') " +
 
 		"ORDER BY " +
-		"sd.store_n,sts.del_time_from,sd.cmdty",
+		"sd.store_n,sts.del_time_from,add_key,sd.cmdty",
 
 		SQL_NOW = "SELECT CURRENT_TIMESTAMP FROM SYSIBM.DUAL",
 		SQL_SEL_ENVR = "SELECT time_store_notified FROM la.henvr",
@@ -166,6 +166,13 @@ public class NotificationDb {
 		}
 		return null;
 	}
+	private static DeliveryNote getNote(int storeN, String addKey, Time delTimeFrom) {
+		DeliveryNote dn = new DeliveryNote();
+		dn.storeN = storeN;
+		dn.addKey = addKey;
+		dn.delTimeFrom = delTimeFrom;
+		return dn;
+	}
 	private static Session select(PreparedStatement st, Timestamp t, Session s, EmailSent es,
 		HashSet<Integer> storeSubset, boolean onlyTestStoresToRpt) throws Exception {
 		Timestamp t0 = new Timestamp(t.getTime()-1800000);// less 30 minutes
@@ -190,21 +197,19 @@ public class NotificationDb {
 				}
 				continue;
 			}
-			Time delTimeFrom = rs.getTime(11);
+			String addKey = rs.getString(9).trim();
+			Time delTimeFrom = rs.getTime(12);
 			if (dn == null) {
-				dn = new DeliveryNote();
-				dn.storeN = storeN;
-				dn.delTimeFrom = delTimeFrom;
+				dn = getNote(storeN, addKey, delTimeFrom);
 			}
-			else if (storeN != dn.storeN || !delTimeFrom.equals(dn.delTimeFrom)) {
+			else if (storeN != dn.storeN || !delTimeFrom.equals(dn.delTimeFrom) ||
+				!addKey.equals(dn.addKey)) {
 				add(al, dn);
 				m.clear();
-				dn = new DeliveryNote();
-				dn.storeN = storeN;
-				dn.delTimeFrom = delTimeFrom;
+				dn = getNote(storeN, addKey, delTimeFrom);
 				di = null;
 			}
-			Date dsShipDate = rs.getDate(22);
+			Date dsShipDate = rs.getDate(23);
 			Time arrivalTime = rs.getTime(7);
 			Time serviceTime = rs.getTime(8);
 			String cmdty = rs.getString(2).toUpperCase();
@@ -214,7 +219,7 @@ public class NotificationDb {
 			}
 			di = new DeliveryItem();
 			di.cmdty = cmdty;
-			di.orderN = rs.getString(9);
+			di.orderN = rs.getString(10);
 			di.dsShipDate = dsShipDate;
 
 			if (addItem(m, dn, di)) {
@@ -225,22 +230,22 @@ public class NotificationDb {
 					dn.routeN = rs.getString(6);
 					dn.arrivalTime = arrivalTime;
 					dn.serviceTime = serviceTime;
-					dn.delTimeTo = rs.getTime(12);
-					dn.province = rs.getString(13);
-					dn.firstUserFile = rs.getString(16);
-					String nuf = rs.getString(17);
+					dn.delTimeTo = rs.getTime(13);
+					dn.province = rs.getString(14);
+					dn.firstUserFile = rs.getString(17);
+					String nuf = rs.getString(18);
 					if (!dn.firstUserFile.equals(nuf)) { dn.nextUserFile = nuf;}
 				}
 				if (dn.delCarrier == null) {
-					dn.delCarrier = rs.getString(14);
-					dn.targetOpen = rs.getTime(15);
+					dn.delCarrier = rs.getString(15);
+					dn.targetOpen = rs.getTime(16);
 				}
-				di.pallets = rs.getDouble(10);
-				di.firstUserFile = rs.getString(18);
-				String nuf = rs.getString(19);
+				di.pallets = rs.getDouble(11);
+				di.firstUserFile = rs.getString(19);
+				String nuf = rs.getString(20);
 				if (!di.firstUserFile.equals(nuf)) { di.nextUserFile = nuf;}
-				di.dsFirstUserFile = rs.getString(20);
-				nuf = rs.getString(21);
+				di.dsFirstUserFile = rs.getString(21);
+				nuf = rs.getString(22);
 				if (!di.dsFirstUserFile.equals(nuf)) { di.dsNextUserFile = nuf;}
 			}
 			if (!rs.next()) {
