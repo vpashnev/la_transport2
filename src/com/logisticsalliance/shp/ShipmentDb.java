@@ -11,7 +11,9 @@ import javax.mail.Session;
 
 import org.apache.log4j.Logger;
 
+import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
+import com.logisticsalliance.general.ScheduledWorker;
 import com.logisticsalliance.general.ScheduledWorker.EmailSent;
 import com.logisticsalliance.sql.ConnectFactory;
 import com.logisticsalliance.sql.ConnectFactory1;
@@ -28,13 +30,13 @@ public class ShipmentDb {
 
 	private static Logger log = Logger.getLogger(ShipmentDb.class);
 
-	private static final String SQL_SEL_DEL =
+	private static String SQL_SEL_DEL =
 		"SELECT " +
-		"sd.store_n, 'FS', sd.ship_date, sd.del_date, route_n, stop_n, dc," +
+		"sd.store_n, sd.cmdty, sd.ship_date, sd.del_date, route_n, stop_n, dc, add_key," +
 		"dc_depart_time, prev_distance, prev_travel_time, arrival_time, service_time," +
 		"total_service_time, total_travel_time, equip_size," +
 		"order_n, pallets, units, weight, cube," +
-		"spec_instructs, lh_carrier, lh_service, del_carrier, del_service," +
+		"spec_instructs, lh_carrier_id, lh_service, del_carrier_id, del_service," +
 		"sd.first_user_file, sd.next_user_file, rno.first_user_file, rno.next_user_file " +
 
 		"FROM " +
@@ -44,31 +46,12 @@ public class ShipmentDb {
 
 		"WHERE " +
 		"ship_n=sd.n AND sp.n=sd.store_n AND " +
-		"rno.lw NOT IN ('40','45','50') AND " +
-		"sd.cmdty IN ('DCB','DCV') " +
-
-		"UNION ALL " +
-			
-		"SELECT " +
-		"sd.store_n, sd.cmdty, sd.ship_date, sd.del_date, route_n, stop_n, dc," +
-		"dc_depart_time, prev_distance, prev_travel_time, arrival_time, service_time," +
-		"total_service_time, total_travel_time, equip_size," +
-		"order_n, pallets, units, weight, cube," +
-		"spec_instructs, lh_carrier, lh_service, del_carrier, del_service," +
-		"sd.first_user_file, sd.next_user_file, rno.first_user_file, rno.next_user_file " +
-
-		"FROM " +
-		"la.hship_data sd LEFT JOIN la.hcarrier_schedule cs ON " +
-		"cs.store_n=sd.store_n AND cs.cmdty=sd.cmdty AND cs.del_day=DAYOFWEEK(sd.del_date)-1," +
-		"la.hrn_order rno,la.hstore_profile sp " +
-
-		"WHERE " +
-		"ship_n=sd.n AND sp.n=sd.store_n AND " +
-		"rno.lw NOT IN ('40','45','50') AND " +
-		"sd.cmdty NOT IN ('DCB','DCV') " +
+		"rno.lw NOT IN (" +CommonConstants.RX_LW+") " +
+		(ScheduledWorker.shipQryCarriers == null ? "" : "AND cs.del_carrier_id NOT IN (" +
+		ScheduledWorker.shipQryCarriers+") ") +
 
 		"ORDER BY " +
-		"1,2,3,7";
+		"1,2,3,7,8";
 
 	private static HashSet<DsKey> carriersNotFound = new HashSet<DsKey>();
 
@@ -80,9 +63,9 @@ public class ShipmentDb {
 		Session s = null;
 		Connection con = ConnectFactory1.one().getConnection();
 		try {
-			PreparedStatement delSt = con.prepareStatement(SQL_SEL_DEL);
-			s = select(delSt, s, es, storeSubset, onlyTestStoresToRpt);
-			delSt.close();
+			PreparedStatement st = con.prepareStatement(SQL_SEL_DEL);
+			s = select(st, s, es, storeSubset, onlyTestStoresToRpt);
+			st.close();
 		}
 		catch (Exception ex) {
 			ex.printStackTrace();
@@ -99,7 +82,7 @@ public class ShipmentDb {
 			rs.close(); return s;
 		}
 		int storeN;
-		String cmdty, dc;
+		String cmdty, dc, addKey;
 		Date shipDate;
 		ShipmentData sd = null;
 		ShipmentItem si = null;
@@ -108,8 +91,8 @@ public class ShipmentDb {
 			storeN = rs.getInt(1);
 			if (onlyTestStoresToRpt && !storeSubset.contains(storeN)) {
 				if (!rs.next()) {
-					if (sd != null) { addData(al, sd);}
 					rs.close();
+					if (sd != null) { addData(al, sd);}
 					break;
 				}
 				continue;
@@ -117,53 +100,54 @@ public class ShipmentDb {
 			cmdty = rs.getString(2);
 			shipDate = rs.getDate(3);
 			dc = rs.getString(7);
+			addKey = rs.getString(8);
 			if (sd == null) {
-				sd = newData(storeN, cmdty, dc, shipDate);
+				sd = newData(storeN, cmdty, dc, addKey, shipDate);
 			}
 			else if (storeN != sd.storeN || !cmdty.equals(sd.cmdty) ||
-				!shipDate.equals(sd.shipDate) || !dc.equals(sd.dc)) {
+				!shipDate.equals(sd.shipDate) || !dc.equals(sd.dc) || !addKey.equals(sd.addKey)) {
 				addData(al, sd);
-				sd = newData(storeN, cmdty, dc, shipDate);
+				sd = newData(storeN, cmdty, dc, addKey, shipDate);
 			}
 			if (sd.delDate == null) {
 				sd.delDate = rs.getDate(4);
 				sd.routeN = rs.getString(5);
 				sd.stopN = rs.getString(6);
-				sd.dcDepartTime = rs.getTime(8);
-				sd.prevDistance = rs.getInt(9);
-				sd.prevTravelTime = rs.getTime(10);
-				sd.arrivalTime = rs.getTime(11);
-				sd.serviceTime = rs.getTime(12);
-				sd.totalServiceTime = rs.getTime(13);
-				sd.totalTravelTime = rs.getTime(14);
-				sd.equipSize = rs.getString(15);
-				sd.specInstructs = rs.getString(21);
-				sd.firstUserFile = rs.getString(26);
-				String nuf = rs.getString(27);
+				sd.dcDepartTime = rs.getTime(9);
+				sd.prevDistance = rs.getInt(10);
+				sd.prevTravelTime = rs.getTime(11);
+				sd.arrivalTime = rs.getTime(12);
+				sd.serviceTime = rs.getTime(13);
+				sd.totalServiceTime = rs.getTime(14);
+				sd.totalTravelTime = rs.getTime(15);
+				sd.equipSize = rs.getString(16);
+				sd.specInstructs = rs.getString(22);
+				sd.firstUserFile = rs.getString(27);
+				String nuf = rs.getString(28);
 				if (!sd.firstUserFile.equals(nuf)) { sd.nextUserFile = nuf;}
 			}
 			if (sd.lhCarrier == null) {
-				sd.lhCarrier = rs.getString(22);
-				sd.lhService = rs.getString(23);
+				sd.lhCarrier = rs.getString(23);
+				sd.lhService = rs.getString(24);
 			}
 			if (sd.delCarrier == null) {
-				sd.delCarrier = rs.getString(24);
-				sd.delService = rs.getString(25);
+				sd.delCarrier = rs.getString(25);
+				sd.delService = rs.getString(26);
 			}
 			si = new ShipmentItem();
-			si.orderN = rs.getString(16);
+			si.orderN = rs.getString(17);
 			si.lw = si.orderN.substring(2, 4);
-			si.pallets = rs.getDouble(17);
-			si.units = rs.getDouble(18);
-			si.weight = rs.getDouble(19);
-			si.cube = rs.getDouble(20);
-			si.firstUserFile = rs.getString(28);
-			String nuf = rs.getString(29);
+			si.pallets = rs.getDouble(18);
+			si.units = rs.getDouble(19);
+			si.weight = rs.getDouble(20);
+			si.cube = rs.getDouble(21);
+			si.firstUserFile = rs.getString(29);
+			String nuf = rs.getString(30);
 			if (!si.firstUserFile.equals(nuf)) { si.nextUserFile = nuf;}
 			sd.items.add(si);
 			if (!rs.next()) {
-				addData(al, sd);
 				rs.close();
+				addData(al, sd);
 				break;
 			}
 		}
@@ -172,21 +156,23 @@ public class ShipmentDb {
 		}
 		return s;
 	}
-	private static ShipmentData newData(int storeN, String cmdty, String dc, Date shipDate) {
+	private static ShipmentData newData(int storeN, String cmdty,
+		String dc, String addKey, Date shipDate) {
 		ShipmentData sd = new ShipmentData();
 		sd.storeN = storeN;
 		sd.cmdty = cmdty;
 		sd.shipDate = shipDate;
 		sd.dc = dc;
+		sd.addKey = dc;
 		return sd;
 	}
 	private static void addData(ArrayList<ShipmentData> al, ShipmentData sd) {
 		if (!sd.cmdty.equals("DCX")) {
 			if (sd.delCarrier == null && sd.lhCarrier == null) {
 				int dow = SupportTime.getDayOfWeek(sd.delDate);
-				if (carriersNotFound.add(new DsKey(sd.storeN, sd.cmdty, dow))) {
-					log.error("Carrier not found: "+sd.storeN+", "+
-						sd.cmdty+", "+SupportTime.getDayOfWeek(dow));
+				DsKey k = new DsKey(sd.storeN, sd.cmdty, dow);
+				if (carriersNotFound.add(k)) {
+					log.error("Carrier not found: "+k);
 				}
 			}
 		}

@@ -14,6 +14,7 @@ import com.logisticsalliance.shp.ShipmentDb;
 import com.logisticsalliance.sn.NotificationDb;
 import com.logisticsalliance.sql.ConnectFactory;
 import com.logisticsalliance.sql.ConnectFactory1;
+import com.logisticsalliance.sql.SqlSupport;
 import com.logisticsalliance.tt.TtTableDb;
 import com.logisticsalliance.util.SupportTime;
 
@@ -26,6 +27,8 @@ import com.logisticsalliance.util.SupportTime;
 public class ScheduledWorker implements Runnable {
 
 	private static Logger log = Logger.getLogger(ScheduledWorker.class);
+	
+	public static String shipQryCarriers;
 
 	private File srcDir;
 	private String dbPassword, dbPasswordI5;
@@ -57,6 +60,7 @@ public class ScheduledWorker implements Runnable {
 		localDcMap = localDCs;
 		emailReports = mr;
 		rnCols = rcs;
+		shipQryCarriers = getValue(appProps, "shipQryCarriers");
 	}
 
 	File getSrcDir() {
@@ -145,7 +149,7 @@ public class ScheduledWorker implements Runnable {
 				}
 
 				//Make daily reports
-				Calendar c = Calendar.getInstance();
+				Calendar c = SqlSupport.getDb2CurrentTime();
 				int h = c.get(Calendar.HOUR_OF_DAY);
 				if (emailSent.rnFileListTo != null && h == 21 && h != curHour) {
 					emailReports.sendRnFileList(emailSent);

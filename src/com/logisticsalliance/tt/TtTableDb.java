@@ -11,6 +11,7 @@ import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
+import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
 import com.logisticsalliance.sql.ConnectFactory;
 import com.logisticsalliance.sql.ConnectFactory1;
@@ -34,18 +35,18 @@ public class TtTableDb {
 		"VALUES ('10','PLAN','10','PLAN',?,?,?,?,?,?,?,?,?,?,?)",
 
 		SQL_UPD =
-		"UPDATE OS61LXDTA.OSPDLVS SET dvdlvt=?,dvroute=?,dvstop#=?,dvetato=?,dvetatc=?," +
-		"dvcar=? WHERE dvstore#=? AND dvcom=? AND dvdc=? AND dvshpd=? AND dvdlvd=?",
+		"UPDATE OS61LXDTA.OSPDLVS SET dvdlvd=?,dvdlvt=?,dvroute=?,dvstop#=?,dvetato=?," +
+		"dvetatc=?,dvcar=? WHERE dvstore#=? AND dvcom=? AND dvdc=? AND dvshpd=?",
 
 		SQL_SEL_DELIVERIES =
 		"SELECT DISTINCT " +
 		"sd.store_n, sd.cmdty, dc, sd.ship_date, sd.del_date, arrival_time, route_n, stop_n," +
-		"del_time_from, del_time_to, del_carrier, target_open, sts.ship_date " +
+		"del_time_from, del_time_to, del_carrier_id, target_open, sts.ship_date " +
 
 		"FROM " +
 		"la.hship_data sd LEFT JOIN la.hcarrier_schedule cs ON " +
 		"cs.store_n=sd.store_n AND (sd.cmdty='DCX' AND (cs.cmdty='DCB' OR cs.cmdty='DCV') OR " +
-		"sd.cmdty<>'DCX' AND cs.cmdty=sd.cmdty) AND  cs.del_day=DAYOFWEEK(sd.del_date)-1," +
+		"sd.cmdty<>'DCX' AND cs.cmdty=sd.cmdty) AND cs.del_day=DAYOFWEEK(sd.del_date)-1," +
 		"la.hstore_schedule sts " +
 
 		"WHERE " +
@@ -53,7 +54,7 @@ public class TtTableDb {
 		"(sts.ship_date IS NOT NULL AND sts.ship_date=sd.ship_date OR " +
 		"sts.ship_date IS NULL AND sts.ship_day=DAYOFWEEK(sd.ship_date)-1) AND " +
 		"tt_table IS NOT NULL "+
-		"AND sd.ship_date>'2013-10-02' "+
+		"AND sd.ship_date>'2013-10-10' "+
 
 		"ORDER BY " +
 		"sd.store_n,sd.cmdty,dc,sd.ship_date",
@@ -141,18 +142,18 @@ public class TtTableDb {
 	private static boolean addRow(Row r) {
 		int dow = SupportTime.getDayOfWeek(r.delDate);
 		if (r.delCarrier == null) {
-			if (carriersNotFound.add(new DsKey(r.storeN, r.cmdty, dow))) {
+			DsKey k = new DsKey(r.storeN, r.cmdty, dow);
+			if (carriersNotFound.add(k)) {
 				String type = r.dsShipDate == null ? "regular" : "holidays";
-				log.error("Carrier not found (" + type + "): "+r.storeN+", "+
-					r.cmdty+", "+SupportTime.getDayOfWeek(dow));
+				log.error("Carrier not found (" + type + "): "+k);
 			}
 			//return false;
 			r.delCarrier = "";
 		}
 		else { r.delCarrier = r.delCarrier.trim();}
 
-		if (!"CCS".equalsIgnoreCase(r.delCarrier) && !"C.C".equalsIgnoreCase(r.delCarrier) ||
-			"DCF".equalsIgnoreCase(r.cmdty)) {
+		if (!CommonConstants.CCS.equalsIgnoreCase(r.delCarrier) ||
+			CommonConstants.DCF.equalsIgnoreCase(r.cmdty)) {
 			if (r.targetOpen == null) {
 				log.error("Torget open not defined : "+r.delCarrier+
 					", "+r.storeN+", "+r.cmdty+", "+dow);
@@ -166,28 +167,28 @@ public class TtTableDb {
 		ArrayList<Row> al) throws Exception {
 		for (Iterator<Row> it = al.iterator(); it.hasNext();) {
 			Row r = it.next();
-			upd.setInt(1, getTime(r.arrivalTime));
-			upd.setString(2, r.routeN);
-			upd.setString(3, r.stopN);
-			upd.setInt(4, getTime(r.delTimeFrom));
-			upd.setInt(5, getTime(r.delTimeTo));
+			upd.setDate(1, r.delDate);
+			upd.setInt(2, getTime(r.arrivalTime));
+			upd.setString(3, r.routeN);
+			upd.setString(4, r.stopN);
+			upd.setInt(5, getTime(r.delTimeFrom));
+			upd.setInt(6, getTime(r.delTimeTo));
 			if (r.delCarrier != null && r.delCarrier.length() > 8) {
 				r.delCarrier = r.delCarrier.substring(0, 8);
 			}
-			upd.setString(6, r.delCarrier);
-			upd.setInt(7, r.storeN);
-			upd.setString(8, r.cmdty);
-			upd.setString(9, r.dc);
-			upd.setDate(10, r.shipDate);
-			upd.setDate(11, r.delDate);
+			upd.setString(7, r.delCarrier);
+			upd.setInt(8, r.storeN);
+			upd.setString(9, r.cmdty);
+			upd.setString(10, r.dc);
+			upd.setDate(11, r.shipDate);
 			if (upd.executeUpdate() != 0) {
 				continue;
 			}
 			ins.setInt(1, r.storeN);
 			ins.setString(2, r.cmdty);
 			ins.setString(3, r.dc);
-			ins.setDate(4, r.delDate);
-			ins.setDate(5, r.shipDate);
+			ins.setDate(4, r.shipDate);
+			ins.setDate(5, r.delDate);
 			ins.setInt(6, getTime(r.arrivalTime));
 			ins.setString(7, r.routeN);
 			ins.setString(8, r.stopN);

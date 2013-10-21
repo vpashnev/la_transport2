@@ -17,10 +17,12 @@ import javax.mail.Session;
 
 import org.apache.log4j.Logger;
 
+import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
 import com.logisticsalliance.general.ScheduledWorker.EmailSent;
 import com.logisticsalliance.sql.ConnectFactory;
 import com.logisticsalliance.sql.ConnectFactory1;
+import com.logisticsalliance.sql.SqlSupport;
 import com.logisticsalliance.util.SupportTime;
 
 /**
@@ -34,7 +36,7 @@ public class NotificationDb {
 
 	private static Logger log = Logger.getLogger(NotificationDb.class);
 
-	private final static String SQL_SEL_DELIVERIES =
+	private static String SQL_SEL_DELIVERIES =
 		"SELECT " +
 		"sd.store_n, sd.cmdty, dc, sd.ship_date, sd.del_date, route_n, arrival_time, service_time," +
 		"add_key, order_n, pallets, del_time_from, del_time_to, province, del_carrier, target_open," +
@@ -53,17 +55,17 @@ public class NotificationDb {
 		"(sts.ship_date IS NOT NULL AND sts.ship_date=sd.ship_date OR " +
 		"sts.ship_date IS NULL AND sts.ship_day=DAYOFWEEK(sd.ship_date)-1) AND " +
 		"TIMESTAMP(sd.del_date,del_time_from)>=? AND TIMESTAMP(sd.del_date,del_time_from)<? AND " +
-		"rno.lw NOT IN ('40','45','50') " +
+		"rno.lw NOT IN (" +CommonConstants.RX_LW+") " +
 
 		"ORDER BY " +
-		"sd.store_n,sts.del_time_from,add_key,sd.cmdty",
+		"sd.store_n,sts.del_time_from,add_key,sd.cmdty";
 
-		SQL_NOW = "SELECT CURRENT_TIMESTAMP FROM SYSIBM.DUAL",
+	private final static String
 		SQL_SEL_ENVR = "SELECT time_store_notified FROM la.henvr",
 		SQL_INS_ENVR = "INSERT INTO la.henvr (time_store_notified) VALUES (?)",
 		SQL_UPD_ENVR = "UPDATE la.henvr SET time_store_notified=?",
 				
-		DCF = "DCF", DCX = "DCX", CCS = "Canada Cartage Systems", TBD ="TBD";
+		DCX = "DCX", CCS = "Canada Cartage Systems", TBD ="TBD";
 
 	private final static DeliveryNote.Cmdty DCV_CMDTY = new DeliveryNote.Cmdty("DCV", null, null, null);
 
@@ -93,13 +95,7 @@ public class NotificationDb {
 		try {
 			PreparedStatement timeSt, selDelSt = con.prepareStatement(SQL_SEL_DELIVERIES);
 			if (t1 == null) {
-				timeSt = con1.prepareStatement(SQL_NOW);
-				ResultSet rs = timeSt.executeQuery();
-				if (rs.next()) {
-					t1 = rs.getTimestamp(1);
-				}
-				else { t1 = new Timestamp(System.currentTimeMillis());}
-				timeSt.close();
+				t1 = SqlSupport.getDb2CurrentTime(con1);
 			}
 			while (true) {
 				t0 = getNextTime(con1, t0, t1, timeAhead, timeAheadInMins);
@@ -289,10 +285,10 @@ public class NotificationDb {
 			int dow = SupportTime.getDayOfWeek(dn.delDate);
 			for (Iterator<DeliveryNote.Cmdty> it = dn.cmdtyList.iterator(); it.hasNext();) {
 				DeliveryNote.Cmdty c = it.next();
-				if (!c.cmdty.equals(DCX) && carriersNotFound.add(new DsKey(dn.storeN, c.cmdty, dow))) {
+				DsKey k = new DsKey(dn.storeN, c.cmdty, dow);
+				if (!c.cmdty.equals(DCX) && carriersNotFound.add(k)) {
 					String type = c.dsShipDate == null ? "regular" : "holidays";
-					log.error("Carrier not found (" + type + "): "+dn.storeN+", "+
-						c.cmdty+", "+SupportTime.getDayOfWeek(dow));
+					log.error("Carrier not found (" + type + "): "+k);
 				}
 			}
 		}
@@ -305,7 +301,7 @@ public class NotificationDb {
 		}
 		else { dn.delCarrier = dn.delCarrier.trim();}
 
-		if (dn.cmdtyList.size() == 1 && DCF.equals(dn.cmdtyList.get(0).cmdty)) {
+		if (dn.cmdtyList.size() == 1 && CommonConstants.DCF.equals(dn.cmdtyList.get(0).cmdty)) {
 			dn.arrivalTime = null;
 			dn.serviceTime = null;
 		}

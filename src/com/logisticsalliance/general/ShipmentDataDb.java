@@ -87,6 +87,7 @@ public class ShipmentDataDb {
 	static void updateDailyRnFiles(Connection con,
 		ArrayList<String> rnFiles) throws Exception {
 		if (rnFiles == null) {
+			dailyRnFiles.clear();
 			try {
 				PreparedStatement st = con.prepareStatement(SQL_UPDATE_DAILY_RN_FILES);
 				st.setNull(1, Types.VARCHAR);
@@ -140,10 +141,11 @@ public class ShipmentDataDb {
 					rnFiles.add(r.dc+" - "+f.getName());
 				}
 				cleanEvt(st1, evtMap);
-				updateDailyRnFiles(con, rnFiles);
 				con.commit();
 				st.close(); st1.close();
 				ScheduledWorker.move(fs, rnaFolder);
+				updateDailyRnFiles(con, rnFiles);
+				con.commit();
 			}
 		}
 		catch (Exception ex) {
@@ -225,8 +227,8 @@ public class ShipmentDataDb {
 		r.lw = getCellValue(line, RnColumns.COMMODITY, rnCols);
 		checkDcOrLw(r.lw);
 		r.routeN = getCellValue(line, RnColumns.ROUTE_N, rnCols);
-		int rn = Integer.parseInt(r.routeN);
-		if (rn >= 10000 && rn < 10001) {
+		int routeN = Integer.parseInt(r.routeN);
+		if (routeN >= 10000 && routeN < 10001) {
 			r.addKey = "EVT";
 		}
 		else { r.addKey = " ";}
@@ -242,7 +244,7 @@ public class ShipmentDataDb {
 		}
 		r.orderN = v;
 		r.orderType = getCellValue(line, RnColumns.ORDER_TYPE, rnCols);
-		r.cmdty = getCommodity(r.dc, r.lw, r.orderType, r.routeN);
+		r.cmdty = getCommodity(r.dc, r.lw, r.orderType, routeN);
 		r.pallets = getQty(line, RnColumns.PALLETS, rnCols);
 		r.units = getQty(line, RnColumns.UNITS, rnCols);
 		r.weight = getQty(line, RnColumns.WEIGHT, rnCols);
@@ -341,9 +343,8 @@ public class ShipmentDataDb {
 		}
 		r.n = st.getLong(1);
 	}
-	private static String getCommodity(String dc, String lw, String ordType, String routeN) {
-		int rn = Integer.parseInt(routeN);
-		if (ordType.equals("S") || rn >= 8000 && rn < 9000) {
+	private static String getCommodity(String dc, String lw, String ordType, int routeN) {
+		if (ordType.equals("S") || routeN >= 8000 && routeN < 9000) {
 			return "EVT";
 		}
 		switch (lw) {

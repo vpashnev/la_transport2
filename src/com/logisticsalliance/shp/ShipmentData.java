@@ -28,7 +28,7 @@ public class ShipmentData implements Serializable {
 	int storeN, prevDistance;
 	Date shipDate, delDate;
 	Time dcDepartTime, prevTravelTime, arrivalTime, serviceTime, totalServiceTime, totalTravelTime;
-	String cmdty, routeN, stopN, dc, equipSize, lhCarrier, lhService, delCarrier, delService,
+	String cmdty, routeN, stopN, dc, addKey, equipSize, lhCarrier, lhService, delCarrier, delService,
 		specInstructs, firstUserFile, nextUserFile;
 	ArrayList<ShipmentItem> items = new ArrayList<ShipmentItem>(8);
 
