@@ -1,0 +1,149 @@
+CREATE TABLE la.hstore_profile (
+  n INT NOT NULL,
+  region VARCHAR(6),
+  address VARCHAR(100),
+  city VARCHAR(30),
+  province CHAR(2),
+  post_code VARCHAR(7),
+  local_dc CHAR(2) DEFAULT '  ' NOT NULL,
+  status VARCHAR(10) DEFAULT 'OPEN' NOT NULL,
+  spec_instructs VARCHAR(50),
+  first_user_file VARCHAR(50) NOT NULL,
+  next_user_file VARCHAR(50) NOT NULL,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT chk_hstore_profile_n CHECK (n>0),
+  CONSTRAINT pk_hstore_profile PRIMARY KEY (n)
+) ;
+CREATE TABLE la.hship_data (
+  n BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
+  store_n INT NOT NULL,
+  cmdty VARCHAR(4) NOT NULL,
+  ship_date DATE NOT NULL,
+  del_date DATE NOT NULL,
+  route_n VARCHAR(6) NOT NULL,
+  stop_n VARCHAR(3) NOT NULL,
+  dc CHAR(2) NOT NULL,
+  dc_depart_time TIME NOT NULL,
+  prev_distance INT NOT NULL,
+  prev_travel_time TIME NOT NULL,
+  arrival_time TIME NOT NULL,
+  service_time TIME NOT NULL,
+  total_service_time TIME NOT NULL,
+  total_travel_time TIME NOT NULL,
+  equip_size VARCHAR(15),
+  add_key VARCHAR(4) DEFAULT ' ' NOT NULL,
+  holiday_flag CHAR(1),
+  tt_table CHAR(1) DEFAULT '1',
+  first_user_file VARCHAR(50) NOT NULL,
+  next_user_file VARCHAR(50) NOT NULL,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT fk_hshp_data_store_n FOREIGN KEY (store_n)
+  REFERENCES la.hstore_profile (n),
+  CONSTRAINT pk_hshp_data PRIMARY KEY (n)
+) ;
+CREATE TABLE la.hrn_order (
+  n BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
+  ship_n BIGINT NOT NULL,
+  order_n VARCHAR(20) NOT NULL,
+  order_type VARCHAR(2) NOT NULL,
+  lw CHAR(2) NOT NULL,
+  pallets FLOAT DEFAULT 0 NOT NULL,
+  units FLOAT DEFAULT 0 NOT NULL,
+  weight FLOAT DEFAULT 0 NOT NULL,
+  cube FLOAT DEFAULT 0 NOT NULL,
+  first_user_file VARCHAR(50) NOT NULL,
+  next_user_file VARCHAR(50) NOT NULL,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT fk_hrn_order_ship_n FOREIGN KEY (ship_n)
+  REFERENCES la.hship_data (n),
+  CONSTRAINT pk_hrn_order PRIMARY KEY (n)
+) ;
+CREATE TABLE la.hstore_schedule (
+  n BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
+  store_n INT NOT NULL,
+  cmdty VARCHAR(4) NOT NULL,
+  ship_day INT NOT NULL,
+  del_day INT NOT NULL,
+  del_time_from TIME NOT NULL,
+  del_time_to TIME NOT NULL,
+  del_week INT NOT NULL,
+  description VARCHAR(50),
+  dallas_day INT,
+  dallas_date DATE,
+  ship_date DATE,
+  del_date DATE,
+  in_use CHAR(1) DEFAULT '1',
+  first_user_file VARCHAR(50) NOT NULL,
+  next_user_file VARCHAR(50) NOT NULL,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT fk_hstore_schedule_store_n FOREIGN KEY (store_n)
+  REFERENCES la.hstore_profile (n),
+  CONSTRAINT chk_hstore_schedule_ship_day CHECK (ship_day>=0 AND ship_day<7),
+  CONSTRAINT chk_hstore_schedule_del_day CHECK (del_day>=0 AND del_day<7),
+  CONSTRAINT chk_hstore_schedule_del_week CHECK (del_week>=0),
+  CONSTRAINT pk_hstore_schedule PRIMARY KEY (n)
+) ;
+CREATE TABLE la.hcarrier_schedule (
+  n BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
+  store_n INT NOT NULL,
+  cmdty VARCHAR(4) NOT NULL,
+  del_day INT NOT NULL,
+  lh_carrier_id VARCHAR(12),
+  lh_carrier VARCHAR(30),
+  lh_service VARCHAR(6),
+  del_carrier_id VARCHAR(12),
+  del_carrier VARCHAR(30),
+  del_service VARCHAR(6),
+  target_open TIME,
+  target_close TIME,
+  first_user_file VARCHAR(50) DEFAULT 'unknown' NOT NULL,
+  next_user_file VARCHAR(50) DEFAULT 'unknown' NOT NULL,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+--  CONSTRAINT fk_hcarrier_schedule_store_n FOREIGN KEY (store_n)
+--  REFERENCES la.hstore_profile (n),
+  CONSTRAINT chk_hcarrier_schedule_del_day CHECK (del_day>=0 AND del_day<7),
+  CONSTRAINT pk_hcarrier_schedule PRIMARY KEY (n)
+) ;
+CREATE UNIQUE INDEX la.hcarrier_schedule_key ON la.hcarrier_schedule (store_n,cmdty,del_day) ;
+
+CREATE TABLE la.henvr (
+  time_store_notified TIMESTAMP,daily_rn_files VARCHAR(1024)
+) ;
+
+CREATE UNIQUE INDEX la.hship_data_key ON la.hship_data (store_n,cmdty,ship_date,dc,add_key) ;
+CREATE UNIQUE INDEX la.hrn_order_key ON la.hrn_order (ship_n,order_n) ;
+CREATE UNIQUE INDEX la.hstore_schedule_key ON la.hstore_schedule (store_n,cmdty,ship_day,ship_date) ;
+CREATE INDEX la.hship_data_tt_table ON la.hship_data (tt_table) ;
+CREATE INDEX la.hstore_schedule_holiday ON la.hstore_schedule (store_n,cmdty,ship_date) ;
+CREATE INDEX la.hstore_schedule_in_use ON la.hstore_schedule (in_use) ;
+
+drop procedure la.update_shipment_data;
+drop procedure la.update_scheduled_delivery;
+drop procedure la.clean_evt;
+drop table la.hstore_schedule;
+drop table la.hrn_order;
+drop table la.hship_data;
+drop table la.hstore_profile;
+drop table la.hcarrier_schedule;
+drop table la.henvr;
+
+db2 -td@ -vf C:\dev\sql\DsProc.txt
+db2 -td@ -vf C:\dev\sql\RnProc.txt
+db2 -td@ -vf C:\dev\sql\EvtProc.txt
+
+db2 CREATE DATABASE myDbase AUTOMATIC STORAGE YES ON C:
+CREATE SCHEMA la AUTHORIZATION db2admin ;
+
+db2 DROP DATABASE myDbase
+
+db2 UPDATE db cfg for mydbase using LOGFILSIZ 10000
+
+db2 connect to mydbase user db2admin
+
+db2 BACKUP DATABASE mydbase ON ALL DBPARTITIONNUMS TO c:\db2\backup
+db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20131024095255 INTO mydbase REPLACE EXISTING
+
+alter table la.hship_data add column add_key VARCHAR(4) DEFAULT ' ' NOT NULL;
+drop index la.hship_data_key;
+
+REORG TABLE la.hship_data;

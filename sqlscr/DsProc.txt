@@ -1,0 +1,79 @@
+CREATE PROCEDURE la.update_scheduled_delivery (
+  store_n1 INT,
+  address1 VARCHAR(100),
+  city1 VARCHAR(30),
+  province1 CHAR(2),
+  post_code1 VARCHAR(7),
+  cmdty1 VARCHAR(4),
+  ship_day1 INT,
+  del_day1 INT,
+  del_time_from1 TIME,
+  del_time_to1 TIME,
+  del_week1 INT,
+  description1 VARCHAR(50),
+  dallas_day1 INT,
+  dallas_date1 DATE,
+  ship_date1 DATE,
+  del_date1 DATE,
+  store_status1 VARCHAR(10),
+  user_file1 VARCHAR(50))
+BEGIN 
+  DECLARE n2 BIGINT;
+  DECLARE store_n2 INT;
+  DECLARE address2 VARCHAR(50);
+  DECLARE city2 VARCHAR(25);
+  DECLARE province2 CHAR(2);
+  DECLARE post_code2 VARCHAR(7);
+  DECLARE cmdty2 VARCHAR(4);
+  DECLARE ship_day2 INT;
+  DECLARE del_day2 INT;
+  DECLARE del_time_from2 TIME;
+  DECLARE del_time_to2 TIME;
+  DECLARE del_week2 INT;
+  DECLARE description2 VARCHAR(25);
+  DECLARE dallas_day2 INT;
+  DECLARE dallas_date2 DATE;
+  DECLARE ship_date2 DATE;
+  DECLARE del_date2 DATE;
+  DECLARE store_status2 VARCHAR(10);
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET n2=0;
+
+  SELECT n,address,city,province,post_code,status,next_user_file
+    INTO n2,address2,city2,province2,post_code2,store_status2
+    FROM la.hstore_profile WHERE n=store_n1;
+  IF n2 = 0 THEN  
+    INSERT INTO la.hstore_profile (n,address,city,province,post_code,status,first_user_file,next_user_file)
+      VALUES (store_n1,address1,city1,province1,post_code1,store_status1,user_file1,user_file1);
+  ELSEIF address1<>address2 OR city1<>city2 OR province1<>province2 OR
+    post_code1<>post_code2 OR store_status1<>store_status2 THEN 
+    UPDATE la.hstore_profile SET address=address1,city=city1,province=province1,
+      post_code=post_code1,status=store_status1,next_user_file=user_file1,
+      update_time=CURRENT_TIMESTAMP WHERE n=store_n1;
+  END IF;
+
+  SELECT n,store_n,cmdty,ship_day,del_day,del_time_from,del_time_to,del_week,
+    description,dallas_day,dallas_date,ship_date,del_date
+    INTO n2,store_n2,cmdty2,ship_day2,del_day2,del_time_from2,del_time_to2,del_week2,
+    description2,dallas_day2,dallas_date2,ship_date2,del_date2
+    FROM la.hstore_schedule WHERE store_n=store_n1 AND ship_day=ship_day1 AND cmdty=cmdty1 AND
+    (ship_date1 IS NULL AND ship_date IS NULL OR ship_date1 IS NOT NULL AND ship_date=ship_date1);
+  IF n2 = 0 THEN
+    INSERT INTO la.hstore_schedule (store_n,cmdty,ship_day,del_day,del_time_from,del_time_to,del_week,
+      description,dallas_day,dallas_date,ship_date,del_date,first_user_file,next_user_file)
+      VALUES (store_n1,cmdty1,ship_day1,del_day1,del_time_from1,del_time_to1,del_week1,
+      description1,dallas_day1,dallas_date1,ship_date1,del_date1,user_file1,user_file1);
+  ELSEIF del_day1<>del_day2 OR del_time_from1<>del_time_from2 OR del_time_to1<>del_time_to2 OR
+    del_week1<>del_week2 OR description1<>description2 OR dallas_day1<>dallas_day2 OR
+    dallas_date1<>dallas_date2 OR ship_date1 IS NULL AND ship_date2 IS NOT NULL OR
+    ship_date1<>ship_date2 OR del_date1 IS NULL AND del_date2 IS NOT NULL OR del_date1<>del_date2 THEN
+    UPDATE la.hstore_schedule SET del_day=del_day1,del_time_from=del_time_from1,del_time_to=del_time_to1,
+      del_week=del_week1,description=description1,dallas_day=dallas_day1,dallas_date=dallas_date1,
+      ship_date=ship_date1,del_date=del_date1,in_use='1',next_user_file=user_file1,
+      update_time=CURRENT_TIMESTAMP WHERE n=n2;
+  ELSE
+    UPDATE la.hstore_schedule SET in_use='1' WHERE n=n2;
+  END IF;
+
+END
+@
+

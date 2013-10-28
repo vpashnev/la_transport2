@@ -1,0 +1,14 @@
+-- change day 2 (TUE) to 3 (WED)
+
+SELECT store_n,ship_day,cmdty,del_day FROM LA.HSTORE_SCHEDULE WHERE store_n = 402 AND (cmdty = 'DCV' OR cmdty = 'EVT') AND ship_date IS NULL;
+SELECT store_n,ship_day,cmdty,del_day FROM LA.HSTORE_SCHEDULE WHERE store_n = 420 AND (cmdty = 'DCV' OR cmdty = 'EVT') AND ship_date IS NULL;
+
+INSERT INTO LA.HSTORE_SCHEDULE
+  (store_n,cmdty,ship_day,del_day,del_time_from,del_time_to,del_week,description,first_user_file,next_user_file)
+  SELECT store_n,cmdty,3,del_day,del_time_from,del_time_to,del_week,description,first_user_file,next_user_file
+  FROM LA.HSTORE_SCHEDULE  WHERE store_n = 402 AND ship_day = 2 AND (cmdty = 'DCV' OR cmdty = 'EVT') AND ship_date IS NULL;
+INSERT INTO LA.HSTORE_SCHEDULE
+  (store_n,cmdty,ship_day,del_day,del_time_from,del_time_to,del_week,description,first_user_file,next_user_file)
+  SELECT store_n,cmdty,3,del_day,del_time_from,del_time_to,del_week,description,first_user_file,next_user_file
+  FROM LA.HSTORE_SCHEDULE  WHERE store_n = 420 AND ship_day = 2 AND (cmdty = 'DCV' OR cmdty = 'EVT') AND ship_date IS NULL;
+commit;

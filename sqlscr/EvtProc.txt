@@ -1,0 +1,23 @@
+CREATE PROCEDURE la.clean_evt (
+  n1 BIGINT,
+  cmdty1 VARCHAR(4))
+BEGIN 
+  DECLARE pallets2 FLOAT;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET pallets2=-1;
+
+  SELECT sum(pallets) INTO pallets2 FROM la.hrn_order WHERE ship_n=n1;
+  IF pallets2 <> -1 THEN
+    IF pallets2 < 4 THEN
+      IF cmdty1 = 'EVT2' THEN
+        DELETE FROM la.hrn_order WHERE ship_n=n1;
+        DELETE FROM la.hship_data WHERE n=n1;
+      END IF;
+    ELSEIF cmdty1 = 'EVT' THEN
+      DELETE FROM la.hrn_order WHERE ship_n=n1;
+      DELETE FROM la.hship_data WHERE n=n1;
+    END IF;
+  END IF;
+
+END
+@
+

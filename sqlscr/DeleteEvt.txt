@@ -1,0 +1,4 @@
+select order_n,update_time from la.hrn_order where substr(ltrim(order_n),5,1) NOT IN ('0','1','2','3','4','5','6','7','8','9');
+delete from la.hrn_order where substr(order_n,1,1) NOT IN ('0','1','2','3','4','5','6','7','8','9');
+select dc,update_time from la.hship_data where substr(ltrim(dc),1,1) NOT IN ('0','1','2','3','4','5','6','7','8','9');
+delete from la.hship_data where substr(dc,1,1) NOT IN ('0','1','2','3','4','5','6','7','8','9');
