@@ -1,10 +1,10 @@
 package com.logisticsalliance.shp;
 
 import java.io.Serializable;
+import java.sql.Date;
 import java.sql.Time;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 
 import com.logisticsalliance.general.RnColumns;
@@ -28,8 +28,8 @@ public class ShipmentData implements Serializable {
 	int storeN, prevDistance;
 	Date shipDate, delDate;
 	Time dcDepartTime, prevTravelTime, arrivalTime, serviceTime, totalServiceTime, totalTravelTime;
-	String cmdty, routeN, stopN, dc, addKey, equipSize, lhCarrier, lhService, delCarrier, delService,
-		specInstructs, firstUserFile, nextUserFile;
+	String cmdty, routeN, stopN, dc, ordN, addKey, equipSize, lhCarrier, lhService,
+		delCarrier, delService, specInstructs, firstUserFile, nextUserFile;
 	ArrayList<ShipmentItem> items = new ArrayList<ShipmentItem>(8);
 
 	double getTotalPallets() {
@@ -92,7 +92,7 @@ public class ShipmentData implements Serializable {
 		tb.addProperty20("delService", delService, 12);
 		tb.addProperty20("User files", firstUserFile+(nextUserFile == null ? "":
 			", modified "+nextUserFile), 80);
-		tb.add('_', 76);
+		tb.add('_', 112);
 		tb.newLine();
 		tb.addCell(RnColumns.ORDER_N, 20, false, false);
 		tb.addCell(RnColumns.LW, 4, false, false);
@@ -101,7 +101,7 @@ public class ShipmentData implements Serializable {
 		tb.addCell(RnColumns.WEIGHT, 12, true, false);
 		tb.addCell(RnColumns.CUBE, 14, true, true);
 		tb.newLine();
-		tb.add('_', 76);
+		tb.add('_', 112);
 		tb.newLine();
 		DecimalFormat sizeFormat = ShipmentDataDb.sizeFormat;
 		for (Iterator<ShipmentItem> it = items.iterator(); it.hasNext();) {
@@ -116,7 +116,7 @@ public class ShipmentData implements Serializable {
 				", modified "+e.nextUserFile), 80, false, true);
 			tb.newLine();
 		}
-		tb.add('_', 76);
+		tb.add('_', 112);
 		tb.newLine();
 		tb.addCell("Total:", 26, false, false);
 		tb.addCell(getTotalPallets(), 8, sizeFormat, false);

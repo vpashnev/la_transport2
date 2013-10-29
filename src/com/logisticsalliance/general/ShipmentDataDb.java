@@ -25,8 +25,9 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.logisticsalliance.io.SupportFile;
-import com.logisticsalliance.sql.ConnectFactory;
-import com.logisticsalliance.sql.ConnectFactory1;
+import com.logisticsalliance.sqla.ConnectFactory;
+import com.logisticsalliance.sqla.ConnectFactory1;
+import com.logisticsalliance.sqla.SqlSupport;
 import com.logisticsalliance.util.SupportTime;
 
 /**
@@ -47,6 +48,8 @@ public class ShipmentDataDb {
 		SQL_READ_DAILY_RN_FILES = "SELECT daily_rn_files FROM la.henvr",
 		SQL_UPDATE_DAILY_RN_FILES = "UPDATE la.henvr SET daily_rn_files=?",
 		SQL_LOCAL_STORES = "SELECT status,n,local_dc from la.hstore_profile";
+
+	static String[] sqlCommands;
 
 	static HashSet<String> dailyRnFiles = new HashSet<String>();
 	static HashSet<Integer> localDcMissing = new HashSet<Integer>();
@@ -144,6 +147,10 @@ public class ShipmentDataDb {
 				con.commit();
 				st.close(); st1.close();
 				ScheduledWorker.move(fs, rnaFolder);
+				if (sqlCommands != null) {
+					SqlSupport.update(con, sqlCommands);
+					con.commit();
+				}
 				updateDailyRnFiles(con, rnFiles);
 				con.commit();
 			}

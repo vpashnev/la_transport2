@@ -40,12 +40,8 @@ public class App {
 		new File(appDir, "log").mkdir();
 		configureLog4j(appDir);
 
-		File f = new File(appDir, "DsScript.sql");
-		if (f.exists()) {
-			String sql = SupportFile.readText(f);
-			StoreScheduleDb.sqlCommands = sql.split("\\ ;");
-		}
-		
+		setSqlCommands(appDir);
+
 		Properties appProps = new Properties();
 		appProps.load(new FileReader(new File(appDir, "app.properties")));
 
@@ -65,8 +61,9 @@ public class App {
 		}
 		EMailReports mr = new EMailReports(appDir);
 		RnColumns rnCols = new RnColumns(appDir);
-		ScheduledWorker sr = new ScheduledWorker(srcDir, dbPwd, dbPwdI5,
-			emReadPwd, emSentPwd, appProps, getLocalDC(appDir), mr, rnCols);
+		File b = new File(appDir, "backup.bat");
+		ScheduledWorker sr = new ScheduledWorker(srcDir, dbPwd, dbPwdI5, emReadPwd, emSentPwd,
+			appProps, getLocalDC(appDir), mr, rnCols, b.exists() ? b.getPath() : null);
 		sr.start();
 		BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
 		String s = null;
@@ -101,6 +98,19 @@ public class App {
 			return m;
 		}
 		return null;
+	}
+
+	private static void setSqlCommands(File appDir) throws Exception {
+		File f = new File(appDir, "DsScript.sql");
+		if (f.exists()) {
+			String sql = SupportFile.readText(f);
+			StoreScheduleDb.sqlCommands = sql.split("\\ ;");
+		}
+		f = new File(appDir, "RnScript.sql");
+		if (f.exists()) {
+			String sql = SupportFile.readText(f);
+			ShipmentDataDb.sqlCommands = sql.split("\\ ;");
+		}
 	}
 
 	static void configureLog4j(File appDir) {

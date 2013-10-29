@@ -1,9 +1,9 @@
 package com.logisticsalliance.general;
 
 import java.io.File;
+import java.sql.Date;
 import java.text.DecimalFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
@@ -12,9 +12,9 @@ import org.apache.log4j.Logger;
 
 import com.logisticsalliance.shp.ShipmentDb;
 import com.logisticsalliance.sn.NotificationDb;
-import com.logisticsalliance.sql.ConnectFactory;
-import com.logisticsalliance.sql.ConnectFactory1;
-import com.logisticsalliance.sql.SqlSupport;
+import com.logisticsalliance.sqla.ConnectFactory;
+import com.logisticsalliance.sqla.ConnectFactory1;
+import com.logisticsalliance.sqla.SqlSupport;
 import com.logisticsalliance.tt.TtTableDb;
 import com.logisticsalliance.util.SupportTime;
 
@@ -31,7 +31,9 @@ public class ScheduledWorker implements Runnable {
 	public static String shipQryCarriers;
 
 	private File srcDir;
-	private String dbPassword, dbPasswordI5;
+	private String dbPassword, dbPasswordI5, backup;
+	private int daysOutCleaning = -1;
+	private Date shipDate;
 	private EmailRead emailRead;
 	private EmailSent emailSent;
 	private EMailReports emailReports;
@@ -46,7 +48,7 @@ public class ScheduledWorker implements Runnable {
 
 	public ScheduledWorker(File srcDirectory, String databasePassword, String databasePasswordI5,
 		String emailReadPassword, String emailSentPassword, Properties appProps,
-		HashMap<Integer,String> localDCs, EMailReports mr, RnColumns rcs) {
+		HashMap<Integer,String> localDCs, EMailReports mr, RnColumns rcs, String backup) {
 		if (!srcDirectory.exists() && !srcDirectory.mkdir()) {
 			throw new IllegalArgumentException("The directory '"+srcDirectory+"' does not exist");
 		}
@@ -61,10 +63,7 @@ public class ScheduledWorker implements Runnable {
 		emailReports = mr;
 		rnCols = rcs;
 		shipQryCarriers = getValue(appProps, "shipQryCarriers");
-	}
-
-	File getSrcDir() {
-		return srcDir;
+		this.backup = backup;
 	}
 
 	@Override
@@ -88,7 +87,9 @@ public class ScheduledWorker implements Runnable {
 			onlyTestStoresToRpt = getValue(appProperties, "onlyTestStoresToRpt"),
 			notifyHoursAhead = getValue(appProperties, "notifyHoursAhead"),
 			notifyStartingTime = getValue(appProperties, "notifyStartingTime"),
-			notifyEndingTime = getValue(appProperties, "notifyEndingTime");
+			notifyEndingTime = getValue(appProperties, "notifyEndingTime"),
+			shipmentDate = getValue(appProperties, "shipmentDate"),
+			daysOutCleaningDB = getValue(appProperties, "daysOutCleaningDB");
 		int nTime = notifyHoursAhead == null ? 30 : Integer.parseInt(notifyHoursAhead);
 		nTime *= SupportTime.HOUR;
 
@@ -99,15 +100,17 @@ public class ScheduledWorker implements Runnable {
 		cf.setUrl(getValue(appProperties, "url"));
 		cf.setUser(getValue(appProperties, "user"));
 		cf.setPassword(dbPassword);
-		TtTableDb.setConnectFactoryI5(new ConnectFactory(
+		ConnectFactory cf1 = new ConnectFactory(
 			getValue(appProperties, "driverI5"),
 			getValue(appProperties, "urlI5"),
 			getValue(appProperties, "userI5"),
 			dbPasswordI5
-		));
+		);
+		ShipmentDb.setConnectFactoryI5(cf1);
+		TtTableDb.setConnectFactoryI5(cf1);
 		while (!stopped) {
 			System.out.println("Data in process..., starting at "+
-				SupportTime.dd_MM_yyyy_HH_mm_Format.format(new Date()));
+				SupportTime.dd_MM_yyyy_HH_mm_Format.format(new java.util.Date()));
 			Thread emgcy = new Thread(emailEmergency);
 			emgcy.setDaemon(true);
 			emgcy.start();
@@ -138,11 +141,6 @@ public class ScheduledWorker implements Runnable {
 					notifyStartingTime = null; notifyEndingTime = null;
 				}
 
-				if (shipments != null) {
-					//Shipments
-					ShipmentDb.process(emailSent, storeSubset, isOnlyTestStoresToRpt);
-				}
-
 				if (ttTable != null) {
 					//ttTable
 					TtTableDb.process();
@@ -158,6 +156,19 @@ public class ScheduledWorker implements Runnable {
 				else if (h != 21) { curHour = h;}
 				if (quickReport != null ||
 					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH)) {
+
+					if (shipDate == null) {
+						shipDate = ShipmentDb.getDate(shipmentDate, c);
+					}
+					if (shipments != null) {
+						//Shipments
+						ShipmentDb.process(shipDate, emailSent);
+					}
+					if (shipmentDate != null) {
+						shipDate = ShipmentDb.getDate(null, c);
+						shipmentDate = null;
+					}
+
 					emailReports.send(emailSent);
 					curDate = c;
 					ShipmentDataDb.updateDailyRnFiles(cf.getConnection(), null);
@@ -165,8 +176,17 @@ public class ScheduledWorker implements Runnable {
 					NotificationDb.clearCarriersNotFound();
 					ShipmentDb.clearCarriersNotFound();
 					TtTableDb.clearCarriersNotFound();
+					quickReport = null;
+					if (backup != null) {
+						Runtime.getRuntime().exec(backup);
+					}
+					if (daysOutCleaningDB != null) {
+						if (daysOutCleaning < 0) {
+							daysOutCleaning = Integer.parseInt(daysOutCleaningDB);
+						}
+						CleanDb.clean(c, daysOutCleaning);
+					}
 				}
-				quickReport = null;
 			}
 			catch (Exception ex) {
 				sleep = true;
@@ -177,7 +197,7 @@ public class ScheduledWorker implements Runnable {
 			sleep = true;
 			try {
 				System.out.println("Idle "+periodInMins+" minutes, starting at "+
-					SupportTime.dd_MM_yyyy_HH_mm_Format.format(new Date()));
+					SupportTime.dd_MM_yyyy_HH_mm_Format.format(new java.util.Date()));
 				System.out.print(">");
 				Thread.sleep(periodInMins*60000);
 			}

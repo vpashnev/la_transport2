@@ -20,9 +20,9 @@ import org.apache.log4j.Logger;
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
 import com.logisticsalliance.general.ScheduledWorker.EmailSent;
-import com.logisticsalliance.sql.ConnectFactory;
-import com.logisticsalliance.sql.ConnectFactory1;
-import com.logisticsalliance.sql.SqlSupport;
+import com.logisticsalliance.sqla.ConnectFactory;
+import com.logisticsalliance.sqla.ConnectFactory1;
+import com.logisticsalliance.sqla.SqlSupport;
 import com.logisticsalliance.util.SupportTime;
 
 /**

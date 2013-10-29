@@ -14,9 +14,9 @@ import java.sql.Types;
 import org.apache.log4j.Logger;
 
 import com.logisticsalliance.io.SupportFile;
-import com.logisticsalliance.sql.ConnectFactory;
-import com.logisticsalliance.sql.ConnectFactory1;
-import com.logisticsalliance.sql.SqlSupport;
+import com.logisticsalliance.sqla.ConnectFactory;
+import com.logisticsalliance.sqla.ConnectFactory1;
+import com.logisticsalliance.sqla.SqlSupport;
 import com.logisticsalliance.util.SupportTime;
 
 /**
@@ -59,12 +59,13 @@ public class StoreScheduleDb {
 					log.debug("Deleted store scheduled deliveries: "+n);
 				}
 				st1.close();
-				if (sqlCommands != null) {
-					SqlSupport.update(con, sqlCommands);
-				}
 				con.commit();
 				st.close();
 				ScheduledWorker.move(fs, dsaFolder);
+				if (sqlCommands != null) {
+					SqlSupport.update(con, sqlCommands);
+					con.commit();
+				}
 			}
 		}
 		catch (Exception ex) {
