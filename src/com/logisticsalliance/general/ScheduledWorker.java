@@ -31,7 +31,7 @@ public class ScheduledWorker implements Runnable {
 	public static String shipQryCarriers;
 
 	private File srcDir;
-	private String dbPassword, dbPasswordI5, backup;
+	private String dbPassword, dbPasswordI5;
 	private int daysOutCleaning = -1;
 	private Date shipDate;
 	private EmailRead emailRead;
@@ -48,7 +48,7 @@ public class ScheduledWorker implements Runnable {
 
 	public ScheduledWorker(File srcDirectory, String databasePassword, String databasePasswordI5,
 		String emailReadPassword, String emailSentPassword, Properties appProps,
-		HashMap<Integer,String> localDCs, EMailReports mr, RnColumns rcs, String backup) {
+		HashMap<Integer,String> localDCs, EMailReports mr, RnColumns rcs) {
 		if (!srcDirectory.exists() && !srcDirectory.mkdir()) {
 			throw new IllegalArgumentException("The directory '"+srcDirectory+"' does not exist");
 		}
@@ -63,7 +63,6 @@ public class ScheduledWorker implements Runnable {
 		emailReports = mr;
 		rnCols = rcs;
 		shipQryCarriers = getValue(appProps, "shipQryCarriers");
-		this.backup = backup;
 	}
 
 	@Override
@@ -171,15 +170,13 @@ public class ScheduledWorker implements Runnable {
 
 					emailReports.send(emailSent);
 					curDate = c;
-					ShipmentDataDb.updateDailyRnFiles(cf.getConnection(), null);
 					ShipmentDataDb.localDcMissing.clear();
 					NotificationDb.clearCarriersNotFound();
 					ShipmentDb.clearCarriersNotFound();
 					TtTableDb.clearCarriersNotFound();
 					quickReport = null;
-					if (backup != null) {
-						Runtime.getRuntime().exec(backup);
-					}
+
+					ShipmentDataDb.updateDailyRnFiles(cf.getConnection(), null);
 					if (daysOutCleaningDB != null) {
 						if (daysOutCleaning < 0) {
 							daysOutCleaning = Integer.parseInt(daysOutCleaningDB);

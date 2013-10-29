@@ -20,9 +20,8 @@ public class CleanDb {
 	static void clean(Calendar now, int daysOutCleaning) throws Exception {
 		if (daysOutCleaning <= 0) { return;}
 		Date before = new Date(now.getTimeInMillis()-SupportTime.DAY*daysOutCleaning);
-		Connection con = null;
+		Connection con = ConnectFactory1.one().getConnection();
 		try {
-			con = ConnectFactory1.one().getConnection();
 			clean(con, SQL_CLEAN_RN, before);
 			clean(con, SQL_CLEAN_SHP, before);
 			clean(con, SQL_CLEAN_DS, before);

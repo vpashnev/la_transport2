@@ -61,9 +61,8 @@ public class App {
 		}
 		EMailReports mr = new EMailReports(appDir);
 		RnColumns rnCols = new RnColumns(appDir);
-		File b = new File(appDir, "backup.bat");
-		ScheduledWorker sr = new ScheduledWorker(srcDir, dbPwd, dbPwdI5, emReadPwd, emSentPwd,
-			appProps, getLocalDC(appDir), mr, rnCols, b.exists() ? b.getPath() : null);
+		ScheduledWorker sr = new ScheduledWorker(srcDir, dbPwd, dbPwdI5,
+			emReadPwd, emSentPwd, appProps, getLocalDC(appDir), mr, rnCols);
 		sr.start();
 		BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
 		String s = null;
