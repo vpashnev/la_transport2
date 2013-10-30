@@ -8,6 +8,7 @@ import javax.mail.Session;
 
 import org.apache.log4j.Logger;
 
+import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.EMailSender;
 import com.logisticsalliance.general.ScheduledWorker.EmailSent;
 import com.logisticsalliance.util.SupportTime;
@@ -52,9 +53,9 @@ public class NotificationMail {
 				cmdtyList = dn.getCmdtyList(false),
 				delTimeFrom = SupportTime.HH_mm_Format.format(dn.delTimeFrom),
 				delTimeTo = SupportTime.HH_mm_Format.format(dn.delTimeTo),
-				arrivalTime = dn.arrivalTime == null ? DeliveryNote.N_A :
+				arrivalTime = dn.arrivalTime == null ? CommonConstants.N_A :
 					SupportTime.HH_mm_Format.format(dn.arrivalTime),
-				serviceTime = dn.serviceTime == null ? DeliveryNote.N_A :
+				serviceTime = dn.serviceTime == null ? CommonConstants.N_A :
 					SupportTime.HH_mm_Format.format(dn.serviceTime);
 			StringBuilder cb = new StringBuilder(2048);
 			cb.append("<html>\n");

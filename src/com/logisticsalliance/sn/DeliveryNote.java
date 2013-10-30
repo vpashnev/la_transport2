@@ -6,6 +6,7 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.RnColumns;
 import com.logisticsalliance.general.ShipmentDataDb;
 import com.logisticsalliance.text.TBuilder;
@@ -20,8 +21,6 @@ import com.logisticsalliance.util.SupportTime;
  */
 public class DeliveryNote implements Serializable {
 	private static final long serialVersionUID = 10L;
-
-	static final String N_A = "n/a";
 
 	int storeN, totalPallets;
 	Date shipDate, delDate;
@@ -74,15 +73,15 @@ public class DeliveryNote implements Serializable {
 		tb.addProperty20("Shipment date", SupportTime.dd_MM_yyyy_Format.format(shipDate), 10);
 		tb.addProperty20("Delivery date", SupportTime.dd_MM_yyyy_Format.format(delDate), 10);
 		tb.addProperty20(RnColumns.ROUTE_N, routeN, 4);
-		tb.addProperty20(RnColumns.ARRIVAL_TIME, arrivalTime == null ? N_A :
+		tb.addProperty20(RnColumns.ARRIVAL_TIME, arrivalTime == null ? CommonConstants.N_A :
 			SupportTime.HH_mm_Format.format(arrivalTime), 5);
-		tb.addProperty20(RnColumns.SERVICE_TIME, serviceTime == null ? N_A :
+		tb.addProperty20(RnColumns.SERVICE_TIME, serviceTime == null ? CommonConstants.N_A :
 			SupportTime.HH_mm_Format.format(serviceTime), 5);
 		tb.addProperty20("Delivery window", SupportTime.HH_mm_Format.format(delTimeFrom)+" - "+
 			SupportTime.HH_mm_Format.format(delTimeTo), 20);
 		tb.addProperty20("Delivery carrier", delCarrier, 32);
 		tb.addProperty20("Target open", targetOpen == null  ?
-			N_A : SupportTime.HH_mm_Format.format(targetOpen), 8);
+			CommonConstants.N_A : SupportTime.HH_mm_Format.format(targetOpen), 8);
 		tb.addProperty20("User files", firstUserFile+(nextUserFile == null ? "":
 			", modified "+nextUserFile), 80);
 		tb.add('_', 120);

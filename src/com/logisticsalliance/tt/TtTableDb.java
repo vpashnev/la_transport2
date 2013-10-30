@@ -13,8 +13,10 @@ import org.apache.log4j.Logger;
 
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
+import com.logisticsalliance.general.RnColumns;
 import com.logisticsalliance.sqla.ConnectFactory;
 import com.logisticsalliance.sqla.ConnectFactory1;
+import com.logisticsalliance.text.TBuilder;
 import com.logisticsalliance.util.SupportTime;
 
 /**
@@ -41,7 +43,8 @@ public class TtTableDb {
 		SQL_SEL_DELIVERIES =
 		"SELECT DISTINCT " +
 		"sd.store_n, sd.cmdty, dc, sd.ship_date, sd.del_date, arrival_time, route_n, stop_n," +
-		"del_time_from, del_time_to, del_carrier_id, target_open, sts.ship_date " +
+		"del_time_from, del_time_to, del_carrier_id, target_open, sd.first_user_file," +
+		"sd.next_user_file, sts.ship_date " +
 
 		"FROM " +
 		"la.hship_data sd LEFT JOIN la.hcarrier_schedule cs ON " +
@@ -84,7 +87,10 @@ public class TtTableDb {
 			//int n = st.executeUpdate();
 			//st.close();
 			update(con1.prepareStatement(SQL_INS), con1.prepareStatement(SQL_UPD), al);
-			con.commit();
+			if (al.size() != 0) {
+				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(shipDate)+
+					"\r\n\r\n"+al+"\r\n\r\nTotal: "+al.size());
+			}
 		}
 		catch (Exception ex) {
 			ex.printStackTrace();
@@ -103,7 +109,7 @@ public class TtTableDb {
 			r.cmdty = rs.getString(2);
 			r.dc = rs.getString(3);
 			r.shipDate = rs.getDate(4);
-			r.dsShipDate = rs.getDate(13);
+			r.dsShipDate = rs.getDate(15);
 			if (addRow(al, r)) {
 				r.delDate = rs.getDate(5);
 				r.arrivalTime = rs.getTime(6);
@@ -114,6 +120,9 @@ public class TtTableDb {
 					r.routeN = rs.getString(7);
 					r.stopN = rs.getString(8);
 					r.delTimeTo = rs.getTime(10);
+					r.firstUserFile = rs.getString(13);
+					String nuf = rs.getString(14);
+					if (!r.firstUserFile.equals(nuf)) { r.nextUserFile = nuf;}
 					al.add(r);
 				}
 			}
@@ -199,8 +208,31 @@ public class TtTableDb {
 	}
 	private static class Row {
 		private int storeN;
-		private String cmdty, dc, routeN, stopN, delCarrier;
+		private String cmdty, dc, routeN, stopN, delCarrier, firstUserFile, nextUserFile;
 		private Time arrivalTime, delTimeFrom, delTimeTo, targetOpen;
 		private Date shipDate, delDate, dsShipDate;
+		@Override
+		public String toString() {
+			TBuilder tb = new TBuilder();
+			tb.newLine();
+			tb.addProperty20(RnColumns.STORE_N, storeN, 6);
+			tb.addProperty20(RnColumns.COMMODITY, cmdty, 8);
+			tb.addProperty20("Shipment date", SupportTime.dd_MM_yyyy_Format.format(shipDate), 10);
+			tb.addProperty20("Delivery date", SupportTime.dd_MM_yyyy_Format.format(delDate), 10);
+			tb.addProperty20(RnColumns.DC, dc, 2);
+			tb.addProperty20(RnColumns.ROUTE_N, routeN, 4);
+			tb.addProperty20(RnColumns.STOP_N, stopN, 4);
+			tb.addProperty20(RnColumns.ARRIVAL_TIME, arrivalTime == null ? CommonConstants.N_A :
+				SupportTime.HH_mm_Format.format(arrivalTime), 5);
+			tb.addProperty20("Delivery window", SupportTime.HH_mm_Format.format(delTimeFrom)+" - "+
+				SupportTime.HH_mm_Format.format(delTimeTo), 20);
+			tb.addProperty20("Delivery carrier", delCarrier, 32);
+			tb.addProperty20("Target open", targetOpen == null  ?
+				CommonConstants.N_A : SupportTime.HH_mm_Format.format(targetOpen), 8);
+			tb.addProperty20("User files", firstUserFile+(nextUserFile == null ? "":
+				", modified "+nextUserFile), 80);
+			tb.newLine();
+			return tb.toString();
+		}
 	}
 }

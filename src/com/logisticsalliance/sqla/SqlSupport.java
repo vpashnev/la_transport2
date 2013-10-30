@@ -14,8 +14,9 @@ public class SqlSupport {
 
 	public static Calendar getDb2CurrentTime() throws SQLException {
 		Calendar c = Calendar.getInstance();
-		Connection con = ConnectFactory1.one().getConnection();
+		Connection con = null;
 		try {
+			con = ConnectFactory1.one().getConnection();
 			Timestamp t = getDb2CurrentTime(con);
 			c.setTime(t);
 		}

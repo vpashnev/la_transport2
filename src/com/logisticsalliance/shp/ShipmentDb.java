@@ -256,7 +256,7 @@ public class ShipmentDb {
 		}
 		if (al.size() != 0) {
 			log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(date)+
-				"\r\n\r\n"+al);
+				"\r\n\r\n"+al+"\r\n\r\nTotal: "+al.size());
 		}
 		return s;
 	}

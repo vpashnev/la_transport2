@@ -191,7 +191,12 @@ public class ShipmentDataDb {
 				String ln = br.readLine();
 				if (ln == null) { break;}
 				ln = ln.trim();
-				if (ln.isEmpty() || ln.indexOf(';') != -1) { continue;}
+				if (ln.isEmpty()) { continue;}
+				int j = ln.indexOf(';');
+				if (j != -1) {
+					log.error("Semicolon is illegal character:\r\n"+ln.substring(0, j+1));
+					continue;
+				}
 				ln = ln.replaceAll("\"", "");
 				try {
 					setRow(r, k, i, ln, rnCols);
