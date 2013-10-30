@@ -127,7 +127,7 @@ BEGIN
         dc_depart_time=dc_depart_time1,prev_distance=prev_distance1,prev_travel_time=prev_travel_time1,
         arrival_time=arrival_time1,service_time=service_time1,total_service_time=total_service_time1,
         total_travel_time=total_travel_time1,equip_size=equip_size1,holiday_flag=holiday_flag1,
-        tt_table='1',next_user_file=user_file1,update_time=CURRENT_TIMESTAMP WHERE n=n1;
+        next_user_file=user_file1,update_time=CURRENT_TIMESTAMP WHERE n=n1;
     END IF;
   END IF;
 

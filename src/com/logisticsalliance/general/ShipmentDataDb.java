@@ -92,11 +92,16 @@ public class ShipmentDataDb {
 		if (rnFiles == null) {
 			dailyRnFiles.clear();
 			try {
+				con = ConnectFactory1.one().getConnection();
 				PreparedStatement st = con.prepareStatement(SQL_UPDATE_DAILY_RN_FILES);
 				st.setNull(1, Types.VARCHAR);
 				st.executeUpdate();
 				con.commit();
 				st.close();
+			}
+			catch (Exception ex) {
+				ex.printStackTrace();
+				log.error(ex);
 			}
 			finally { ConnectFactory1.close(con);}
 		}

@@ -13,16 +13,18 @@ public class SqlSupport {
 	public static final String SQL_DB2_NOW = "SELECT CURRENT_TIMESTAMP FROM SYSIBM.DUAL";
 
 	public static Calendar getDb2CurrentTime() throws SQLException {
-		Timestamp t;
+		Calendar c = Calendar.getInstance();
 		Connection con = ConnectFactory1.one().getConnection();
 		try {
-			t = getDb2CurrentTime(con);
+			Timestamp t = getDb2CurrentTime(con);
+			c.setTime(t);
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
 		}
 		finally {
 			ConnectFactory1.close(con);
 		}
-		Calendar c = Calendar.getInstance();
-		c.setTime(t);
 		return c;
 	}
 	public static Timestamp getDb2CurrentTime(Connection con) throws SQLException {

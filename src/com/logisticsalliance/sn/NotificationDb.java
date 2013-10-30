@@ -90,9 +90,10 @@ public class NotificationDb {
 			t1 = new Timestamp(d.getTime());
 		}
 		Session s = null;
-		Connection con = ConnectFactory1.one().getConnection(),
-			con1 = ConnectFactory1.one().getConnection();
+		Connection con = null, con1 = null;
 		try {
+			con = ConnectFactory1.one().getConnection();
+			con1 = ConnectFactory1.one().getConnection();
 			PreparedStatement timeSt, selDelSt = con.prepareStatement(SQL_SEL_DELIVERIES);
 			if (t1 == null) {
 				t1 = SqlSupport.getDb2CurrentTime(con1);

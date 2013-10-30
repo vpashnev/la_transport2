@@ -45,21 +45,19 @@ public class TtTableDb {
 
 		"FROM " +
 		"la.hship_data sd LEFT JOIN la.hcarrier_schedule cs ON " +
-		"cs.store_n=sd.store_n AND (sd.cmdty='DCX' AND (cs.cmdty='DCB' OR cs.cmdty='DCV') OR " +
-		"sd.cmdty<>'DCX' AND cs.cmdty=sd.cmdty) AND cs.del_day=DAYOFWEEK(sd.del_date)-1," +
+		"cs.store_n=sd.store_n AND ((sd.cmdty='DCX' OR sd.cmdty='EVT' OR sd.cmdty='EVT2') AND " +
+		"(cs.cmdty='DCB' OR cs.cmdty='DCV') OR sd.cmdty<>'DCX' AND sd.cmdty<>'EVT' AND " +
+		"sd.cmdty<>'EVT2' AND cs.cmdty=sd.cmdty) AND cs.del_day=DAYOFWEEK(sd.del_date)-1," +
 		"la.hstore_schedule sts " +
 
 		"WHERE " +
 		"sts.store_n=sd.store_n AND sts.cmdty=sd.cmdty AND " +
 		"(sts.ship_date IS NOT NULL AND sts.ship_date=sd.ship_date OR " +
 		"sts.ship_date IS NULL AND sts.ship_day=DAYOFWEEK(sd.ship_date)-1) AND " +
-		"tt_table IS NOT NULL "+
-		"AND sd.ship_date>'2013-10-10' "+
+		"sd.cmdty<>'RX' AND sd.ship_date=? "+
 
 		"ORDER BY " +
-		"sd.store_n,sd.cmdty,dc,sd.ship_date",
-
-		SQL_RESET_TT_TABLE = "UPDATE la.hship_data SET tt_table=NULL WHERE tt_table IS NOT NULL";
+		"sd.store_n,sd.cmdty,dc,sd.ship_date";
 
 	private static ConnectFactory connectFactoryI5;
 
@@ -71,21 +69,21 @@ public class TtTableDb {
 	public static void clearCarriersNotFound() {
 		carriersNotFound.clear();
 	}
-	public static void process() throws Exception {
-		Connection con = ConnectFactory1.one().getConnection(),
-			con1 = connectFactoryI5.getConnection();
-		con1.setAutoCommit(true);
+	public static void process(Date shipDate) throws Exception {
+		Connection con = null, con1 = null;
 		try {
+			con = ConnectFactory1.one().getConnection();
+			con1 = connectFactoryI5.getConnection();
+			con1.setAutoCommit(true);
 			PreparedStatement st = con.prepareStatement(SQL_SEL_DELIVERIES);
+			st.setDate(1, shipDate);
 			ResultSet rs = st.executeQuery();
 			ArrayList<Row> al = select(rs);
 			st.close();
-			st = con1.prepareStatement("DELETE FROM OS61LXDTA.OSPDLVS");
-			/*int n = */st.executeUpdate();
-			st.close();
+			//st = con1.prepareStatement("DELETE FROM OS61LXDTA.OSPDLVS");
+			//int n = st.executeUpdate();
+			//st.close();
 			update(con1.prepareStatement(SQL_INS), con1.prepareStatement(SQL_UPD), al);
-			st = con.prepareStatement(SQL_RESET_TT_TABLE);
-			st.executeUpdate();
 			con.commit();
 		}
 		catch (Exception ex) {
@@ -110,11 +108,11 @@ public class TtTableDb {
 				r.delDate = rs.getDate(5);
 				r.arrivalTime = rs.getTime(6);
 				r.delCarrier = rs.getString(11);
+				r.delTimeFrom = rs.getTime(9);
 				r.targetOpen = rs.getTime(12);
 				if (addRow(r)) {
 					r.routeN = rs.getString(7);
 					r.stopN = rs.getString(8);
-					r.delTimeFrom = rs.getTime(9);
 					r.delTimeTo = rs.getTime(10);
 					al.add(r);
 				}
@@ -147,17 +145,13 @@ public class TtTableDb {
 				String type = r.dsShipDate == null ? "regular" : "holidays";
 				log.error("Carrier not found (" + type + "): "+k);
 			}
-			//return false;
-			r.delCarrier = "";
+			return false;
+			//r.delCarrier = "";
 		}
-		else { r.delCarrier = r.delCarrier.trim();}
 
-		if (!CommonConstants.CCS.equalsIgnoreCase(r.delCarrier) ||
-			CommonConstants.DCF.equalsIgnoreCase(r.cmdty)) {
+		if (!CommonConstants.CCS.equalsIgnoreCase(r.delCarrier)) {
 			if (r.targetOpen == null) {
-				log.error("Torget open not defined : "+r.delCarrier+
-					", "+r.storeN+", "+r.cmdty+", "+dow);
-				//return false;
+				r.arrivalTime = r.delTimeFrom;
 			}
 			else { r.arrivalTime = r.targetOpen;}
 		}

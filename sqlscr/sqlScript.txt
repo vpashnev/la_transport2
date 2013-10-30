@@ -33,7 +33,6 @@ CREATE TABLE la.hship_data (
   equip_size VARCHAR(15),
   add_key VARCHAR(4) DEFAULT ' ' NOT NULL,
   holiday_flag CHAR(1),
-  tt_table CHAR(1) DEFAULT '1',
   first_user_file VARCHAR(50) NOT NULL,
   next_user_file VARCHAR(50) NOT NULL,
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -113,7 +112,6 @@ CREATE TABLE la.henvr (
 CREATE UNIQUE INDEX la.hship_data_key ON la.hship_data (store_n,cmdty,ship_date,dc,add_key) ;
 CREATE UNIQUE INDEX la.hrn_order_key ON la.hrn_order (ship_n,order_n) ;
 CREATE UNIQUE INDEX la.hstore_schedule_key ON la.hstore_schedule (store_n,cmdty,ship_day,ship_date) ;
-CREATE INDEX la.hship_data_tt_table ON la.hship_data (tt_table) ;
 CREATE INDEX la.hstore_schedule_holiday ON la.hstore_schedule (store_n,cmdty,ship_date) ;
 CREATE INDEX la.hstore_schedule_in_use ON la.hstore_schedule (in_use) ;
 
@@ -127,9 +125,9 @@ drop table la.hstore_profile;
 drop table la.hcarrier_schedule;
 drop table la.henvr;
 
-db2 -td@ -vf C:\dev\sql\DsProc.txt
-db2 -td@ -vf C:\dev\sql\RnProc.txt
-db2 -td@ -vf C:\dev\sql\EvtProc.txt
+db2 -td@ -vf C:\dev\laWorkspace\la_transport2\sqlscr\DsProc.txt
+db2 -td@ -vf C:\dev\laWorkspace\la_transport2\sqlscr\RnProc.txt
+db2 -td@ -vf C:\dev\laWorkspace\la_transport2\sqlscr\EvtProc.txt
 
 db2 CREATE DATABASE myDbase AUTOMATIC STORAGE YES ON C:
 CREATE SCHEMA la AUTHORIZATION db2admin ;
@@ -141,9 +139,10 @@ db2 UPDATE db cfg for mydbase using LOGFILSIZ 10000
 db2 connect to mydbase user db2admin
 
 db2 BACKUP DATABASE mydbase ON ALL DBPARTITIONNUMS TO c:\db2\backup
-db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20131024095255 INTO mydbase REPLACE EXISTING
+db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20131030093743 INTO mydbase REPLACE EXISTING
 
 alter table la.hship_data add column add_key VARCHAR(4) DEFAULT ' ' NOT NULL;
+alter table la.hship_data drop column tt_table;
 drop index la.hship_data_key;
 
 REORG TABLE la.hship_data;

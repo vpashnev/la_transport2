@@ -140,11 +140,6 @@ public class ScheduledWorker implements Runnable {
 					notifyStartingTime = null; notifyEndingTime = null;
 				}
 
-				if (ttTable != null) {
-					//ttTable
-					TtTableDb.process();
-				}
-
 				//Make daily reports
 				Calendar c = SqlSupport.getDb2CurrentTime();
 				int h = c.get(Calendar.HOUR_OF_DAY);
@@ -163,6 +158,10 @@ public class ScheduledWorker implements Runnable {
 						//Shipments
 						ShipmentDb.process(shipDate, emailSent);
 					}
+					if (ttTable != null) {
+						//ttTable
+						TtTableDb.process(shipDate);
+					}
 					if (shipmentDate != null) {
 						shipDate = ShipmentDb.getDate(null, c);
 						shipmentDate = null;
@@ -176,7 +175,7 @@ public class ScheduledWorker implements Runnable {
 					TtTableDb.clearCarriersNotFound();
 					quickReport = null;
 
-					ShipmentDataDb.updateDailyRnFiles(cf.getConnection(), null);
+					ShipmentDataDb.updateDailyRnFiles(null, null);
 					if (daysOutCleaningDB != null) {
 						if (daysOutCleaning < 0) {
 							daysOutCleaning = Integer.parseInt(daysOutCleaningDB);

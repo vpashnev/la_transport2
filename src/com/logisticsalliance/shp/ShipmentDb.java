@@ -151,10 +151,11 @@ public class ShipmentDb {
 	public static void process(Date date, EmailSent es) throws Exception {
 		Session s = null;
 		ArrayList<ShipmentData> al = new ArrayList<ShipmentData>(1024);
-		Connection con = ConnectFactory1.one().getConnection(),
-			con1 = connectFactoryI5.getConnection();
-		con1.setAutoCommit(true);
+		Connection con = null, con1 = null;
 		try {
+			con = ConnectFactory1.one().getConnection();
+			con1 = connectFactoryI5.getConnection();
+			con1.setAutoCommit(true);
 			/*PreparedStatement st1 = con1.prepareStatement("DELETE FROM OS61LXDTA.OSPIFC1");
 			int n = st1.executeUpdate();
 			st1.close();
