@@ -29,7 +29,7 @@ public class ShipmentData implements Serializable {
 	Date shipDate, delDate;
 	Time dcDepartTime, prevTravelTime, arrivalTime, serviceTime, totalServiceTime, totalTravelTime;
 	String cmdty, routeN, stopN, dc, ordN, addKey, equipSize, lhCarrier, lhService,
-		delCarrier, delService, specInstructs, firstUserFile, nextUserFile;
+		delCarrier, delService, hub, specInstructs, firstUserFile, nextUserFile;
 	ArrayList<ShipmentItem> items = new ArrayList<ShipmentItem>(8);
 
 	double getTotalPallets() {
@@ -90,6 +90,7 @@ public class ShipmentData implements Serializable {
 		tb.addProperty20("lhService", lhService, 12);
 		tb.addProperty20("delCarrier", delCarrier, 12);
 		tb.addProperty20("delService", delService, 12);
+		tb.addProperty20("hub", hub, 12);
 		tb.addProperty20("User files", firstUserFile+(nextUserFile == null ? "":
 			", modified "+nextUserFile), 80);
 		tb.add('_', 112);

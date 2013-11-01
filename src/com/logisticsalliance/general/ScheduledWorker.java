@@ -33,7 +33,6 @@ public class ScheduledWorker implements Runnable {
 	private File srcDir;
 	private String dbPassword, dbPasswordI5;
 	private int daysOutCleaning = -1;
-	private Date shipDate;
 	private EmailRead emailRead;
 	private EmailSent emailSent;
 	private EMailReports emailReports;
@@ -151,19 +150,16 @@ public class ScheduledWorker implements Runnable {
 				if (quickReport != null ||
 					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH)) {
 
-					if (shipDate == null) {
-						shipDate = ShipmentDb.getDate(shipmentDate, c);
-					}
+					Date d = getShipDate(shipmentDate, c);
 					if (shipments != null) {
 						//Shipments
-						ShipmentDb.process(shipDate, emailSent);
+						ShipmentDb.process(d, emailSent);
 					}
 					if (ttTable != null) {
 						//ttTable
-						TtTableDb.process(shipDate);
+						TtTableDb.process(d);
 					}
 					if (shipmentDate != null) {
-						shipDate = ShipmentDb.getDate(null, c);
 						shipmentDate = null;
 					}
 
@@ -199,6 +195,15 @@ public class ScheduledWorker implements Runnable {
 			}
 			catch (InterruptedException e) { }
 			finally { sleep = false;}
+		}
+	}
+	private static Date getShipDate(String date, Calendar curTime) throws Exception {
+		if (date == null) {
+			return new Date(curTime.getTimeInMillis());
+		}
+		else {
+			java.util.Date d = SupportTime.dd_MM_yyyy_Format.parse(date);
+			return new Date(d.getTime());
 		}
 	}
 	private static boolean isTimeToReadStoreSchedule() {

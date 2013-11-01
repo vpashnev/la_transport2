@@ -159,7 +159,8 @@ public class TtTableDb {
 		}
 
 		if (!CommonConstants.CCS.equalsIgnoreCase(r.delCarrier)) {
-			if (r.targetOpen == null) {
+			if (r.targetOpen == null || r.targetOpen.compareTo(r.delTimeFrom) < 0 ||
+				r.targetOpen.compareTo(r.delTimeTo) > 0) {
 				r.arrivalTime = r.delTimeFrom;
 			}
 			else { r.arrivalTime = r.targetOpen;}

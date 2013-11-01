@@ -6,7 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Time;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -116,7 +115,9 @@ public class ShipmentDb {
 
 		"FROM " +
 		"la.hship_data sd LEFT JOIN la.hcarrier_schedule cs ON " +
-		"cs.store_n=sd.store_n AND cs.cmdty=sd.cmdty AND cs.del_day=DAYOFWEEK(sd.del_date)-1," +
+		"cs.store_n=sd.store_n AND ((sd.cmdty='DCX' OR sd.cmdty='EVT' OR sd.cmdty='EVT2') AND " +
+		"(cs.cmdty='DCB' OR cs.cmdty='DCV') OR sd.cmdty<>'DCX' AND sd.cmdty<>'EVT' AND " +
+		"sd.cmdty<>'EVT2' AND cs.cmdty=sd.cmdty) AND cs.del_day=DAYOFWEEK(sd.del_date)-1," +
 		"la.hrn_order rno,la.hstore_profile sp " +
 
 		"WHERE " +
@@ -138,16 +139,6 @@ public class ShipmentDb {
 	public static void clearCarriersNotFound() {
 		carriersNotFound.clear();
 	}
-	public static Date getDate(String date, Calendar curTime) throws Exception {
-		Date curDate = new Date(curTime.getTimeInMillis());
-		if (date == null) {
-			return curDate;
-		}
-		else {
-			java.util.Date d = SupportTime.dd_MM_yyyy_Format.parse(date);
-			return new Date(d.getTime());
-		}
-	}
 	public static void process(Date date, EmailSent es) throws Exception {
 		Session s = null;
 		ArrayList<ShipmentData> al = new ArrayList<ShipmentData>(1024);
@@ -156,6 +147,9 @@ public class ShipmentDb {
 			con = ConnectFactory1.one().getConnection();
 			con1 = connectFactoryI5.getConnection();
 			con1.setAutoCommit(true);
+			PreparedStatement st = con.prepareStatement(SQL_SEL_DEL);
+			s = select(st, new ShipmentHub.HubStatements(con1), date, al, s, es);
+			st.close();
 			/*PreparedStatement st1 = con1.prepareStatement("DELETE FROM OS61LXDTA.OSPIFC1");
 			int n = st1.executeUpdate();
 			st1.close();
@@ -165,9 +159,6 @@ public class ShipmentDb {
 			st1 = con1.prepareStatement("DELETE FROM OS61LXDTA.OSPIFC9");
 			n = st1.executeUpdate();
 			st1.close();*/
-			PreparedStatement st = con.prepareStatement(SQL_SEL_DEL);
-			s = select(st, date, al, s, es);
-			st.close();
 			update(con1.prepareStatement(SQL_INS1), con1.prepareStatement(SQL_UPD1),
 				con1.prepareStatement(SQL_INS2), con1.prepareStatement(SQL_UPD2),
 				con1.prepareStatement(SQL_INS9), con1.prepareStatement(SQL_UPD9), al);
@@ -187,8 +178,8 @@ public class ShipmentDb {
 		b.append(insDigits(sn));
 		return sd.dc+b.toString();
 	}
-	private static Session select(PreparedStatement st, Date date, ArrayList<ShipmentData> al,
-		Session s, EmailSent es) throws Exception {
+	private static Session select(PreparedStatement st, ShipmentHub.HubStatements hst,
+		Date date, ArrayList<ShipmentData> al, Session s, EmailSent es) throws Exception {
 		st.setDate(1, date);
 		ResultSet rs = st.executeQuery();
 		if (!rs.next()) {
@@ -236,6 +227,7 @@ public class ShipmentDb {
 			if (sd.delCarrier == null) {
 				sd.delCarrier = rs.getString(25);
 				sd.delService = rs.getString(26);
+				sd.hub = ShipmentHub.getHub(hst, sd);
 			}
 			si = new ShipmentItem();
 			si.orderN = rs.getString(17);
@@ -268,16 +260,14 @@ public class ShipmentDb {
 		return sd;
 	}
 	private static void addData(ArrayList<ShipmentData> al, ShipmentData sd) {
-		if (!sd.cmdty.equals("DCX")) {
-			if (sd.delCarrier == null && sd.lhCarrier == null) {
-				int dow = SupportTime.getDayOfWeek(sd.delDate);
-				DsKey k = new DsKey(sd.storeN, sd.cmdty, dow);
-				if (carriersNotFound.add(k)) {
-					log.error("Carrier not found: "+k);
-				}
+		if (sd.delCarrier == null && sd.lhCarrier == null) {
+			int dow = SupportTime.getDayOfWeek(sd.delDate);
+			DsKey k = new DsKey(sd.storeN, sd.cmdty, dow);
+			if (carriersNotFound.add(k)) {
+				log.error("Carrier not found: "+k);
 			}
 		}
-		al.add(sd);
+		else { al.add(sd);}
 	}
 	private static void update(PreparedStatement ins1, PreparedStatement upd1,
 		PreparedStatement ins2, PreparedStatement upd2, PreparedStatement ins9,
@@ -344,21 +334,43 @@ public class ShipmentDb {
 		st.setDouble(11, toDouble(sd.prevTravelTime));
 		st.setString(12, sd.specInstructs == null ? "" : sd.specInstructs);
 		st.setString(13, cut(sd.delCarrier, 8));
-		st.setString(14, cut(sd.delService, 4));
+		st.setString(14, getService(sd));
 		st.setString(15, sd.ordN);
+	}
+	private static String getService(ShipmentData sd) {
+		if (CommonConstants.CCS.equals(sd.delCarrier)) {
+			if (sd.equipSize.equals("60HWY")) {
+				return "HWYT";
+			}
+			if (sd.cmdty.equals(CommonConstants.DCF)) {
+				if (sd.equipSize.equals("24")) {
+					return "STFC";
+				}
+				else if (sd.equipSize.equals("30") || sd.equipSize.equals("48")) {
+					return "FFS";
+				}
+			}
+			else {
+				if (sd.equipSize.equals("24")) {
+					return "STG";
+				}
+			}
+			return "SGL";
+		}
+		return cut(sd.delService, 4);
 	}
 	private static void setTable2(PreparedStatement st, ShipmentData sd,
 		String carrier, String service, int leg) throws Exception {
 		st.setString(1, cut(carrier, 8));
 		st.setString(2, cut(service, 4));
-		st.setString(3, "");//"To" Hub
+		st.setString(3, sd.hub);
 		st.setInt(4, toInt(sd.shipDate));
 		st.setInt(5, toInt(sd.delDate));
 		st.setString(6, "Y");//Carrier-Commit Flag
 		st.setString(7, "Y");//Service-Commit Flag
 		st.setInt(8, 1);//Pick Stop #
 		st.setInt(9, Integer.parseInt(sd.stopN)+1);//Drop Stop #
-		st.setString(10, "");//Shipment Group Id
+		st.setString(10, sd.routeN);//Shipment Group Id
 		st.setString(11, sd.ordN);
 		st.setDouble(12, leg);
 	}
@@ -369,7 +381,17 @@ public class ShipmentDb {
 		st.setString(3, sd.ordN);
 		st.setDouble(4, leg);
 	}
-	private static int toInt(Date d) {
+	/*private static String getReferenceQualifier(ShipmentData sd) {
+		//CR sd.ordN
+		//RDES sd.routeN
+		//SG sd.routeN (ship.group id)
+		//SST sd.
+		//TW1O - del.db
+		//TW1C
+		//
+		return null;
+	}*/
+	static int toInt(Date d) {
 		String s = SupportTime.yyMMdd_Format.format(d);
 		int v = 1000000+Integer.parseInt(s);
 		return v;
