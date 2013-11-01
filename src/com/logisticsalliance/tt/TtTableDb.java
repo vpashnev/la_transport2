@@ -115,11 +115,11 @@ public class TtTableDb {
 				r.arrivalTime = rs.getTime(6);
 				r.delCarrier = rs.getString(11);
 				r.delTimeFrom = rs.getTime(9);
+				r.delTimeTo = rs.getTime(10);
 				r.targetOpen = rs.getTime(12);
 				if (addRow(r)) {
 					r.routeN = rs.getString(7);
 					r.stopN = rs.getString(8);
-					r.delTimeTo = rs.getTime(10);
 					r.firstUserFile = rs.getString(13);
 					String nuf = rs.getString(14);
 					if (!r.firstUserFile.equals(nuf)) { r.nextUserFile = nuf;}
