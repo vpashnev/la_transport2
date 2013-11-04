@@ -181,6 +181,7 @@ public class ShipmentDataDb {
 	private static void update(File f, CallableStatement st,
 		Row r, RnColumns rnCols, HashMap<Long,String> evtMap) throws Exception {
 		int[] i = {1};
+		boolean semicolons = false;
 		HashSet<DsKey> delNotFound = new HashSet<DsKey>();
 		String userFile = f.getName();
 		Key k = new Key();
@@ -194,7 +195,11 @@ public class ShipmentDataDb {
 				if (ln.isEmpty()) { continue;}
 				int j = ln.indexOf(';');
 				if (j != -1) {
-					log.error("Semicolon is illegal character:\r\n"+ln.substring(0, j+1));
+					int n = ln.indexOf('|');
+					if (n != -1 && n < j) {
+						log.error("Semicolon is illegal character:\r\n"+ln.substring(0, j+1));
+					}
+					else if (!semicolons) { semicolons = true;}
 					continue;
 				}
 				ln = ln.replaceAll("\"", "");
@@ -223,6 +228,9 @@ public class ShipmentDataDb {
 					ex.printStackTrace();
 					log.error(k.storeN+", "+k.cmdty+", "+k.shipDate+", "+k.dc+"-DC\r\n"+ex);
 				}
+			}
+			if (semicolons) {
+				log.warn("Semicolons appear in the file");
 			}
 		}
 		finally { br.close();}

@@ -25,7 +25,7 @@ public class EMailEmergency implements Runnable {
 	@Override
 	public void run() {
 		try {
-			Thread.sleep(2400000);// 40 minutes
+			Thread.sleep(3600000);// 60 minutes
 			send(emailSent);
 		}
 		catch (InterruptedException e) { }

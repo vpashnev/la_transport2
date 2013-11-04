@@ -27,9 +27,10 @@ public class ShipmentData implements Serializable {
 
 	int storeN, prevDistance;
 	Date shipDate, delDate;
-	Time dcDepartTime, prevTravelTime, arrivalTime, serviceTime, totalServiceTime, totalTravelTime;
-	String cmdty, routeN, stopN, dc, ordN, addKey, equipSize, lhCarrier, lhService,
-		delCarrier, delService, hub, specInstructs, firstUserFile, nextUserFile;
+	Time dcDepartTime, prevTravelTime, arrivalTime, serviceTime,
+		totalServiceTime, totalTravelTime, delTimeFrom, delTimeTo;
+	String cmdty, routeN, stopN, dc, ordN, equipSize, lhCarrier, lhService,
+		delCarrier, delService, hub = "", specInstructs, firstUserFile, nextUserFile;
 	ArrayList<ShipmentItem> items = new ArrayList<ShipmentItem>(8);
 
 	double getTotalPallets() {
@@ -68,6 +69,7 @@ public class ShipmentData implements Serializable {
 	@Override
 	public String toString() {
 		TBuilder tb = new TBuilder();
+		tb.newLine();
 		tb.addProperty20(RnColumns.STORE_N, storeN, 6);
 		tb.addProperty20(RnColumns.COMMODITY, cmdty, 4);
 		tb.addProperty20(RnColumns.SHIP_DATE, SupportTime.dd_MM_yyyy_Format.format(shipDate), 10);
@@ -85,6 +87,8 @@ public class ShipmentData implements Serializable {
 		tb.addProperty20(RnColumns.EQUIP_SIZE, equipSize, 15);
 
 		tb.addProperty20("Delivery Date", SupportTime.dd_MM_yyyy_Format.format(delDate), 10);
+		tb.addProperty20("Delivery window", SupportTime.HH_mm_Format.format(delTimeFrom)+" - "+
+				SupportTime.HH_mm_Format.format(delTimeTo), 20);
 		tb.addProperty20("specInstructs", specInstructs, 4);
 		tb.addProperty20("lhCarrier", lhCarrier, 12);
 		tb.addProperty20("lhService", lhService, 12);
@@ -93,16 +97,17 @@ public class ShipmentData implements Serializable {
 		tb.addProperty20("hub", hub, 12);
 		tb.addProperty20("User files", firstUserFile+(nextUserFile == null ? "":
 			", modified "+nextUserFile), 80);
-		tb.add('_', 112);
+		tb.add('_', 160);
 		tb.newLine();
 		tb.addCell(RnColumns.ORDER_N, 20, false, false);
 		tb.addCell(RnColumns.LW, 4, false, false);
 		tb.addCell(RnColumns.PALLETS, 8, true, false);
 		tb.addCell(RnColumns.UNITS, 8, true, false);
 		tb.addCell(RnColumns.WEIGHT, 12, true, false);
-		tb.addCell(RnColumns.CUBE, 14, true, true);
+		tb.addCell(RnColumns.CUBE, 14, true, false);
+		tb.addCell("User files", 14, false, true);
 		tb.newLine();
-		tb.add('_', 112);
+		tb.add('_', 160);
 		tb.newLine();
 		DecimalFormat sizeFormat = ShipmentDataDb.sizeFormat;
 		for (Iterator<ShipmentItem> it = items.iterator(); it.hasNext();) {
@@ -115,9 +120,12 @@ public class ShipmentData implements Serializable {
 			tb.addCell(e.cube, 14, sizeFormat, false);
 			tb.addCell(e.firstUserFile+(e.nextUserFile == null ? "":
 				", modified "+e.nextUserFile), 80, false, true);
+			tb.add(' ', 4);
+			tb.addCell(e.dsFirstUserFile+(e.dsNextUserFile == null ? "":
+				",modified "+e.dsNextUserFile), 112, false, true);
 			tb.newLine();
 		}
-		tb.add('_', 112);
+		tb.add('_', 160);
 		tb.newLine();
 		tb.addCell("Total:", 26, false, false);
 		tb.addCell(getTotalPallets(), 8, sizeFormat, false);

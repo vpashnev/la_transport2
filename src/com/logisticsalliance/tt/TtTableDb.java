@@ -113,9 +113,9 @@ public class TtTableDb {
 			if (addRow(al, r)) {
 				r.delDate = rs.getDate(5);
 				r.arrivalTime = rs.getTime(6);
-				r.delCarrier = rs.getString(11);
 				r.delTimeFrom = rs.getTime(9);
 				r.delTimeTo = rs.getTime(10);
+				r.delCarrier = rs.getString(11);
 				r.targetOpen = rs.getTime(12);
 				if (addRow(r)) {
 					r.routeN = rs.getString(7);

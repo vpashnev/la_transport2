@@ -34,7 +34,7 @@ public class ShipmentHub {
 
 	static String getHub(HubStatements hst, ShipmentData sd) throws Exception {
 		if (sd.delCarrier == null || sd.delCarrier.equals(CommonConstants.CCS)) {
-			return CommonConstants.N_A;
+			return "";
 		}
 		if (sd.delCarrier.equals("SONAR")) {
 			if ("DDCT".equals(sd.delService)) {
@@ -48,7 +48,7 @@ public class ShipmentHub {
 		ResultSet rs = hst.selStorePlace.executeQuery();
 		if (!rs.next()) {
 			log.error("No place record exists for the store "+sd.storeN);
-			return CommonConstants.N_A;
+			return "";
 		}
 		String postCode = rs.getString(1), city = rs.getString(2), prov = rs.getString(3);
 		rs.close();
@@ -85,7 +85,7 @@ public class ShipmentHub {
 		if (p1 == null) {
 			if (al.size() == 0) {
 				log.error("No hub exists for the store "+sd.storeN+", and carrier "+sd.delCarrier);
-				return CommonConstants.N_A;
+				return "";
 			}
 			for (Iterator<Place> it = al.iterator(); it.hasNext();) {
 				p1 = it.next();
