@@ -32,7 +32,7 @@ public class ShipmentHub {
 	SQL_SEL_STORE_PLACE =
 	"SELECT CNPSTC,CNCTY,CNSTA FROM OS61LXDTA.OSPCONS WHERE CNCON=?";
 
-	static String getHub(HubStatements hst, ShipmentData sd) throws Exception {
+	static String getHub(HubStatements hst, ShipmentData sd, int shipDate) throws Exception {
 		if (sd.delCarrier == null || sd.delCarrier.equals(CommonConstants.CCS)) {
 			return "";
 		}
@@ -52,18 +52,18 @@ public class ShipmentHub {
 		}
 		String postCode = rs.getString(1), city = rs.getString(2), prov = rs.getString(3);
 		rs.close();
-		return getHub(hst.selZone, sd, postCode, city, prov);
+		return getHub(hst.selZone, sd, postCode, city, prov, shipDate);
 	}
 
 	private static String getHub(PreparedStatement st, ShipmentData sd,
-		String postCode, String city, String prov) throws Exception {
+		String postCode, String city, String prov, int shipDate) throws Exception {
 		ArrayList<Place> al = new ArrayList<Place>(32);
 		st.setString(1, sd.delCarrier);
 		st.setString(2, postCode);
 		st.setString(3, city);
 		st.setString(4, prov);
-		st.setInt(5, ShipmentDb.toInt(sd.shipDate));
-		st.setInt(6, ShipmentDb.toInt(sd.shipDate));
+		st.setInt(5, shipDate);
+		st.setInt(6, shipDate);
 		ResultSet rs = st.executeQuery();
 		Place p1 = null;
 		while (rs.next()) {

@@ -70,6 +70,7 @@ public class ShipmentData implements Serializable {
 	public String toString() {
 		TBuilder tb = new TBuilder();
 		tb.newLine();
+		tb.addProperty20(RnColumns.ORDER_N, ordN, 12);
 		tb.addProperty20(RnColumns.STORE_N, storeN, 6);
 		tb.addProperty20(RnColumns.COMMODITY, cmdty, 4);
 		tb.addProperty20(RnColumns.SHIP_DATE, SupportTime.dd_MM_yyyy_Format.format(shipDate), 10);
