@@ -25,7 +25,9 @@ import com.logisticsalliance.util.SupportTime;
 public class ShipmentData implements Serializable {
 	private static final long serialVersionUID = 10L;
 
-	int storeN, prevDistance;
+	int storeN;
+	boolean dcx;
+	double prevDistance;
 	Date shipDate, delDate;
 	Time dcDepartTime, prevTravelTime, arrivalTime, serviceTime,
 		totalServiceTime, totalTravelTime, delTimeFrom, delTimeTo;

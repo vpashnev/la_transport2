@@ -62,7 +62,7 @@ class ShpTest {
 					tb.addProperty20(RnColumns.UNITS, v+" - "+v1, 20);
 					dif = true;
 				}
-				v = rs.getDouble(6); v1 = sd.prevDistance/10d;
+				v = rs.getDouble(6); v1 = sd.prevDistance;
 				if (v != v1) {
 					tb.addProperty20(RnColumns.PREV_DISTANCE, v+" - "+v1, 20);
 					dif = true;

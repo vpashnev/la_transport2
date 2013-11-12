@@ -152,6 +152,7 @@ public class EMailReader {
 	private static String toName(String fileName, String user) {
 		fileName = fileName.replace('\\', '_');
 		fileName = fileName.replace('/', '_');
+		fileName = fileName.replace(' ', '_');
 		return user+fileName;
 	}
 	private static String getUser(Message m) throws Exception {
