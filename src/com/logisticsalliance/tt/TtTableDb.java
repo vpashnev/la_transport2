@@ -81,7 +81,8 @@ public class TtTableDb {
 			PreparedStatement st = con.prepareStatement(SQL_SEL_DELIVERIES);
 			st.setDate(1, shipDate);
 			ResultSet rs = st.executeQuery();
-			ArrayList<Row> al = select(rs);
+			ArrayList<Row> al = new ArrayList<Row>(1024);
+			int count = select(rs, al);
 			st.close();
 			//st = con1.prepareStatement("DELETE FROM OS61LXDTA.OSPDLVS");
 			//int n = st.executeUpdate();
@@ -89,7 +90,9 @@ public class TtTableDb {
 			update(con1.prepareStatement(SQL_INS), con1.prepareStatement(SQL_UPD), al);
 			if (al.size() != 0) {
 				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(shipDate)+
-					"\r\n\r\n"+al+"\r\n\r\nTotal: "+al.size());
+					"\r\n\r\n"+al+
+					"\r\n\r\nTotal:   "+al.size()+
+					"\r\n\r\nMissing: "+(al.size()-count));
 			}
 		}
 		catch (Exception ex) {
@@ -101,8 +104,8 @@ public class TtTableDb {
 			ConnectFactory.close(con1);
 		}
 	}
-	private static ArrayList<Row> select(ResultSet rs) throws Exception {
-		ArrayList<Row> al = new ArrayList<Row>(128);
+	private static int select(ResultSet rs, ArrayList<Row> al) throws Exception {
+		int[] count = {0};
 		while (rs.next()) {
 			Row r = new Row();
 			r.storeN = rs.getInt(1);
@@ -117,17 +120,15 @@ public class TtTableDb {
 				r.delTimeTo = rs.getTime(10);
 				r.delCarrier = rs.getString(11);
 				r.targetOpen = rs.getTime(12);
-				if (addRow(r)) {
-					r.routeN = rs.getString(7);
-					r.stopN = rs.getString(8);
-					r.firstUserFile = rs.getString(13);
-					String nuf = rs.getString(14);
-					if (!r.firstUserFile.equals(nuf)) { r.nextUserFile = nuf;}
-					al.add(r);
-				}
+				r.routeN = rs.getString(7);
+				r.stopN = rs.getString(8);
+				r.firstUserFile = rs.getString(13);
+				String nuf = rs.getString(14);
+				if (!r.firstUserFile.equals(nuf)) { r.nextUserFile = nuf;}
+				addRow(al, r, count);
 			}
 		}
-		return al;
+		return count[0];
 	}
 	private static boolean addRow(ArrayList<Row> al, Row r) {
 		int sz = al.size();
@@ -146,7 +147,7 @@ public class TtTableDb {
 		}
 		return true;
 	}
-	private static boolean addRow(Row r) {
+	private static void addRow(ArrayList<Row> al, Row r, int[] count) {
 		int dow = SupportTime.getDayOfWeek(r.delDate);
 		if (r.delCarrier == null) {
 			DsKey k = new DsKey(r.storeN, r.cmdty, dow);
@@ -154,10 +155,9 @@ public class TtTableDb {
 				String type = r.dsShipDate == null ? "regular" : "holidays";
 				log.error("Carrier not found (" + type + "): "+k);
 			}
-			return false;
-			//r.delCarrier = "";
+			r.missing = true;
 		}
-
+		else { count[0]++;}
 		if (!CommonConstants.CCS.equalsIgnoreCase(r.delCarrier)) {
 			if (r.targetOpen == null || r.targetOpen.compareTo(r.delTimeFrom) < 0 ||
 				r.targetOpen.compareTo(r.delTimeTo) > 0) {
@@ -165,12 +165,13 @@ public class TtTableDb {
 			}
 			else { r.arrivalTime = r.targetOpen;}
 		}
-		return true;
+		al.add(r);
 	}
 	private static void update(PreparedStatement ins, PreparedStatement upd,
 		ArrayList<Row> al) throws Exception {
 		for (Iterator<Row> it = al.iterator(); it.hasNext();) {
 			Row r = it.next();
+			if (r.missing) { continue;}
 			upd.setDate(1, r.delDate);
 			upd.setInt(2, getTime(r.arrivalTime));
 			upd.setString(3, r.routeN);
@@ -208,6 +209,7 @@ public class TtTableDb {
 		return Integer.parseInt(v);
 	}
 	private static class Row {
+		boolean missing;
 		private int storeN;
 		private String cmdty, dc, routeN, stopN, delCarrier, firstUserFile, nextUserFile;
 		private Time arrivalTime, delTimeFrom, delTimeTo, targetOpen;
@@ -217,6 +219,9 @@ public class TtTableDb {
 			TBuilder tb = new TBuilder();
 			tb.newLine();
 			tb.addProperty20(RnColumns.STORE_N, storeN, 6);
+			if (missing) {
+				tb.addProperty20("Missing", "true", 4);
+			}
 			tb.addProperty20(RnColumns.COMMODITY, cmdty, 8);
 			tb.addProperty20("Shipment date", SupportTime.dd_MM_yyyy_Format.format(shipDate), 10);
 			tb.addProperty20("Delivery date", SupportTime.dd_MM_yyyy_Format.format(delDate), 10);

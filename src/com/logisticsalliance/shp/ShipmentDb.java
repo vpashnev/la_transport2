@@ -10,14 +10,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import javax.mail.Session;
-
 import org.apache.log4j.Logger;
 
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
 import com.logisticsalliance.general.ScheduledWorker;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
 import com.logisticsalliance.sqla.ConnectFactory;
 import com.logisticsalliance.sqla.ConnectFactory1;
 import com.logisticsalliance.text.TBuilder;
@@ -118,11 +115,19 @@ public class ShipmentDb {
 
 		MATRIXDC = "MATRIXDC";
 
-	private static String SQL_SEL_SHP =
+	private static String
+		SQL_SEL_EQUIP_SIZE =
+		"SELECT min(equip_size),dc,route_n " +
+		"FROM la.hship_data " +
+		"WHERE ship_date=? " +
+		"GROUP BY dc,route_n " +
+		"ORDER BY dc,route_n",
+
+		SQL_SEL_SHP =
 		"SELECT " +
 		"sd.store_n, sd.cmdty, sd.ship_date, sd.del_date, route_n, stop_n, dc," +
 		"dc_depart_time, prev_distance, prev_travel_time, arrival_time, service_time," +
-		"total_service_time, total_travel_time, equip_size," +
+		"total_service_time, total_travel_time," +
 		"order_n, pallets, units, weight, cube, del_time_from, del_time_to," +
 		"spec_instructs, lh_carrier, lh_service, del_carrier_id, del_service," +
 		"sd.first_user_file, sd.next_user_file, rno.first_user_file, rno.next_user_file," +
@@ -157,8 +162,7 @@ public class ShipmentDb {
 	public static void clearCarriersNotFound() {
 		carriersNotFound.clear();
 	}
-	public static void process(Date date, EmailSent es) throws Exception {
-		Session s = null;
+	public static void process(Date date) throws Exception {
 		ArrayList<ShipmentData> al = new ArrayList<ShipmentData>(1024);
 		Connection con = null, con1 = null;
 		try {
@@ -166,11 +170,11 @@ public class ShipmentDb {
 			con1 = connectFactoryI5.getConnection();
 			con1.setAutoCommit(true);
 			PreparedStatement st = con.prepareStatement(SQL_SEL_SHP);
-			s = select(st, new ShipmentHub.HubStatements(con1), date, al, s, es);
+			int count = select(st, new ShipmentHub.HubStatements(con1), date, al);
 			st.close();
 			int n;
 			PreparedStatement st1;
-			/*st1 = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPIFC1");
+			st1 = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPIFC1");
 			n = st1.executeUpdate();
 			st1.close();
 			st1 = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPIFC2");
@@ -178,8 +182,8 @@ public class ShipmentDb {
 			st1.close();
 			st1 = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPIFC9");
 			n = st1.executeUpdate();
-			st1.close();*/
-			int shpDate = Functions.toInt(date);
+			st1.close();
+			/*int shpDate = Functions.toInt(date);
 			st1 = con1.prepareStatement(SQL_DEL9);
 			st1.setInt(1, shpDate);
 			n = st1.executeUpdate();
@@ -191,13 +195,15 @@ public class ShipmentDb {
 			st1 = con1.prepareStatement(SQL_DEL1);
 			st1.setInt(1, shpDate);
 			n = st1.executeUpdate();
-			st1.close();
+			st1.close();*/
 			update(con1.prepareStatement(SQL_INS1), con1.prepareStatement(SQL_UPD1),
 				con1.prepareStatement(SQL_INS2), con1.prepareStatement(SQL_UPD2),
 				con1.prepareStatement(SQL_INS9), con1.prepareStatement(SQL_UPD9), al);
 			if (al.size() != 0) {
 				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(date)+
-					"\r\n\r\n"+al+"\r\n\r\nTotal: "+al.size());
+					"\r\n\r\n"+al+
+					"\r\n\r\nTotal:   "+al.size()+
+					"\r\n\r\nMissing: "+(al.size()-count));
 			}
 			/*String v = ShpTest.test(con1, shpDate, al);
 			if (v.length() != 0) {
@@ -228,15 +234,32 @@ public class ShipmentDb {
 		b.append(insDigits(sn));
 		return sd.dc+b.toString();
 	}
-	private static Session select(PreparedStatement st, ShipmentHub.HubStatements hst,
-		Date date, ArrayList<ShipmentData> al, Session s, EmailSent es) throws Exception {
+	private static HashMap<String,String> getEquipSize(Connection con, Date date) throws Exception {
+		HashMap<String,String> m = new HashMap<String,String>(1024, .5f);
+		PreparedStatement st = con.prepareStatement(SQL_SEL_EQUIP_SIZE);
+		st.setDate(1, date);
+		ResultSet rs = st.executeQuery();
+		while (rs.next()) {
+			String equipSize = rs.getString(1);
+			String dc = rs.getString(2);
+			StringBuilder b = insDigits(rs.getString(3));
+			b.insert(0, dc);
+			m.put(b.toString(), equipSize);
+		}
+		rs.close();
+		return m;
+	}
+	private static int select(PreparedStatement st, ShipmentHub.HubStatements hst,
+		Date date, ArrayList<ShipmentData> al) throws Exception {
+		HashMap<String,String> esm = getEquipSize(st.getConnection(), date);
 		st.setDate(1, date);
 		HashMap<String,ShipmentItem> m = new HashMap<String,ShipmentItem>(64, .5f);
 		ResultSet rs = st.executeQuery();
 		if (!rs.next()) {
-			rs.close(); return s;
+			rs.close(); return 0;
 		}
 		int storeN, shipDate = 0;
+		int[] count = {0};
 		String dc, routeN;
 		ShipmentData sd = null;
 		while (true) {
@@ -247,20 +270,25 @@ public class ShipmentDb {
 				sd = newData(storeN, dc, routeN);
 			}
 			else if (storeN != sd.storeN || !dc.equals(sd.dc) || !routeN.equals(sd.routeN)) {
-				addData(al, sd);
+				addData(al, sd, count);
 				m.clear();
 				sd = newData(storeN, dc, routeN);
 			}
 			ShipmentItem si = new ShipmentItem();
-			si.orderN = rs.getString(16);
-			si.dsShipDate = rs.getDate(34);
+			si.orderN = rs.getString(15);
+			si.dsShipDate = rs.getDate(33);
 			if (addItem(m, sd, si)) {
 				if (sd.shipDate == null) {
+					sd.ordN = getOrdN(sd);
+					sd.equipSize = esm.get(sd.ordN.substring(0, 6));
+					if (sd.equipSize == null) {
+						log.error("Equip.size does not exist");
+						sd.equipSize = "";
+					}
 					sd.cmdty = rs.getString(2);
 					sd.shipDate = rs.getDate(3);
 					shipDate = Functions.toInt(sd.shipDate);
 					sd.delDate = rs.getDate(4);
-					sd.ordN = getOrdN(sd);
 					sd.stopN = rs.getString(6);
 					sd.dcDepartTime = rs.getTime(8);
 					sd.prevDistance = rs.getInt(9);
@@ -270,21 +298,20 @@ public class ShipmentDb {
 					sd.serviceTime = rs.getTime(12);
 					sd.totalServiceTime = rs.getTime(13);
 					sd.totalTravelTime = rs.getTime(14);
-					sd.equipSize = rs.getString(15);
-					sd.delTimeFrom = rs.getTime(21);
-					sd.delTimeTo = rs.getTime(22);
-					sd.specInstructs = rs.getString(23);
+					sd.delTimeFrom = rs.getTime(20);
+					sd.delTimeTo = rs.getTime(21);
+					sd.specInstructs = rs.getString(22);
 					if (sd.specInstructs != null) {
 						sd.specInstructs = sd.specInstructs.trim();
 					}
-					sd.firstUserFile = rs.getString(28);
-					String nuf = rs.getString(29);
+					sd.firstUserFile = rs.getString(27);
+					String nuf = rs.getString(28);
 					if (!sd.firstUserFile.equals(nuf)) { sd.nextUserFile = nuf;}
 				}
 				if (sd.delCarrier == null) {
-					sd.delCarrier = rs.getString(26);
+					sd.delCarrier = rs.getString(25);
 					if (sd.delCarrier != null) {
-						String srv = rs.getString(27);
+						String srv = rs.getString(26);
 						sd.delService = Functions.getDelService(sd, srv);
 						if (sd.lhCarrier != null) {
 							sd.hub = ShipmentHub.getHub(hst, sd, shipDate);
@@ -292,9 +319,9 @@ public class ShipmentDb {
 					}
 				}
 				if (sd.lhCarrier == null) {
-					sd.lhCarrier = rs.getString(24);
+					sd.lhCarrier = rs.getString(23);
 					if (sd.lhCarrier != null && sd.delCarrier != null) {
-						String srv = rs.getString(25);
+						String srv = rs.getString(24);
 						srv = Functions.cut(srv, 4);
 						sd.lhService = srv.isEmpty() ? "TL" : srv;
 						sd.hub = ShipmentHub.getHub(hst, sd, shipDate);
@@ -305,24 +332,24 @@ public class ShipmentDb {
 				}
 
 				si.lw = si.orderN.substring(2, 4);
-				si.pallets = rs.getDouble(17);
-				si.units = rs.getDouble(18);
-				si.weight = rs.getDouble(19);
-				si.cube = rs.getDouble(20);
-				si.firstUserFile = rs.getString(30);
-				String nuf = rs.getString(31);
+				si.pallets = rs.getDouble(16);
+				si.units = rs.getDouble(17);
+				si.weight = rs.getDouble(18);
+				si.cube = rs.getDouble(19);
+				si.firstUserFile = rs.getString(29);
+				String nuf = rs.getString(30);
 				if (!si.firstUserFile.equals(nuf)) { si.nextUserFile = nuf;}
-				si.dsFirstUserFile = rs.getString(32);
-				nuf = rs.getString(33);
+				si.dsFirstUserFile = rs.getString(31);
+				nuf = rs.getString(32);
 				if (!si.dsFirstUserFile.equals(nuf)) { si.dsNextUserFile = nuf;}
 			}
 			if (!rs.next()) {
 				rs.close();
-				addData(al, sd);
+				addData(al, sd, count);
 				break;
 			}
 		}
-		return s;
+		return count[0];
 	}
 	private static ShipmentData newData(int storeN, String dc, String routeN) {
 		ShipmentData sd = new ShipmentData();
@@ -346,7 +373,7 @@ public class ShipmentDb {
 		sd.items.add(si);
 		return true;
 	}
-	private static void addData(ArrayList<ShipmentData> al, ShipmentData sd) {
+	private static void addData(ArrayList<ShipmentData> al, ShipmentData sd, int[] count) {
 		if (sd.delCarrier == null/* && sd.lhCarrier == null*/) {
 			int dow = SupportTime.getDayOfWeek(sd.delDate);
 			DsKey k = new DsKey(sd.storeN, sd.cmdty, dow);
@@ -354,8 +381,10 @@ public class ShipmentDb {
 				String type = sd.items.get(0).dsShipDate == null ? "regular" : "holidays";
 				log.error("Carrier not found (" + type + "): "+k);
 			}
+			sd.missing = true;
 		}
-		else { al.add(sd);}
+		else { count[0]++;}
+		al.add(sd);
 	}
 	private static void update(PreparedStatement ins1, PreparedStatement upd1,
 		PreparedStatement ins2, PreparedStatement upd2, PreparedStatement ins9,
@@ -363,6 +392,7 @@ public class ShipmentDb {
 		ArrayList<Functions.Ref> refs = new ArrayList<Functions.Ref>(8);
 		for (Iterator<ShipmentData> it = al.iterator(); it.hasNext();) {
 			ShipmentData sd = it.next();
+			if (sd.missing) { continue;}
 			//setTable1(upd1, sd);
 			//if (upd1.executeUpdate() == 0) {
 				setTable1(ins1, sd);
@@ -376,6 +406,7 @@ public class ShipmentDb {
 
 		for (Iterator<ShipmentData> it = al.iterator(); it.hasNext();) {
 			ShipmentData sd = it.next();
+			if (sd.missing) { continue;}
 			int i = 1;
 			if (sd.lhCarrier != null) {
 				//setTable2(upd2, sd, sd.lhCarrier, sd.lhService, i);

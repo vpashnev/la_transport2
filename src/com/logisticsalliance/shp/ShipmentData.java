@@ -26,7 +26,7 @@ public class ShipmentData implements Serializable {
 	private static final long serialVersionUID = 10L;
 
 	int storeN;
-	boolean dcx;
+	boolean dcx, missing;
 	double prevDistance;
 	Date shipDate, delDate;
 	Time dcDepartTime, prevTravelTime, arrivalTime, serviceTime,
@@ -74,6 +74,9 @@ public class ShipmentData implements Serializable {
 		tb.newLine();
 		tb.addProperty20(RnColumns.ORDER_N, ordN, 12);
 		tb.addProperty20(RnColumns.STORE_N, storeN, 6);
+		if (missing) {
+			tb.addProperty20("Missing", "true", 4);
+		}
 		tb.addProperty20(RnColumns.COMMODITY, cmdty, 4);
 		tb.addProperty20(RnColumns.SHIP_DATE, SupportTime.dd_MM_yyyy_Format.format(shipDate), 10);
 		tb.addProperty20(RnColumns.DC, dc, 2);

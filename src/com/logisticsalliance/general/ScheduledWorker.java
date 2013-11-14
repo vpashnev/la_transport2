@@ -153,7 +153,7 @@ public class ScheduledWorker implements Runnable {
 					Date d = getShipDate(shipmentDate, c);
 					if (shipments != null) {
 						//Shipments
-						ShipmentDb.process(d, emailSent);
+						ShipmentDb.process(d);
 					}
 					if (ttTable != null) {
 						//ttTable

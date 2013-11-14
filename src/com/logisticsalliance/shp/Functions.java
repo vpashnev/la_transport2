@@ -16,26 +16,25 @@ class Functions {
 		return sd.dc.equals("20") && sd.dcx ? "" : sd.routeN;
 	}
 	static String getDelService(ShipmentData sd, String service) {
-		if (CommonConstants.CCS.equals(sd.delCarrier)) {
-			if (sd.equipSize.startsWith("60H")) {//52TG
-				return "HWYT";
+		boolean isCCS = CommonConstants.CCS.equals(sd.delCarrier);
+		if (sd.equipSize.startsWith("60H")) {
+			return "HWYT";
+		}
+		if (sd.equipSize.startsWith("60")) {
+			return "SGCT";
+		}
+		if (sd.cmdty.equals(CommonConstants.DCF)) {
+			if (sd.equipSize.startsWith("24")) {
+				return "STFC";
 			}
-			if (sd.equipSize.startsWith("60")) {
-				return "SGCT";
+			return isCCS ? "FFSC" : "FFS";
+		}
+		else {
+			if (sd.equipSize.startsWith("24")) {
+				return isCCS ? "STGC" : "STG";
 			}
-			if (sd.cmdty.equals(CommonConstants.DCF)) {
-				if (sd.equipSize.equals("24")) {
-					return "STFC";
-				}
-				//else if (sd.equipSize.equals("30") || sd.equipSize.equals("48")) {
-					return "FFS";
-				//}
-			}
-			else {
-				if (sd.equipSize.equals("24")) {
-					return "STG";
-				}
-			}
+		}
+		if (isCCS) {
 			return "SGL";
 		}
 		String v = cut(service, 4);
