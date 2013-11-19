@@ -32,17 +32,17 @@ public class TtTableDb {
 
 	private static final String
 		SQL_INS =
-		"INSERT INTO OS61LXDTA.OSPDLVS (dvsts,dvstsd,dvlsts,dvlstsd,dvstore#," +
+		"INSERT INTO OS61LYDTA.OSPDLVS (dvsts,dvstsd,dvlsts,dvlstsd,dvstore#," +
 		"dvcom,dvdc,dvshpd,dvdlvd,dvdlvt,dvroute,dvstop#,dvetato,dvetatc,dvcar) " +
 		"VALUES ('10','PLAN','10','PLAN',?,?,?,?,?,?,?,?,?,?,?)",
 
 		SQL_UPD =
-		"UPDATE OS61LXDTA.OSPDLVS SET dvdlvd=?,dvdlvt=?,dvroute=?,dvstop#=?,dvetato=?," +
+		"UPDATE OS61LYDTA.OSPDLVS SET dvdlvd=?,dvdlvt=?,dvroute=?,dvstop#=?,dvetato=?," +
 		"dvetatc=?,dvcar=? WHERE dvstore#=? AND dvcom=? AND dvdc=? AND dvshpd=?",
 
 		SQL_SEL_DELIVERIES =
 		"SELECT DISTINCT " +
-		"sd.store_n, sd.cmdty, dc, sd.ship_date, sd.del_date, arrival_time, route_n, stop_n," +
+		"sd.store_n, sd.cmdty, dc, sd.del_date, arrival_time, route_n, stop_n," +
 		"del_time_from, del_time_to, del_carrier_id, target_open, sd.first_user_file," +
 		"sd.next_user_file, sts.ship_date " +
 
@@ -66,13 +66,34 @@ public class TtTableDb {
 
 	private static HashSet<DsKey> carriersNotFound = new HashSet<DsKey>();
 
+	private static boolean done;
+
 	public static void setConnectFactoryI5(ConnectFactory cf) {
 		connectFactoryI5 = cf;
 	}
 	public static void clearCarriersNotFound() {
 		carriersNotFound.clear();
 	}
-	public static void process(Date shipDate) throws Exception {
+	public static void process(final Date shipDate) throws InterruptedException {
+		done = false;
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				process1(shipDate);
+				done = true;
+			}
+		};
+		t.setDaemon(true);
+		t.start();
+		int i = 0;
+		while (!done && i++ != 360) {
+			Thread.sleep(5000);
+		}
+		if (!done) {
+			log.error("Report incomplete truck and trace table");
+		}
+	}
+	private static void process1(Date shipDate) {
 		Connection con = null, con1 = null;
 		try {
 			con = ConnectFactory1.one().getConnection();
@@ -87,7 +108,7 @@ public class TtTableDb {
 			//st = con1.prepareStatement("DELETE FROM OS61LXDTA.OSPDLVS");
 			//int n = st.executeUpdate();
 			//st.close();
-			update(con1.prepareStatement(SQL_INS), con1.prepareStatement(SQL_UPD), al);
+			update(con1.prepareStatement(SQL_INS), con1.prepareStatement(SQL_UPD), al, shipDate);
 			if (al.size() != 0) {
 				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(shipDate)+
 					"\r\n\r\n"+al+
@@ -111,19 +132,18 @@ public class TtTableDb {
 			r.storeN = rs.getInt(1);
 			r.cmdty = rs.getString(2);
 			r.dc = rs.getString(3);
-			r.shipDate = rs.getDate(4);
-			r.dsShipDate = rs.getDate(15);
+			r.dsShipDate = rs.getDate(14);
 			if (addRow(al, r)) {
-				r.delDate = rs.getDate(5);
-				r.arrivalTime = rs.getTime(6);
-				r.delTimeFrom = rs.getTime(9);
-				r.delTimeTo = rs.getTime(10);
-				r.delCarrier = rs.getString(11);
-				r.targetOpen = rs.getTime(12);
-				r.routeN = rs.getString(7);
-				r.stopN = rs.getString(8);
-				r.firstUserFile = rs.getString(13);
-				String nuf = rs.getString(14);
+				r.delDate = rs.getDate(4);
+				r.arrivalTime = rs.getTime(5);
+				r.delTimeFrom = rs.getTime(8);
+				r.delTimeTo = rs.getTime(9);
+				r.delCarrier = rs.getString(10);
+				r.targetOpen = rs.getTime(11);
+				r.routeN = rs.getString(6);
+				r.stopN = rs.getString(7);
+				r.firstUserFile = rs.getString(12);
+				String nuf = rs.getString(13);
 				if (!r.firstUserFile.equals(nuf)) { r.nextUserFile = nuf;}
 				addRow(al, r, count);
 			}
@@ -134,8 +154,7 @@ public class TtTableDb {
 		int sz = al.size();
 		if (sz != 0) {
 			Row r2 = al.get(sz-1);
-			if (r.storeN == r2.storeN && r.cmdty.equals(r2.cmdty) &&
-				r.dc.equals(r2.dc) && r.shipDate.equals(r2.shipDate)) {
+			if (r.storeN == r2.storeN && r.cmdty.equals(r2.cmdty) && r.dc.equals(r2.dc)) {
 				if (r.dsShipDate == r2.dsShipDate || r.dsShipDate != null &&
 					r2.dsShipDate != null || r2.dsShipDate != null) {
 					return false;
@@ -168,7 +187,7 @@ public class TtTableDb {
 		al.add(r);
 	}
 	private static void update(PreparedStatement ins, PreparedStatement upd,
-		ArrayList<Row> al) throws Exception {
+		ArrayList<Row> al, Date shipDate) throws Exception {
 		for (Iterator<Row> it = al.iterator(); it.hasNext();) {
 			Row r = it.next();
 			if (r.missing) { continue;}
@@ -185,14 +204,14 @@ public class TtTableDb {
 			upd.setInt(8, r.storeN);
 			upd.setString(9, r.cmdty);
 			upd.setString(10, r.dc);
-			upd.setDate(11, r.shipDate);
+			upd.setDate(11, shipDate);
 			if (upd.executeUpdate() != 0) {
 				continue;
 			}
 			ins.setInt(1, r.storeN);
 			ins.setString(2, r.cmdty);
 			ins.setString(3, r.dc);
-			ins.setDate(4, r.shipDate);
+			ins.setDate(4, shipDate);
 			ins.setDate(5, r.delDate);
 			ins.setInt(6, getTime(r.arrivalTime));
 			ins.setString(7, r.routeN);
@@ -213,7 +232,7 @@ public class TtTableDb {
 		private int storeN;
 		private String cmdty, dc, routeN, stopN, delCarrier, firstUserFile, nextUserFile;
 		private Time arrivalTime, delTimeFrom, delTimeTo, targetOpen;
-		private Date shipDate, delDate, dsShipDate;
+		private Date delDate, dsShipDate;
 		@Override
 		public String toString() {
 			TBuilder tb = new TBuilder();
@@ -223,7 +242,6 @@ public class TtTableDb {
 				tb.addProperty20("Missing", "true", 4);
 			}
 			tb.addProperty20(RnColumns.COMMODITY, cmdty, 8);
-			tb.addProperty20("Shipment date", SupportTime.dd_MM_yyyy_Format.format(shipDate), 10);
 			tb.addProperty20("Delivery date", SupportTime.dd_MM_yyyy_Format.format(delDate), 10);
 			tb.addProperty20(RnColumns.DC, dc, 2);
 			tb.addProperty20(RnColumns.ROUTE_N, routeN, 4);

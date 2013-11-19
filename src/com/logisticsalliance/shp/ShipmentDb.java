@@ -125,7 +125,7 @@ public class ShipmentDb {
 
 		SQL_SEL_SHP =
 		"SELECT " +
-		"sd.store_n, sd.cmdty, sd.ship_date, sd.del_date, route_n, stop_n, dc," +
+		"sd.store_n, sd.cmdty, sd.del_date, route_n, stop_n, dc," +
 		"dc_depart_time, prev_distance, prev_travel_time, arrival_time, service_time," +
 		"total_service_time, total_travel_time," +
 		"order_n, pallets, units, weight, cube, del_time_from, del_time_to," +
@@ -150,11 +150,13 @@ public class ShipmentDb {
 		ScheduledWorker.shipQryCarriers+") ") +
 
 		"ORDER BY " +
-		"1,7,5,2";
+		"1,6,4,2";
 
 	private static ConnectFactory connectFactoryI5;
 
 	private static HashSet<DsKey> carriersNotFound = new HashSet<DsKey>();
+
+	private static boolean done;
 
 	public static void setConnectFactoryI5(ConnectFactory cf) {
 		connectFactoryI5 = cf;
@@ -162,7 +164,30 @@ public class ShipmentDb {
 	public static void clearCarriersNotFound() {
 		carriersNotFound.clear();
 	}
-	public static void process(Date date) throws Exception {
+	public static boolean isDone() {
+		return done;
+	}
+	public static void process(final Date shipDate) throws InterruptedException {
+		done = false;
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				process1(shipDate);
+				done = true;
+			}
+		};
+		t.setDaemon(true);
+		t.start();
+		int i = 0;
+		while (!done && i++ != 360) {
+			Thread.sleep(5000);
+		}
+		if (!done) {
+			log.error("Report incomplete shipments");
+		}
+	}
+	private static void process1(Date date) {
+		int shpDate = Functions.toInt(date);
 		ArrayList<ShipmentData> al = new ArrayList<ShipmentData>(1024);
 		Connection con = null, con1 = null;
 		try {
@@ -170,8 +195,9 @@ public class ShipmentDb {
 			con1 = connectFactoryI5.getConnection();
 			con1.setAutoCommit(true);
 			PreparedStatement st = con.prepareStatement(SQL_SEL_SHP);
-			int count = select(st, new ShipmentHub.HubStatements(con1), date, al);
+			int count = select(st, new ShipmentSrvc.HubStatements(con1), date, shpDate, al);
 			st.close();
+			/*
 			int n;
 			PreparedStatement st1;
 			st1 = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPIFC1");
@@ -183,7 +209,6 @@ public class ShipmentDb {
 			st1 = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPIFC9");
 			n = st1.executeUpdate();
 			st1.close();
-			/*int shpDate = Functions.toInt(date);
 			st1 = con1.prepareStatement(SQL_DEL9);
 			st1.setInt(1, shpDate);
 			n = st1.executeUpdate();
@@ -195,10 +220,12 @@ public class ShipmentDb {
 			st1 = con1.prepareStatement(SQL_DEL1);
 			st1.setInt(1, shpDate);
 			n = st1.executeUpdate();
-			st1.close();*/
+			st1.close();
 			update(con1.prepareStatement(SQL_INS1), con1.prepareStatement(SQL_UPD1),
 				con1.prepareStatement(SQL_INS2), con1.prepareStatement(SQL_UPD2),
-				con1.prepareStatement(SQL_INS9), con1.prepareStatement(SQL_UPD9), al);
+				con1.prepareStatement(SQL_INS9), con1.prepareStatement(SQL_UPD9),
+				al, shpDate);
+			*/
 			if (al.size() != 0) {
 				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(date)+
 					"\r\n\r\n"+al+
@@ -249,8 +276,8 @@ public class ShipmentDb {
 		rs.close();
 		return m;
 	}
-	private static int select(PreparedStatement st, ShipmentHub.HubStatements hst,
-		Date date, ArrayList<ShipmentData> al) throws Exception {
+	private static int select(PreparedStatement st, ShipmentSrvc.HubStatements hst,
+		Date date, int shpDate, ArrayList<ShipmentData> al) throws Exception {
 		HashMap<String,String> esm = getEquipSize(st.getConnection(), date);
 		st.setDate(1, date);
 		HashMap<String,ShipmentItem> m = new HashMap<String,ShipmentItem>(64, .5f);
@@ -258,14 +285,14 @@ public class ShipmentDb {
 		if (!rs.next()) {
 			rs.close(); return 0;
 		}
-		int storeN, shipDate = 0;
+		int storeN;
 		int[] count = {0};
 		String dc, routeN;
 		ShipmentData sd = null;
 		while (true) {
 			storeN = rs.getInt(1);
-			routeN = rs.getString(5);
-			dc = rs.getString(7);
+			routeN = rs.getString(4);
+			dc = rs.getString(6);
 			if (sd == null) {
 				sd = newData(storeN, dc, routeN);
 			}
@@ -275,10 +302,10 @@ public class ShipmentDb {
 				sd = newData(storeN, dc, routeN);
 			}
 			ShipmentItem si = new ShipmentItem();
-			si.orderN = rs.getString(15);
-			si.dsShipDate = rs.getDate(33);
+			si.orderN = rs.getString(14);
+			si.dsShipDate = rs.getDate(32);
 			if (addItem(m, sd, si)) {
-				if (sd.shipDate == null) {
+				if (sd.ordN == null) {
 					sd.ordN = getOrdN(sd);
 					sd.equipSize = esm.get(sd.ordN.substring(0, 6));
 					if (sd.equipSize == null) {
@@ -286,61 +313,60 @@ public class ShipmentDb {
 						sd.equipSize = "";
 					}
 					sd.cmdty = rs.getString(2);
-					sd.shipDate = rs.getDate(3);
-					shipDate = Functions.toInt(sd.shipDate);
-					sd.delDate = rs.getDate(4);
-					sd.stopN = rs.getString(6);
-					sd.dcDepartTime = rs.getTime(8);
-					sd.prevDistance = rs.getInt(9);
+					sd.delDate = rs.getDate(3);
+					sd.stopN = rs.getString(5);
+					sd.dcDepartTime = rs.getTime(7);
+					sd.prevDistance = rs.getInt(8);
 					if (sd.dc.equals("30")) { sd.prevDistance /= 10d;}
-					sd.prevTravelTime = rs.getTime(10);
-					sd.arrivalTime = rs.getTime(11);
-					sd.serviceTime = rs.getTime(12);
-					sd.totalServiceTime = rs.getTime(13);
-					sd.totalTravelTime = rs.getTime(14);
-					sd.delTimeFrom = rs.getTime(20);
-					sd.delTimeTo = rs.getTime(21);
-					sd.specInstructs = rs.getString(22);
+					sd.prevTravelTime = rs.getTime(9);
+					sd.arrivalTime = rs.getTime(10);
+					sd.serviceTime = rs.getTime(11);
+					sd.totalServiceTime = rs.getTime(12);
+					sd.totalTravelTime = rs.getTime(13);
+					sd.delTimeFrom = rs.getTime(19);
+					sd.delTimeTo = rs.getTime(20);
+					sd.specInstructs = rs.getString(21);
 					if (sd.specInstructs != null) {
 						sd.specInstructs = sd.specInstructs.trim();
 					}
-					sd.firstUserFile = rs.getString(27);
-					String nuf = rs.getString(28);
+					sd.firstUserFile = rs.getString(26);
+					String nuf = rs.getString(27);
 					if (!sd.firstUserFile.equals(nuf)) { sd.nextUserFile = nuf;}
 				}
+				if (sd.lhCarrier == null) {
+					sd.lhCarrier = rs.getString(22);
+					String srv = rs.getString(23);
+					srv = Functions.cut(srv, 4);
+					sd.lhService = srv.isEmpty() ? "TL" : srv;
+				}
 				if (sd.delCarrier == null) {
-					sd.delCarrier = rs.getString(25);
+					sd.delCarrier = rs.getString(24);
 					if (sd.delCarrier != null) {
-						String srv = rs.getString(26);
-						sd.delService = Functions.getDelService(sd, srv);
-						if (sd.lhCarrier != null) {
-							sd.hub = ShipmentHub.getHub(hst, sd, shipDate);
+						ShipmentSrvc.setService(hst, sd, shpDate);
+						String srv = rs.getString(25);
+						if (srv != null && !srv.trim().isEmpty()) {
+							srv = sd.delService;
 						}
+						sd.delService = ShipmentSrvc.getDelService(sd, srv);
 					}
 				}
-				if (sd.lhCarrier == null) {
-					sd.lhCarrier = rs.getString(23);
-					if (sd.lhCarrier != null && sd.delCarrier != null) {
-						String srv = rs.getString(24);
-						srv = Functions.cut(srv, 4);
-						sd.lhService = srv.isEmpty() ? "TL" : srv;
-						sd.hub = ShipmentHub.getHub(hst, sd, shipDate);
-					}
+				if (sd.lhCarrier != null && sd.delCarrier != null) {
+					ShipmentSrvc.setHub(sd);
 				}
 				if (!sd.dcx && rs.getString(2).equals("DCX")) {
 					sd.dcx = true;
 				}
 
 				si.lw = si.orderN.substring(2, 4);
-				si.pallets = rs.getDouble(16);
-				si.units = rs.getDouble(17);
-				si.weight = rs.getDouble(18);
-				si.cube = rs.getDouble(19);
-				si.firstUserFile = rs.getString(29);
-				String nuf = rs.getString(30);
+				si.pallets = rs.getDouble(15);
+				si.units = rs.getDouble(16);
+				si.weight = rs.getDouble(17);
+				si.cube = rs.getDouble(18);
+				si.firstUserFile = rs.getString(28);
+				String nuf = rs.getString(29);
 				if (!si.firstUserFile.equals(nuf)) { si.nextUserFile = nuf;}
-				si.dsFirstUserFile = rs.getString(31);
-				nuf = rs.getString(32);
+				si.dsFirstUserFile = rs.getString(30);
+				nuf = rs.getString(31);
 				if (!si.dsFirstUserFile.equals(nuf)) { si.dsNextUserFile = nuf;}
 			}
 			if (!rs.next()) {
@@ -384,18 +410,21 @@ public class ShipmentDb {
 			sd.missing = true;
 		}
 		else { count[0]++;}
+		if (sd.lhCarrier == null) {
+			sd.hub = "";
+		}
 		al.add(sd);
 	}
 	private static void update(PreparedStatement ins1, PreparedStatement upd1,
 		PreparedStatement ins2, PreparedStatement upd2, PreparedStatement ins9,
-		PreparedStatement upd9, ArrayList<ShipmentData> al) throws Exception {
+		PreparedStatement upd9, ArrayList<ShipmentData> al, int shpDate) throws Exception {
 		ArrayList<Functions.Ref> refs = new ArrayList<Functions.Ref>(8);
 		for (Iterator<ShipmentData> it = al.iterator(); it.hasNext();) {
 			ShipmentData sd = it.next();
 			if (sd.missing) { continue;}
 			//setTable1(upd1, sd);
 			//if (upd1.executeUpdate() == 0) {
-				setTable1(ins1, sd);
+				setTable1(ins1, sd, shpDate);
 				ins1.addBatch();
 			//}
 			//Functions.putRefs(refs, sd, 0);
@@ -411,7 +440,7 @@ public class ShipmentDb {
 			if (sd.lhCarrier != null) {
 				//setTable2(upd2, sd, sd.lhCarrier, sd.lhService, i);
 				//if (upd2.executeUpdate() == 0) {
-					setTable2(ins2, sd, sd.lhCarrier, sd.lhService, i);
+					setTable2(ins2, sd, sd.lhCarrier, sd.lhService, i, shpDate);
 					ins2.addBatch();
 				//}
 				Functions.putRefs(refs, sd, i);
@@ -421,7 +450,7 @@ public class ShipmentDb {
 			if (sd.delCarrier != null) {
 				//setTable2(upd2, sd, sd.delCarrier, sd.delService, i);
 				//if (upd2.executeUpdate() == 0) {
-					setTable2(ins2, sd, sd.delCarrier, sd.delService, i);
+					setTable2(ins2, sd, sd.delCarrier, sd.delService, i, shpDate);
 					ins2.addBatch();
 				//}
 				Functions.putRefs(refs, sd, i);
@@ -431,13 +460,13 @@ public class ShipmentDb {
 		ins2.executeBatch();
 		ins9.executeBatch();
 	}
-	private static void setTable1(PreparedStatement st, ShipmentData sd) throws Exception {
+	private static void setTable1(PreparedStatement st, ShipmentData sd, int shpDate) throws Exception {
 		st.setDouble(1, sd.getTotalWeight(true));
 		st.setDouble(2, 1);//sd.getTotalUnits(null));
 		st.setDouble(3, sd.getTotalCube(true));
 		st.setDouble(4, 0);//height
 		st.setDouble(5, sd.getTotalPallets());
-		st.setInt(6, Functions.toInt(sd.shipDate));
+		st.setInt(6, shpDate);
 		st.setInt(7, Functions.toInt(sd.delDate));
 		st.setString(8, String.valueOf(sd.storeN));
 		st.setString(9, MATRIXDC+sd.dc);
@@ -462,19 +491,19 @@ public class ShipmentDb {
 		st.setString(19, sd.ordN);
 	}
 	private static void setTable2(PreparedStatement st, ShipmentData sd,
-		String carrier, String service, int leg) throws Exception {
+		String carrier, String service, int leg, int shpDate) throws Exception {
 		st.setString(1, Functions.cut(carrier, 8));
 		st.setString(2, service);
 		if (sd.lhCarrier == null) {
 			st.setString(3, "");
-			st.setInt(4, Functions.toInt(sd.shipDate));
+			st.setInt(4, shpDate);
 			st.setInt(5, Functions.toInt(sd.delDate));
 		}
 		else {
 			Date xDocDate = new Date(sd.delDate.getTime()-SupportTime.DAY);
 			if (leg == 1) {
 				st.setString(3, sd.hub);
-				st.setInt(4, Functions.toInt(sd.shipDate));
+				st.setInt(4, shpDate);
 				st.setInt(5, Functions.toInt(xDocDate));
 			}
 			else {

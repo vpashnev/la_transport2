@@ -15,37 +15,6 @@ class Functions {
 	static String getGroupID(ShipmentData sd, int leg) {
 		return sd.dc.equals("20") && sd.dcx ? "" : sd.routeN;
 	}
-	static String getDelService(ShipmentData sd, String service) {
-		boolean isCCS = CommonConstants.CCS.equals(sd.delCarrier);
-		if (sd.equipSize.startsWith("60H")) {
-			return "HWYT";
-		}
-		if (sd.equipSize.startsWith("60")) {
-			return "SGCT";
-		}
-		if (sd.cmdty.equals(CommonConstants.DCF)) {
-			if (sd.equipSize.startsWith("24")) {
-				return "STFC";
-			}
-			return isCCS ? "FFSC" : "FFS";
-		}
-		else {
-			if (sd.equipSize.startsWith("24")) {
-				return isCCS ? "STGC" : "STG";
-			}
-		}
-		if (isCCS) {
-			return "SGL";
-		}
-		String v = cut(service, 4);
-		if (v.isEmpty()) {
-			if (sd.cmdty.equals(CommonConstants.DCF)) {
-				v = "FFS";
-			}
-			else { v = "LTL";}
-		}
-		return v;
-	}
 	static String cut(String v, int len) {
 		if (v == null) {
 			v = "";

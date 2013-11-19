@@ -28,11 +28,12 @@ public class ShipmentData implements Serializable {
 	int storeN;
 	boolean dcx, missing;
 	double prevDistance;
-	Date shipDate, delDate;
+	Date delDate;
 	Time dcDepartTime, prevTravelTime, arrivalTime, serviceTime,
 		totalServiceTime, totalTravelTime, delTimeFrom, delTimeTo;
 	String cmdty, routeN, stopN, dc, ordN, equipSize, lhCarrier, lhService,
-		delCarrier, delService, hub = "", specInstructs, firstUserFile, nextUserFile;
+		delCarrier, delService, hub,
+		specInstructs, firstUserFile, nextUserFile;
 	ArrayList<ShipmentItem> items = new ArrayList<ShipmentItem>(8);
 
 	double getTotalPallets() {
@@ -78,7 +79,6 @@ public class ShipmentData implements Serializable {
 			tb.addProperty20("Missing", "true", 4);
 		}
 		tb.addProperty20(RnColumns.COMMODITY, cmdty, 4);
-		tb.addProperty20(RnColumns.SHIP_DATE, SupportTime.dd_MM_yyyy_Format.format(shipDate), 10);
 		tb.addProperty20(RnColumns.DC, dc, 2);
 		tb.addProperty20(RnColumns.ROUTE_N, routeN, 6);
 		tb.addProperty20(RnColumns.STOP_N, stopN, 3);
