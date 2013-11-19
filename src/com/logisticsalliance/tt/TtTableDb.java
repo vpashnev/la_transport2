@@ -32,18 +32,18 @@ public class TtTableDb {
 
 	private static final String
 		SQL_INS =
-		"INSERT INTO OS61LYDTA.OSPDLVS (dvsts,dvstsd,dvlsts,dvlstsd,dvstore#," +
+		"INSERT INTO OS61LXDTA.OSPDLVS (dvsts,dvstsd,dvlsts,dvlstsd,dvstore#," +
 		"dvcom,dvdc,dvshpd,dvdlvd,dvdlvt,dvroute,dvstop#,dvetato,dvetatc,dvcar) " +
 		"VALUES ('10','PLAN','10','PLAN',?,?,?,?,?,?,?,?,?,?,?)",
 
 		SQL_UPD =
-		"UPDATE OS61LYDTA.OSPDLVS SET dvdlvd=?,dvdlvt=?,dvroute=?,dvstop#=?,dvetato=?," +
+		"UPDATE OS61LXDTA.OSPDLVS SET dvdlvd=?,dvdlvt=?,dvroute=?,dvstop#=?,dvetato=?," +
 		"dvetatc=?,dvcar=? WHERE dvstore#=? AND dvcom=? AND dvdc=? AND dvshpd=?",
 
 		SQL_SEL_DELIVERIES =
 		"SELECT DISTINCT " +
 		"sd.store_n, sd.cmdty, dc, sd.del_date, arrival_time, route_n, stop_n," +
-		"del_time_from, del_time_to, del_carrier_id, target_open, sd.first_user_file," +
+		"del_time_from, del_time_to, del_carrier_id, sd.first_user_file," +
 		"sd.next_user_file, sts.ship_date " +
 
 		"FROM " +
@@ -60,7 +60,7 @@ public class TtTableDb {
 		"sd.cmdty<>'RX' AND sd.ship_date=? "+
 
 		"ORDER BY " +
-		"sd.store_n,sd.cmdty,dc,sd.ship_date";
+		"sd.store_n,sd.cmdty,dc";
 
 	private static ConnectFactory connectFactoryI5;
 
@@ -132,18 +132,17 @@ public class TtTableDb {
 			r.storeN = rs.getInt(1);
 			r.cmdty = rs.getString(2);
 			r.dc = rs.getString(3);
-			r.dsShipDate = rs.getDate(14);
+			r.dsShipDate = rs.getDate(13);
 			if (addRow(al, r)) {
 				r.delDate = rs.getDate(4);
 				r.arrivalTime = rs.getTime(5);
 				r.delTimeFrom = rs.getTime(8);
 				r.delTimeTo = rs.getTime(9);
 				r.delCarrier = rs.getString(10);
-				r.targetOpen = rs.getTime(11);
 				r.routeN = rs.getString(6);
 				r.stopN = rs.getString(7);
-				r.firstUserFile = rs.getString(12);
-				String nuf = rs.getString(13);
+				r.firstUserFile = rs.getString(11);
+				String nuf = rs.getString(12);
 				if (!r.firstUserFile.equals(nuf)) { r.nextUserFile = nuf;}
 				addRow(al, r, count);
 			}
@@ -178,11 +177,7 @@ public class TtTableDb {
 		}
 		else { count[0]++;}
 		if (!CommonConstants.CCS.equalsIgnoreCase(r.delCarrier)) {
-			if (r.targetOpen == null || r.targetOpen.compareTo(r.delTimeFrom) < 0 ||
-				r.targetOpen.compareTo(r.delTimeTo) > 0) {
-				r.arrivalTime = r.delTimeFrom;
-			}
-			else { r.arrivalTime = r.targetOpen;}
+			r.arrivalTime = new Time(r.delTimeFrom.getTime()+SupportTime.HOUR);
 		}
 		al.add(r);
 	}
@@ -231,7 +226,7 @@ public class TtTableDb {
 		boolean missing;
 		private int storeN;
 		private String cmdty, dc, routeN, stopN, delCarrier, firstUserFile, nextUserFile;
-		private Time arrivalTime, delTimeFrom, delTimeTo, targetOpen;
+		private Time arrivalTime, delTimeFrom, delTimeTo;
 		private Date delDate, dsShipDate;
 		@Override
 		public String toString() {
@@ -251,8 +246,6 @@ public class TtTableDb {
 			tb.addProperty20("Delivery window", SupportTime.HH_mm_Format.format(delTimeFrom)+" - "+
 				SupportTime.HH_mm_Format.format(delTimeTo), 20);
 			tb.addProperty20("Delivery carrier", delCarrier, 32);
-			tb.addProperty20("Target open", targetOpen == null  ?
-				CommonConstants.N_A : SupportTime.HH_mm_Format.format(targetOpen), 8);
 			tb.addProperty20("User files", firstUserFile+(nextUserFile == null ? "":
 				", modified "+nextUserFile), 80);
 			tb.newLine();
