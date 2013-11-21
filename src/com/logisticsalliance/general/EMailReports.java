@@ -45,10 +45,10 @@ public class EMailReports {
 		b.append("<br>Total : "+sz);
 		return b.toString();
 	}
-	void sendRnFileList(EmailSent es) throws Exception {
+	String sendRnFileList(EmailSent es) throws Exception {
+		String m = getRnFileListMsg();
 		if (es.emailUnsent == null || es.emailSentOnlyToBbc != null) {
 			int[] trials = {0};
-			String m = getRnFileListMsg();
 			Session s = EMailSender.send(null, es, es.rnFileListTo,
 				"List of processed files", m, null, trials);
 			while (s == null && trials[0] < 20) {
@@ -60,6 +60,7 @@ public class EMailReports {
 				log.error("Unable to send List of processed files");
 			}
 		}
+		return m;
 	}
 	void send(EmailSent es) throws Exception {
 		SupportFile.zip(zip, files);

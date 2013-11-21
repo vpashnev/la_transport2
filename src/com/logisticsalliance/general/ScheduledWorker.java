@@ -143,8 +143,10 @@ public class ScheduledWorker implements Runnable {
 				Calendar c = SqlSupport.getDb2CurrentTime();
 				int h = c.get(Calendar.HOUR_OF_DAY);
 				if (emailSent.rnFileListTo != null && h == 21 && h != curHour) {
-					emailReports.sendRnFileList(emailSent);
+					String m = emailReports.sendRnFileList(emailSent);
+					log.debug("\r\n\r\nList of processed files:\r\n\r\n"+m+"\r\n");
 					curHour = h;
+					ShipmentDataDb.updateDailyRnFiles(null, null);
 				}
 				else if (h != 21) { curHour = h;}
 				if (quickReport != null ||
@@ -171,7 +173,6 @@ public class ScheduledWorker implements Runnable {
 					TtTableDb.clearCarriersNotFound();
 					quickReport = null;
 
-					ShipmentDataDb.updateDailyRnFiles(null, null);
 					if (daysOutCleaningDB != null) {
 						if (daysOutCleaning < 0) {
 							daysOutCleaning = Integer.parseInt(daysOutCleaningDB);
@@ -208,8 +209,6 @@ public class ScheduledWorker implements Runnable {
 	}
 	private static boolean isTimeToReadStoreSchedule() {
 		Calendar c = Calendar.getInstance();
-		//int t = c.get(Calendar.DAY_OF_WEEK);
-		//if (t == 1 || t == 7) { return false;}
 		int t = c.get(Calendar.HOUR_OF_DAY);
 		if (t == 9 || t == 10) { return true;}
 		return false;
@@ -217,7 +216,7 @@ public class ScheduledWorker implements Runnable {
 	private static boolean isTimeToReadRoadnet() {
 		Calendar c = Calendar.getInstance();
 		int t = c.get(Calendar.HOUR_OF_DAY);
-		if (t > 10) { return true;}
+		if (t < 9 || t > 10) { return true;}
 		return false;
 	}
 	private static HashSet<Integer> getStoreSubset(String stores) {

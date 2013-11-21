@@ -146,7 +146,8 @@ public class ShipmentDataDb {
 					File f = fs[i];
 					update(f, st, r, rnCols, evtMap);
 					log.debug("Rows updated for the file "+f);
-					rnFiles.add(r.dc+" - "+f.getName());
+					rnFiles.add(r.dc+" - "+f.getName()+" "+
+					SupportTime.MM_dd_Format.format(r.shipDate));
 				}
 				cleanEvt(st1, evtMap);
 				con.commit();
@@ -176,7 +177,6 @@ public class ShipmentDataDb {
 			st.addBatch();
 		}
 		st.executeBatch();
-		
 	}
 	private static void update(File f, CallableStatement st,
 		Row r, RnColumns rnCols, HashMap<Long,String> evtMap) throws Exception {

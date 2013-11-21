@@ -197,7 +197,7 @@ public class ShipmentDb {
 			PreparedStatement st = con.prepareStatement(SQL_SEL_SHP);
 			int count = select(st, new ShipmentSrvc.HubStatements(con1), date, shpDate, al);
 			st.close();
-			/*
+			
 			int n;
 			PreparedStatement st1;
 			st1 = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPIFC1");
@@ -221,11 +221,12 @@ public class ShipmentDb {
 			st1.setInt(1, shpDate);
 			n = st1.executeUpdate();
 			st1.close();
+			n = n+0;
 			update(con1.prepareStatement(SQL_INS1), con1.prepareStatement(SQL_UPD1),
 				con1.prepareStatement(SQL_INS2), con1.prepareStatement(SQL_UPD2),
 				con1.prepareStatement(SQL_INS9), con1.prepareStatement(SQL_UPD9),
 				al, shpDate);
-			*/
+			
 			if (al.size() != 0) {
 				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(date)+
 					"\r\n\r\n"+al+
@@ -291,6 +292,9 @@ public class ShipmentDb {
 		ShipmentData sd = null;
 		while (true) {
 			storeN = rs.getInt(1);
+			if (storeN==726) {
+				storeN = storeN+0;
+			}
 			routeN = rs.getString(4);
 			dc = rs.getString(6);
 			if (sd == null) {

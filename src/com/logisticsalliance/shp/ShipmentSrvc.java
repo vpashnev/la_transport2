@@ -79,10 +79,10 @@ public class ShipmentSrvc {
 		return v;
 	}
 	static void setHub(ShipmentData sd) throws Exception {
-		if (sd.delCarrier == null || sd.delCarrier.equals(CommonConstants.CCS)) {
+		if (sd.delCarrier.equals(CommonConstants.CCS)) {
 			sd.hub = "";
 		}
-		if (sd.delCarrier.equals("SONAR")) {
+		else if (sd.delCarrier.equals("SONAR")) {
 			if ("DDCT".equals(sd.delService)) {
 				sd.hub = "DC20";
 			}
