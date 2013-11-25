@@ -210,13 +210,13 @@ public class ScheduledWorker implements Runnable {
 	private static boolean isTimeToReadStoreSchedule() {
 		Calendar c = Calendar.getInstance();
 		int t = c.get(Calendar.HOUR_OF_DAY);
-		if (t == 9 || t == 10) { return true;}
+		if (t == 9) { return true;}
 		return false;
 	}
 	private static boolean isTimeToReadRoadnet() {
 		Calendar c = Calendar.getInstance();
 		int t = c.get(Calendar.HOUR_OF_DAY);
-		if (t < 9 || t > 10) { return true;}
+		if (t != 9) { return true;}
 		return false;
 	}
 	private static HashSet<Integer> getStoreSubset(String stores) {

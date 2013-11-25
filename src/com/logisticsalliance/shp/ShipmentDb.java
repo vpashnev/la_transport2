@@ -129,12 +129,12 @@ public class ShipmentDb {
 		"dc_depart_time, prev_distance, prev_travel_time, arrival_time, service_time," +
 		"total_service_time, total_travel_time," +
 		"order_n, pallets, units, weight, cube, del_time_from, del_time_to," +
-		"spec_instructs, lh_carrier, lh_service, del_carrier_id, del_service," +
+		"spec_instructs, lh_carrier_id, lh_service, del_carrier_id, del_service," +
 		"sd.first_user_file, sd.next_user_file, rno.first_user_file, rno.next_user_file," +
 		"sts.first_user_file, sts.next_user_file, sts.ship_date " +
 
 		"FROM " +
-		"la.hship_data sd LEFT JOIN la.hcarrier_schedule cs ON " +
+		"la.hship_data sd LEFT JOIN la.hcarrier_schedule1 cs ON " +
 		"cs.store_n=sd.store_n AND ((sd.cmdty='DCX' OR sd.cmdty='EVT' OR sd.cmdty='EVT2') AND " +
 		"(cs.cmdty='DCB' OR cs.cmdty='DCV') OR sd.cmdty<>'DCX' AND sd.cmdty<>'EVT' AND " +
 		"sd.cmdty<>'EVT2' AND cs.cmdty=sd.cmdty) AND cs.del_day=DAYOFWEEK(sd.del_date)-1," +
@@ -200,7 +200,7 @@ public class ShipmentDb {
 			
 			int n;
 			PreparedStatement st1;
-			st1 = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPIFC1");
+			/*st1 = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPIFC1");
 			n = st1.executeUpdate();
 			st1.close();
 			st1 = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPIFC2");
@@ -208,7 +208,7 @@ public class ShipmentDb {
 			st1.close();
 			st1 = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPIFC9");
 			n = st1.executeUpdate();
-			st1.close();
+			st1.close();*/
 			st1 = con1.prepareStatement(SQL_DEL9);
 			st1.setInt(1, shpDate);
 			n = st1.executeUpdate();
@@ -292,9 +292,6 @@ public class ShipmentDb {
 		ShipmentData sd = null;
 		while (true) {
 			storeN = rs.getInt(1);
-			if (storeN==726) {
-				storeN = storeN+0;
-			}
 			routeN = rs.getString(4);
 			dc = rs.getString(6);
 			if (sd == null) {
@@ -339,9 +336,11 @@ public class ShipmentDb {
 				}
 				if (sd.lhCarrier == null) {
 					sd.lhCarrier = rs.getString(22);
-					String srv = rs.getString(23);
-					srv = Functions.cut(srv, 4);
-					sd.lhService = srv.isEmpty() ? "TL" : srv;
+					if (sd.lhCarrier != null) {
+						String srv = rs.getString(23);
+						srv = Functions.cut(srv, 4);
+						sd.lhService = srv.isEmpty() ? "TL" : srv;
+					}
 				}
 				if (sd.delCarrier == null) {
 					sd.delCarrier = rs.getString(24);

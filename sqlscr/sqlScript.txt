@@ -105,6 +105,42 @@ CREATE TABLE la.hcarrier_schedule (
 ) ;
 CREATE UNIQUE INDEX la.hcarrier_schedule_key ON la.hcarrier_schedule (store_n,cmdty,del_day) ;
 
+CREATE TABLE la.hcarrier (
+  id VARCHAR(8) NOT NULL,
+  name VARCHAR(30) DEFAULT '' NOT NULL,
+  first_user_file VARCHAR(50) DEFAULT 'unknown' NOT NULL,
+  next_user_file VARCHAR(50) DEFAULT 'unknown' NOT NULL,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT pk_hcarrier PRIMARY KEY (id)
+) ;
+CREATE TABLE la.hcarrier_schedule1 (
+  n BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
+  store_n INT NOT NULL,
+  cmdty VARCHAR(4) NOT NULL,
+  del_day INT NOT NULL,
+  lh_carrier_id VARCHAR(8),
+  lh_service VARCHAR(4),
+  del_carrier_id VARCHAR(8) NOT NULL,
+  del_service VARCHAR(4),
+  first_user_file VARCHAR(50) DEFAULT 'unknown' NOT NULL,
+  next_user_file VARCHAR(50) DEFAULT 'unknown' NOT NULL,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT fk_hcarrier_schedule1_store_n FOREIGN KEY (store_n)
+  REFERENCES la.hstore_profile (n),
+  CONSTRAINT fk_hcarrier_schedule1_del_carrier_id FOREIGN KEY (del_carrier_id)
+  REFERENCES la.hcarrier (id),
+  CONSTRAINT chk_hcarrier_schedule1_del_day CHECK (del_day>=0 AND del_day<7),
+  CONSTRAINT pk_hcarrier_schedule1 PRIMARY KEY (n)
+) ;
+CREATE UNIQUE INDEX la.hcarrier_schedule1_key ON la.hcarrier_schedule1 (store_n,del_day,cmdty,del_carrier_id) ;
+
+CREATE TABLE la.huser (
+  id VARCHAR(16) NOT NULL,
+  pwd VARCHAR(16) DEFAULT '' NOT NULL,
+  admin CHAR(1),
+  CONSTRAINT pk_huser PRIMARY KEY (id)
+) ;
+
 CREATE TABLE la.henvr (
   time_store_notified TIMESTAMP,daily_rn_files VARCHAR(1024)
 ) ;
@@ -123,6 +159,9 @@ drop table la.hrn_order;
 drop table la.hship_data;
 drop table la.hstore_profile;
 drop table la.hcarrier_schedule;
+drop table la.hcarrier;
+drop table la.hcarrier_schedule1;
+drop table la.huser;
 drop table la.henvr;
 
 db2 -td@ -vf C:\dev\laWorkspace\la_transport2\sqlscr\DsProc.txt
@@ -139,7 +178,7 @@ db2 UPDATE db cfg for mydbase using LOGFILSIZ 10000
 db2 connect to mydbase user db2admin
 
 db2 BACKUP DATABASE mydbase ON ALL DBPARTITIONNUMS TO c:\db2\backup
-db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20131030093743 INTO mydbase REPLACE EXISTING
+db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20131125103302 INTO mydbase REPLACE EXISTING
 
 alter table la.hship_data add column add_key VARCHAR(4) DEFAULT ' ' NOT NULL;
 alter table la.hship_data drop column tt_table;

@@ -32,8 +32,6 @@ BEGIN
   DECLARE del_day2 INT;
   DECLARE del_week2 INT;
   DECLARE del_days INT;
-  DECLARE del_time_from2 TIME;
-  DECLARE del_time_to2 TIME;
   DECLARE route_n2 VARCHAR(6);
   DECLARE stop_n2 VARCHAR(3);
   DECLARE dc_depart_time2 TIME;
@@ -66,12 +64,10 @@ BEGIN
   END IF;
   CLOSE c01;
 
-  SELECT n,del_date,del_time_from,del_time_to INTO
-    n2,del_date1,del_time_from2,del_time_to2 FROM la.hstore_schedule
+  SELECT n,del_date INTO n2,del_date1 FROM la.hstore_schedule
     WHERE store_n=store_n1 AND ship_date=ship_date1 AND cmdty=cmdty1;
   IF n2 = 0 THEN
-    SELECT n,del_day,del_week,del_time_from,del_time_to INTO
-      n2,del_day2,del_week2,del_time_from2,del_time_to2 FROM la.hstore_schedule
+    SELECT n,del_day,del_week INTO n2,del_day2,del_week2 FROM la.hstore_schedule
       WHERE store_n=store_n1 AND ship_day=ship_day1 AND cmdty=cmdty1 AND ship_date IS NULL;
     IF n2 = 0 THEN
       SET err2 = RAISE_ERROR('70064',
@@ -87,12 +83,6 @@ BEGIN
     SET holiday_flag1 = NULL;
   ELSE
     SET holiday_flag1 = '1';
-  END IF;
-
-  IF del_time_from2 < arrival_time2 OR del_time_to2 >= arrival_time2 THEN
-      SET err2 = RAISE_ERROR('70065', 'Arrival time out of window:'||arrival_time2||','||
-        store_n1||','||cmdty1||',truck_day-'||ship_day1||',dc-'||dc1);
-      RETURN 3;
   END IF;
 
   IF n1 = 0 THEN

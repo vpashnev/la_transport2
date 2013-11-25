@@ -47,7 +47,7 @@ public class TtTableDb {
 		"sd.next_user_file, sts.ship_date " +
 
 		"FROM " +
-		"la.hship_data sd LEFT JOIN la.hcarrier_schedule cs ON " +
+		"la.hship_data sd LEFT JOIN la.hcarrier_schedule1 cs ON " +
 		"cs.store_n=sd.store_n AND ((sd.cmdty='DCX' OR sd.cmdty='EVT' OR sd.cmdty='EVT2') AND " +
 		"(cs.cmdty='DCB' OR cs.cmdty='DCV') OR sd.cmdty<>'DCX' AND sd.cmdty<>'EVT' AND " +
 		"sd.cmdty<>'EVT2' AND cs.cmdty=sd.cmdty) AND cs.del_day=DAYOFWEEK(sd.del_date)-1," +

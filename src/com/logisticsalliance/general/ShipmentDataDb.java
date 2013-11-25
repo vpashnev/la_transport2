@@ -144,9 +144,9 @@ public class ShipmentDataDb {
 					st1 = con.prepareCall(SQL_CLEAN_EVT);
 				for (int i = 0; i != fs.length; i++) {
 					File f = fs[i];
-					update(f, st, r, rnCols, evtMap);
+					boolean err = update(f, st, r, rnCols, evtMap);
 					log.debug("Rows updated for the file "+f);
-					rnFiles.add(r.dc+" - "+f.getName()+" "+
+					rnFiles.add(r.dc+(err ? " ? " : " - ")+f.getName()+" "+
 					SupportTime.MM_dd_Format.format(r.shipDate));
 				}
 				cleanEvt(st1, evtMap);
@@ -178,10 +178,10 @@ public class ShipmentDataDb {
 		}
 		st.executeBatch();
 	}
-	private static void update(File f, CallableStatement st,
+	private static boolean update(File f, CallableStatement st,
 		Row r, RnColumns rnCols, HashMap<Long,String> evtMap) throws Exception {
 		int[] i = {1};
-		boolean semicolons = false;
+		boolean semicolons = false, err = false;
 		HashSet<DsKey> delNotFound = new HashSet<DsKey>();
 		String userFile = f.getName();
 		Key k = new Key();
@@ -223,17 +223,21 @@ public class ShipmentDataDb {
 						delFound = 0;
 						update(st, r, userFile, delNotFound);
 					}
+					if (!err && delFound != 1) { err = true;}
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
 					log.error(k.storeN+", "+k.cmdty+", "+k.shipDate+", "+k.dc+"-DC\r\n"+ex);
+					err = true;
 				}
 			}
 			if (semicolons) {
 				log.warn("Semicolons appear in the file");
+				err = true;
 			}
 		}
 		finally { br.close();}
+		return err;
 	}
 	private static void checkDcOrLw(String v) {
 		if (!Character.isDigit(v.charAt(0)) || !Character.isDigit(v.charAt(1))) {
