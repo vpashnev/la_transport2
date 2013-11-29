@@ -146,8 +146,8 @@ public class ShipmentDataDb {
 					File f = fs[i];
 					boolean err = update(f, st, r, rnCols, evtMap);
 					log.debug("Rows updated for the file "+f);
-					rnFiles.add(r.dc+(err ? " ? " : " - ")+f.getName()+" "+
-					SupportTime.MM_dd_Format.format(r.shipDate));
+					rnFiles.add(r.dc+(err ? " ? " : " - ")+f.getName()+" - "+
+						SupportTime.MMM_dd_Format.format(r.shipDate));
 				}
 				cleanEvt(st1, evtMap);
 				con.commit();

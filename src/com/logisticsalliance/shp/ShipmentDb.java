@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import org.apache.commons.net.ftp.FTPClient;
 import org.apache.log4j.Logger;
 
 import com.logisticsalliance.general.CommonConstants;
@@ -159,7 +160,9 @@ public class ShipmentDb {
 	private static boolean done;
 
 	public static void setConnectFactoryI5(ConnectFactory cf) {
-		connectFactoryI5 = cf;
+		ConnectFactory cf1 = new ConnectFactory(cf.getDriver(),
+			"jdbc:as400:tmsodev.nulogx.com;prompt=false", cf.getUser(), cf.getPassword());
+		connectFactoryI5 = cf1;
 	}
 	public static void clearCarriersNotFound() {
 		carriersNotFound.clear();
@@ -167,26 +170,26 @@ public class ShipmentDb {
 	public static boolean isDone() {
 		return done;
 	}
-	public static void process(final Date shipDate) throws InterruptedException {
+	public static void process(final Date shipDate, final String ftpSrv) throws InterruptedException {
 		done = false;
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				process1(shipDate);
+				process1(shipDate, ftpSrv);
 				done = true;
 			}
 		};
 		t.setDaemon(true);
 		t.start();
 		int i = 0;
-		while (!done && i++ != 360) {
+		while (!done && i++ != 480) {
 			Thread.sleep(5000);
 		}
 		if (!done) {
 			log.error("Report incomplete shipments");
 		}
 	}
-	private static void process1(Date date) {
+	private static void process1(Date date, String ftpSrv) {
 		int shpDate = Functions.toInt(date);
 		ArrayList<ShipmentData> al = new ArrayList<ShipmentData>(1024);
 		Connection con = null, con1 = null;
@@ -237,6 +240,14 @@ public class ShipmentDb {
 			if (v.length() != 0) {
 				log.error("\r\n\r\nDifferences:\r\n"+v);
 			}*/
+			if (ftpSrv != null) {
+				FTPClient f = new FTPClient();
+				f.connect(ftpSrv);
+				f.login(connectFactoryI5.getUser(), connectFactoryI5.getPassword());
+				f.sendCommand("RCMD call OS61LYDTA/run1200 parm('OS61LY')");
+				log.error(f.getReplyString());
+				f.disconnect();
+			}
 		}
 		catch (Exception ex) {
 			ex.printStackTrace();

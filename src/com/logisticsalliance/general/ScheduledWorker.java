@@ -30,8 +30,8 @@ public class ScheduledWorker implements Runnable {
 	
 	public static String shipQryCarriers;
 
-	private File srcDir;
-	private String dbPassword, dbPasswordI5;
+	private File appDir, srcDir;
+	private String dbPassword, dbPasswordI5, ksPassword;
 	private int daysOutCleaning = -1;
 	private EmailRead emailRead;
 	private EmailSent emailSent;
@@ -45,15 +45,18 @@ public class ScheduledWorker implements Runnable {
 
 	private static final DecimalFormat oooo = new DecimalFormat("0000");
 
-	public ScheduledWorker(File srcDirectory, String databasePassword, String databasePasswordI5,
-		String emailReadPassword, String emailSentPassword, Properties appProps,
-		HashMap<Integer,String> localDCs, EMailReports mr, RnColumns rcs) {
+	public ScheduledWorker(File appDirectory, File srcDirectory, String databasePassword,
+		String databasePasswordI5, String emailReadPassword, String emailSentPassword,
+		String keyStorePassword, Properties appProps, HashMap<Integer, String> localDCs,
+		EMailReports mr, RnColumns rcs) {
 		if (!srcDirectory.exists() && !srcDirectory.mkdir()) {
 			throw new IllegalArgumentException("The directory '"+srcDirectory+"' does not exist");
 		}
+		appDir = appDirectory;
 		srcDir = srcDirectory;
 		dbPassword = databasePassword;
 		dbPasswordI5 = databasePasswordI5;
+		ksPassword = keyStorePassword;
 		emailRead = new EmailRead(appProps, emailReadPassword);
 		emailSent = new EmailSent(appProps, emailSentPassword);
 		emailEmergency = new EMailEmergency(emailSent);
@@ -106,6 +109,7 @@ public class ScheduledWorker implements Runnable {
 		);
 		ShipmentDb.setConnectFactoryI5(cf1);
 		TtTableDb.setConnectFactoryI5(cf1);
+		UserAuth.process(appDir, ksPassword, 3000, cf);
 		while (!stopped) {
 			System.out.println("Data in process..., starting at "+
 				SupportTime.dd_MM_yyyy_HH_mm_Format.format(new java.util.Date()));
@@ -155,7 +159,7 @@ public class ScheduledWorker implements Runnable {
 					Date d = getShipDate(shipmentDate, c);
 					if (shipments != null) {
 						//Shipments
-						ShipmentDb.process(d);
+						ShipmentDb.process(d, getValue(appProperties, "ftpServer"));
 					}
 					if (ttTable != null) {
 						//ttTable

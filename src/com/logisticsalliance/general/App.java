@@ -46,7 +46,7 @@ public class App {
 		appProps.load(new FileReader(new File(appDir, "app.properties")));
 
 		File srcDir = new File(appProps.getProperty("sourceDocsDirectory")); // directory of source documents
-		String dbPwd = null, dbPwdI5 = null, emReadPwd = null, emSentPwd = null;
+		String dbPwd = null, dbPwdI5 = null, emReadPwd = null, emSentPwd = null, ksPwd = null;
 		if (args.length > 1) {
 			dbPwd = args[1];
 			if (args.length > 2) {
@@ -55,14 +55,17 @@ public class App {
 					emReadPwd = args[3];
 					if (args.length > 4) {
 						emSentPwd = args[4];
+						if (args.length > 5) {
+							ksPwd = args[5];
+						}
 					}
 				}
 			}
 		}
 		EMailReports mr = new EMailReports(appDir);
 		RnColumns rnCols = new RnColumns(appDir);
-		ScheduledWorker sr = new ScheduledWorker(srcDir, dbPwd, dbPwdI5,
-			emReadPwd, emSentPwd, appProps, getLocalDC(appDir), mr, rnCols);
+		ScheduledWorker sr = new ScheduledWorker(appDir, srcDir, dbPwd, dbPwdI5,
+			emReadPwd, emSentPwd, ksPwd, appProps, getLocalDC(appDir), mr, rnCols);
 		sr.start();
 		BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
 		String s = null;
