@@ -39,21 +39,26 @@ public class UserAuth {
 		System.setProperty("javax.net.ssl.keyStorePassword", pwd);  
 		SSLServerSocketFactory sf = (SSLServerSocketFactory)SSLServerSocketFactory.getDefault();
 		SSLServerSocket srv = (SSLServerSocket)sf.createServerSocket(serverPort);
-		SSLSocket clt = null;
 		try {
 			while (true) {
-				clt = (SSLSocket)srv.accept();
-				BufferedReader in = new BufferedReader(new InputStreamReader(clt.getInputStream()));
-				String v = in.readLine();
-				v = v+"";
-				ObjectOutputStream out = new ObjectOutputStream(clt.getOutputStream());
-				out.writeObject(response);
-				Thread.sleep(100);
-				clt.close();
+				SSLSocket clt = (SSLSocket)srv.accept();
+				try {
+					BufferedReader in = new BufferedReader(new InputStreamReader(clt.getInputStream()));
+					String v = in.readLine();
+					v = v+"";
+					ObjectOutputStream out = new ObjectOutputStream(clt.getOutputStream());
+					out.writeObject(response);
+					Thread.sleep(100);
+				}
+				catch (Exception e) {
+					log.error(e);
+				}
+				finally {
+					clt.close();
+				}
 			}
 		}
 		finally {
-			if (clt != null) { clt.close();}
 			srv.close();
 		}
 	}

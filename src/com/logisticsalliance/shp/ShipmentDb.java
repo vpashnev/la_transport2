@@ -245,7 +245,7 @@ public class ShipmentDb {
 				f.connect(ftpSrv);
 				f.login(connectFactoryI5.getUser(), connectFactoryI5.getPassword());
 				f.sendCommand("RCMD call OS61LYDTA/run1200 parm('OS61LY')");
-				log.error(f.getReplyString());
+				log.debug(f.getReplyString());
 				f.disconnect();
 			}
 		}
