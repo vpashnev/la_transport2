@@ -1,4 +1,4 @@
-package com.logisticsalliance.ui;
+package com.logisticsalliance.ui.swg;
 
 import java.util.Enumeration;
 

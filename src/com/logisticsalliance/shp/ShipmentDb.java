@@ -234,7 +234,7 @@ public class ShipmentDb {
 				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(date)+
 					"\r\n\r\n"+al+
 					"\r\n\r\nTotal:   "+al.size()+
-					"\r\n\r\nMissing: "+(al.size()-count));
+					"\r\n\r\nMissing: "+(al.size()-count)+"\r\n");
 			}
 			/*String v = ShpTest.test(con1, shpDate, al);
 			if (v.length() != 0) {

@@ -39,7 +39,7 @@ public class NotificationDb {
 	private static String SQL_SEL_DELIVERIES =
 		"SELECT " +
 		"sd.store_n, sd.cmdty, dc, sd.ship_date, sd.del_date, route_n, arrival_time, service_time," +
-		"add_key, order_n, pallets, del_time_from, del_time_to, province, del_carrier, target_open," +
+		"add_key, order_n, pallets, del_time_from, del_time_to, province, del_carrier," +
 		"sd.first_user_file, sd.next_user_file, rno.first_user_file, rno.next_user_file," +
 		"sts.first_user_file, sts.next_user_file, sts.ship_date " +
 		//",TIMESTAMP(sd.del_date,del_time_from) AS del_dateTime " +
@@ -147,7 +147,7 @@ public class NotificationDb {
 			cal.set(Calendar.MINUTE, 0);
 			cal.set(Calendar.SECOND, 0);
 			cal.set(Calendar.MILLISECOND, 0);
-			t0 = new Timestamp(cal.getTime().getTime()+timeAheadInMins);
+			t0 = new Timestamp(cal.getTime().getTime()+timeAheadInMins*60000);
 			return t0;
 		}
 		else {
@@ -206,7 +206,7 @@ public class NotificationDb {
 				dn = getNote(storeN, addKey, delTimeFrom);
 				di = null;
 			}
-			Date dsShipDate = rs.getDate(23);
+			Date dsShipDate = rs.getDate(22);
 			Time arrivalTime = rs.getTime(7);
 			Time serviceTime = rs.getTime(8);
 			String cmdty = rs.getString(2).toUpperCase();
@@ -229,20 +229,19 @@ public class NotificationDb {
 					dn.serviceTime = serviceTime;
 					dn.delTimeTo = rs.getTime(13);
 					dn.province = rs.getString(14);
-					dn.firstUserFile = rs.getString(17);
-					String nuf = rs.getString(18);
+					dn.firstUserFile = rs.getString(16);
+					String nuf = rs.getString(17);
 					if (!dn.firstUserFile.equals(nuf)) { dn.nextUserFile = nuf;}
 				}
 				if (dn.delCarrier == null) {
 					dn.delCarrier = rs.getString(15);
-					dn.targetOpen = rs.getTime(16);
 				}
 				di.pallets = rs.getDouble(11);
-				di.firstUserFile = rs.getString(19);
-				String nuf = rs.getString(20);
+				di.firstUserFile = rs.getString(18);
+				String nuf = rs.getString(19);
 				if (!di.firstUserFile.equals(nuf)) { di.nextUserFile = nuf;}
-				di.dsFirstUserFile = rs.getString(21);
-				nuf = rs.getString(22);
+				di.dsFirstUserFile = rs.getString(20);
+				nuf = rs.getString(21);
 				if (!di.dsFirstUserFile.equals(nuf)) { di.dsNextUserFile = nuf;}
 			}
 			if (!rs.next()) {
@@ -309,7 +308,7 @@ public class NotificationDb {
 		else if (CCS.equalsIgnoreCase(dn.delCarrier)) {
 			int i = dn.cmdtyList.indexOf(DCV_CMDTY);
 			if (i == -1) {
-				dn.arrivalTime = dn.targetOpen;
+				dn.arrivalTime = new Time(dn.delTimeFrom.getTime()+SupportTime.HOUR);
 				dn.serviceTime = null;
 			}
 			else {
@@ -319,7 +318,7 @@ public class NotificationDb {
 			}
 		}
 		else {
-			dn.arrivalTime = dn.targetOpen;
+			dn.arrivalTime = new Time(dn.delTimeFrom.getTime()+SupportTime.HOUR);
 			dn.serviceTime = null;
 		}
 		al.add(dn);

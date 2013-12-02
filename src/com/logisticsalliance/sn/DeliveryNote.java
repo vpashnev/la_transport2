@@ -24,7 +24,7 @@ public class DeliveryNote implements Serializable {
 
 	int storeN, totalPallets;
 	Date shipDate, delDate;
-	Time arrivalTime, serviceTime, delTimeFrom, delTimeTo, targetOpen;
+	Time arrivalTime, serviceTime, delTimeFrom, delTimeTo;
 	String id, routeN, addKey, province, delCarrier, firstUserFile, nextUserFile;
 	ArrayList<Cmdty> cmdtyList = new ArrayList<Cmdty>(4);
 	ArrayList<DeliveryItem> items = new ArrayList<DeliveryItem>(32);
@@ -80,8 +80,6 @@ public class DeliveryNote implements Serializable {
 		tb.addProperty20("Delivery window", SupportTime.HH_mm_Format.format(delTimeFrom)+" - "+
 			SupportTime.HH_mm_Format.format(delTimeTo), 20);
 		tb.addProperty20("Delivery carrier", delCarrier, 32);
-		tb.addProperty20("Target open", targetOpen == null  ?
-			CommonConstants.N_A : SupportTime.HH_mm_Format.format(targetOpen), 8);
 		tb.addProperty20("User files", firstUserFile+(nextUserFile == null ? "":
 			", modified "+nextUserFile), 80);
 		tb.add('_', 120);

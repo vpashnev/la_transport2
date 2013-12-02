@@ -198,6 +198,7 @@ public class ShipmentDataDb {
 					int n = ln.indexOf('|');
 					if (n != -1 && n < j) {
 						log.error("Semicolon is illegal character:\r\n"+ln.substring(0, j+1));
+						err = true;
 					}
 					else if (!semicolons) { semicolons = true;}
 					continue;
@@ -233,7 +234,7 @@ public class ShipmentDataDb {
 			}
 			if (semicolons) {
 				log.warn("Semicolons appear in the file");
-				err = true;
+				//err = true;
 			}
 		}
 		finally { br.close();}

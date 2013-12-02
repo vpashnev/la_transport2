@@ -17,7 +17,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.ui.SupportUI;
+import com.logisticsalliance.ui.swg.SupportUI;
 
 public class Login {
 
