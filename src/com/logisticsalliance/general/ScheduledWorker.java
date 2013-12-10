@@ -97,18 +97,10 @@ public class ScheduledWorker implements Runnable {
 		HashSet<Integer> storeSubset = getStoreSubset(getValue(appProperties, "testStores"));
 		//database
 		ConnectFactory1 cf = ConnectFactory1.one();
-		cf.setDriver(getValue(appProperties, "driver"));
-		cf.setUrl(getValue(appProperties, "url"));
-		cf.setUser(getValue(appProperties, "user"));
-		cf.setPassword(dbPassword);
-		ConnectFactory cf1 = new ConnectFactory(
-			getValue(appProperties, "driverI5"),
-			getValue(appProperties, "urlI5"),
-			getValue(appProperties, "userI5"),
-			dbPasswordI5
-		);
-		ShipmentDb.setConnectFactoryI5(cf1);
-		TtTableDb.setConnectFactoryI5(cf1);
+		ConnectFactory cfI5 = SupportGeneral.makeDataSource1I5(appProperties,
+			dbPassword, dbPasswordI5);
+		ShipmentDb.setConnectFactoryI5(cfI5);
+		TtTableDb.setConnectFactoryI5(cfI5);
 		UserAuth.process(appDir, ksPassword, 3000, cf);
 		while (!stopped) {
 			System.out.println("Data in process..., starting at "+
@@ -288,12 +280,7 @@ public class ScheduledWorker implements Runnable {
 	}
 
 	private static String getValue(Properties props, String propName) {
-		String v = props.getProperty(propName);
-		if (v != null) {
-			v = v.trim();
-			return v.isEmpty() ? null : v;
-		}
-		return null;
+		return SupportGeneral.getValue(props, propName);
 	}
 	static class EmailRead {
 		String protocol, host, email, password, dsFolder, dsArchiveFolder,

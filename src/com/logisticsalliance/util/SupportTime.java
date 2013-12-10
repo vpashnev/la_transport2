@@ -19,6 +19,7 @@ public class SupportTime {
 		yyyyMMdd_Format = new SimpleDateFormat("yyyyMMdd"),
 		yyMMdd_Format = new SimpleDateFormat("yyMMdd"),
 		MMM_dd_Format = new SimpleDateFormat("MMM.dd"),
+		MMM_dd_yy_Format = new SimpleDateFormat("MMM-dd-yy"),
 		dd_MM_yyyy_Format = new SimpleDateFormat("dd/MM/yyyy"),
 		dd_MM_yyyy_HH_mm_Format = new SimpleDateFormat("dd-MM-yyyy HH:mm"),
 		MM_dd_yyyy_HH_mm_Format = new SimpleDateFormat("MM/dd/yyyy HH:mm"),
