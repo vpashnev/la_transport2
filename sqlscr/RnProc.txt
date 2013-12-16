@@ -42,7 +42,6 @@ BEGIN
   DECLARE total_service_time2 TIME;
   DECLARE total_travel_time2 TIME;
   DECLARE equip_size2 VARCHAR(15);
-  DECLARE add_key2 VARCHAR(4);
   DECLARE holiday_flag1 CHAR(1);
   DECLARE holiday_flag2 CHAR(1);
   DECLARE order_n2 VARCHAR(20);
@@ -111,13 +110,13 @@ BEGIN
       prev_travel_time1<>prev_travel_time2 OR arrival_time1<>arrival_time2 OR
       service_time1<>service_time2 OR total_service_time1<>total_service_time2 OR
       total_travel_time1<>total_travel_time2 OR equip_size1<>equip_size2 OR
-      equip_size1 IS NULL AND equip_size2 IS NOT NULL OR holiday_flag1 IS NULL AND
-      holiday_flag2 IS NOT NULL OR holiday_flag1<>holiday_flag2 THEN 
+      holiday_flag1 IS NULL AND holiday_flag2 IS NOT NULL OR
+      holiday_flag1<>holiday_flag2 THEN 
       UPDATE la.hship_data SET del_date=del_date1,route_n=route_n1,stop_n=stop_n1,
         dc_depart_time=dc_depart_time1,prev_distance=prev_distance1,prev_travel_time=prev_travel_time1,
         arrival_time=arrival_time1,service_time=service_time1,total_service_time=total_service_time1,
         total_travel_time=total_travel_time1,equip_size=equip_size1,holiday_flag=holiday_flag1,
-        next_user_file=user_file1,update_time=CURRENT_TIMESTAMP WHERE n=n1;
+        next_user_file=user_file1,update_time=CURRENT_TIMESTAMP,unsent_note='1' WHERE n=n1;
     END IF;
   END IF;
 

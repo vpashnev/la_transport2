@@ -148,6 +148,7 @@ public class NotificationMail {
 			if (s == null) {
 				log.error("Unable to send email for the delivery: "+dn.storeN+", "+
 					dn.cmdtyList+", "+dn.delDate+", "+dn.nextUserFile);
+				it.remove();
 			}
 		}
 		return s;

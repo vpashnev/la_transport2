@@ -36,6 +36,7 @@ CREATE TABLE la.hship_data (
   total_travel_time TIME NOT NULL,
   equip_size VARCHAR(15),
   add_key VARCHAR(4) DEFAULT ' ' NOT NULL,
+  unsent_note CHAR(1) DEFAULT '1',
   holiday_flag CHAR(1),
   first_user_file VARCHAR(50) NOT NULL,
   next_user_file VARCHAR(50) NOT NULL,
@@ -183,17 +184,24 @@ db2 UPDATE db cfg for mydbase using LOGFILSIZ 10000
 db2 connect to mydbase user db2admin
 
 db2 BACKUP DATABASE mydbase ON ALL DBPARTITIONNUMS TO c:\db2\backup
-db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20131125103302 INTO mydbase REPLACE EXISTING
+db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20131210105333 INTO mydbase REPLACE EXISTING
 
 alter table la.hship_data add column add_key VARCHAR(4) DEFAULT ' ' NOT NULL;
+alter table la.hship_data add column unsent_note CHAR(1) DEFAULT '1';
 alter table la.hstore_profile add column user_id VARCHAR(20) DEFAULT '' NOT NULL;
 alter table la.hstore_profile add column user_pwd VARCHAR(20) DEFAULT '' NOT NULL;
 alter table la.hstore_profile add column pwd_time TIMESTAMP;
 alter table la.hstore_profile add column login_failures INT DEFAULT 0 NOT NULL;
-update la.hstore_profile set user_id=CAST(n AS VARCHAR(4));
 
 alter table la.hship_data drop column tt_table;
 drop index la.hship_data_key;
 
 REORG TABLE la.hship_data;
 REORG TABLE la.hstore_profile;
+
+
+update la.hstore_profile set user_id=CAST(n AS VARCHAR(4));
+UPDATE la.hship_data SET unsent_note=NULL;
+UPDATE la.hship_data SET unsent_note='1';
+select * from la.henvr;
+update la.henvr set TIME_STORE_NOTIFIED='2013-12-14 10:00:00',DAILY_RN_FILES=null;

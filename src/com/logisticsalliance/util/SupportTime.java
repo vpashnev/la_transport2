@@ -22,7 +22,6 @@ public class SupportTime {
 		MMM_dd_yy_Format = new SimpleDateFormat("MMM-dd-yy"),
 		dd_MM_yyyy_Format = new SimpleDateFormat("dd/MM/yyyy"),
 		dd_MM_yyyy_HH_mm_Format = new SimpleDateFormat("dd-MM-yyyy HH:mm"),
-		MM_dd_yyyy_HH_mm_Format = new SimpleDateFormat("MM/dd/yyyy HH:mm"),
 		Hmm_Format = new SimpleDateFormat("Hmm"),
 		HHmm_Format = new SimpleDateFormat("HHmm"),
 		H_mm_Format = new SimpleDateFormat("H:mm"),

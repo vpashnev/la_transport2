@@ -40,7 +40,7 @@ public class NotificationDb {
 		"SELECT " +
 		"sd.store_n, sd.cmdty, dc, sd.ship_date, sd.del_date, route_n, arrival_time, service_time," +
 		"add_key, order_n, pallets, del_time_from, del_time_to, province, del_carrier," +
-		"sd.first_user_file, sd.next_user_file, rno.first_user_file, rno.next_user_file," +
+		"sd.first_user_file, sd.next_user_file, sd.n, rno.first_user_file, rno.next_user_file," +
 		"sts.first_user_file, sts.next_user_file, sts.ship_date " +
 		//",TIMESTAMP(sd.del_date,del_time_from) AS del_dateTime " +
 
@@ -50,7 +50,7 @@ public class NotificationDb {
 		"la.hrn_order rno,la.hstore_schedule sts,la.hstore_profile sp " +
 
 		"WHERE " +
-		"ship_n=sd.n AND sp.n=sd.store_n AND " +
+		"ship_n=sd.n AND sp.n=sd.store_n AND sd.unsent_note IS NOT NULL AND " +
 		"sts.store_n=sd.store_n AND sts.cmdty=sd.cmdty AND " +
 		"(sts.ship_date IS NOT NULL AND sts.ship_date=sd.ship_date OR " +
 		"sts.ship_date IS NULL AND sts.ship_day=DAYOFWEEK(sd.ship_date)-1) AND " +
@@ -64,8 +64,9 @@ public class NotificationDb {
 		SQL_SEL_ENVR = "SELECT time_store_notified FROM la.henvr",
 		SQL_INS_ENVR = "INSERT INTO la.henvr (time_store_notified) VALUES (?)",
 		SQL_UPD_ENVR = "UPDATE la.henvr SET time_store_notified=?",
+		SQL_UPD_UNSENT = "UPDATE la.hship_data SET unsent_note=NULL WHERE n=?",
 				
-		DCX = "DCX", CCS = "Canada Cartage Systems", TBD ="TBD";
+		CCS = "Canada Cartage Systems", TBD ="TBD";
 
 	private final static DeliveryNote.Cmdty DCV_CMDTY = new DeliveryNote.Cmdty("DCV", null, null, null);
 
@@ -78,7 +79,7 @@ public class NotificationDb {
 	}
 	public static void process(String notifyStartingTime, String notifyEndingTime,
 		long timeAhead, EmailSent es, HashSet<Integer> storeSubset,
-		boolean onlyTestStoresToRpt) throws Exception {
+		boolean onlyTestStoresToRpt, boolean sendDelayedNotesOff) throws Exception {
 		long timeAheadInMins = timeAhead/60000;
 		Timestamp t0 = null, t1 = null;
 		if (notifyStartingTime != null) {
@@ -94,7 +95,8 @@ public class NotificationDb {
 		try {
 			con = ConnectFactory1.one().getConnection();
 			con1 = ConnectFactory1.one().getConnection();
-			PreparedStatement timeSt, selDelSt = con.prepareStatement(SQL_SEL_DELIVERIES);
+			PreparedStatement timeSt, selDelSt = con.prepareStatement(SQL_SEL_DELIVERIES),
+				updUnsent = con.prepareStatement(SQL_UPD_UNSENT);
 			if (t1 == null) {
 				t1 = SqlSupport.getDb2CurrentTime(con1);
 			}
@@ -104,7 +106,14 @@ public class NotificationDb {
 					break;
 				}
 				// Select deliveries
-				s = select(selDelSt, t0, s, es, storeSubset, onlyTestStoresToRpt);
+				Timestamp t2 = new Timestamp(t0.getTime()-1800000);// less 30 minutes
+				s = select(selDelSt, updUnsent, t2, t0, s, es,
+					storeSubset, onlyTestStoresToRpt, false);
+				if (!sendDelayedNotesOff) {
+					s = select(selDelSt, updUnsent,
+						new Timestamp(t2.getTime()-SupportTime.DAY),// less 24 hours
+						t2, s, es, storeSubset, onlyTestStoresToRpt, true);
+				}
 				if (notifyEndingTime == null) {
 					// Update time
 					timeSt = con1.prepareStatement(SQL_UPD_ENVR);
@@ -157,7 +166,7 @@ public class NotificationDb {
 				return t0;
 			}
 			if (!t0.equals(nextTime)) {
-				log.debug("NEXT "+SupportTime.MM_dd_yyyy_HH_mm_Format.format(t0)+"\r\n");
+				log.debug("NEXT "+SupportTime.dd_MM_yyyy_HH_mm_Format.format(t0)+"\r\n");
 				nextTime = t0;
 			}
 		}
@@ -170,9 +179,9 @@ public class NotificationDb {
 		dn.delTimeFrom = delTimeFrom;
 		return dn;
 	}
-	private static Session select(PreparedStatement st, Timestamp t, Session s, EmailSent es,
-		HashSet<Integer> storeSubset, boolean onlyTestStoresToRpt) throws Exception {
-		Timestamp t0 = new Timestamp(t.getTime()-1800000);// less 30 minutes
+	private static Session select(PreparedStatement st, PreparedStatement updUnsent,
+		Timestamp t0, Timestamp t, Session s, EmailSent es, HashSet<Integer> storeSubset,
+		boolean onlyTestStoresToRpt, boolean delay) throws Exception {
 		st.setTimestamp(1, t0);
 		st.setTimestamp(2, t);
 		HashMap<String,DeliveryItem> m = new HashMap<String,DeliveryItem>(64, .5f);
@@ -206,7 +215,7 @@ public class NotificationDb {
 				dn = getNote(storeN, addKey, delTimeFrom);
 				di = null;
 			}
-			Date dsShipDate = rs.getDate(22);
+			Date dsShipDate = rs.getDate(23);
 			Time arrivalTime = rs.getTime(7);
 			Time serviceTime = rs.getTime(8);
 			String cmdty = rs.getString(2).toUpperCase();
@@ -218,10 +227,12 @@ public class NotificationDb {
 			di.cmdty = cmdty;
 			di.orderN = rs.getString(10);
 			di.dsShipDate = dsShipDate;
+			dn.ns.add(rs.getLong(18));
 
 			if (addItem(m, dn, di)) {
 				if (dn.shipDate == null) {
 					dn.id = "m"+(++i);
+					dn.delay= delay;
 					dn.shipDate = rs.getDate(4);
 					dn.delDate = rs.getDate(5);
 					dn.routeN = rs.getString(6);
@@ -237,11 +248,11 @@ public class NotificationDb {
 					dn.delCarrier = rs.getString(15);
 				}
 				di.pallets = rs.getDouble(11);
-				di.firstUserFile = rs.getString(18);
-				String nuf = rs.getString(19);
+				di.firstUserFile = rs.getString(19);
+				String nuf = rs.getString(20);
 				if (!di.firstUserFile.equals(nuf)) { di.nextUserFile = nuf;}
-				di.dsFirstUserFile = rs.getString(20);
-				nuf = rs.getString(21);
+				di.dsFirstUserFile = rs.getString(21);
+				nuf = rs.getString(22);
 				if (!di.dsFirstUserFile.equals(nuf)) { di.dsNextUserFile = nuf;}
 			}
 			if (!rs.next()) {
@@ -251,13 +262,14 @@ public class NotificationDb {
 			}
 		}
 		if (al.size() != 0) {
-			String interval = SupportTime.MM_dd_yyyy_HH_mm_Format.format(t0)+" - "+
-				SupportTime.MM_dd_yyyy_HH_mm_Format.format(t);
+			String interval = SupportTime.dd_MM_yyyy_HH_mm_Format.format(t0)+" - "+
+				SupportTime.dd_MM_yyyy_HH_mm_Format.format(t);
 			log.debug("\r\n\r\nNOTIFICATIONS for "+interval+"\r\n\r\n"+al);
 			if (es.emailUnsent == null) {
 				Thread.sleep(2000);
 				s = NotificationMail.send(s, es, storeSubset, al, interval);
 			}
+			update(updUnsent, al);
 		}
 		return s;
 	}
@@ -286,7 +298,7 @@ public class NotificationDb {
 			for (Iterator<DeliveryNote.Cmdty> it = dn.cmdtyList.iterator(); it.hasNext();) {
 				DeliveryNote.Cmdty c = it.next();
 				DsKey k = new DsKey(dn.storeN, c.cmdty, dow);
-				if (!c.cmdty.equals(DCX) && carriersNotFound.add(k)) {
+				if (!c.cmdty.equals(CommonConstants.DCX) && carriersNotFound.add(k)) {
 					String type = c.dsShipDate == null ? "regular" : "holidays";
 					log.error("Carrier not found (" + type + "): "+k);
 				}
@@ -322,6 +334,18 @@ public class NotificationDb {
 			dn.serviceTime = null;
 		}
 		al.add(dn);
+	}
+	private static void update(PreparedStatement updUnsent,
+		ArrayList<DeliveryNote> al) throws Exception {
+		for (Iterator<DeliveryNote> it = al.iterator(); it.hasNext();) {
+			DeliveryNote dn = it.next();
+			for (Iterator<Long> it2 = dn.ns.iterator(); it2.hasNext();) {
+				updUnsent.setLong(1, it2.next());
+				updUnsent.addBatch();
+			}
+		}
+		updUnsent.executeBatch();
+		updUnsent.getConnection().commit();
 	}
 
 }

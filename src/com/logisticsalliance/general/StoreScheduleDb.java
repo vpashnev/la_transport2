@@ -172,6 +172,10 @@ public class StoreScheduleDb {
 						cmdty = "EVT"; break;
 					case 30:
 						cmdty = "EVT2"; break;
+					case 25:
+					case 31:
+					case 33:
+						cmdty = "RX"; break;
 					}
 					if (cmdty != null) { set(st, r, cmdty, userFile, hday, rowCount);}
 				}
@@ -195,6 +199,10 @@ public class StoreScheduleDb {
 						cmdty = "EVT"; break;
 					case 23:
 						cmdty = "EVT2"; break;
+					case 18:
+					case 24:
+					case 26:
+						cmdty = "RX"; break;
 					}
 					if (cmdty != null) { set(st, r, cmdty, userFile, hday, rowCount);}
 				}

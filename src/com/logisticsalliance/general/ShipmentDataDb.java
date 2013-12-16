@@ -206,6 +206,7 @@ public class ShipmentDataDb {
 				ln = ln.replaceAll("\"", "");
 				try {
 					setRow(r, k, i, ln, rnCols);
+					if (r.cmdty == null) { continue;}
 					if (r.cmdty.equals("EVT")) {
 						delFound = -1;
 						update(st, r, userFile, delNotFound);
@@ -258,12 +259,12 @@ public class ShipmentDataDb {
 		checkDcOrLw(r.lw);
 		r.routeN = getCellValue(line, RnColumns.ROUTE_N, rnCols);
 		int routeN = Integer.parseInt(r.routeN);
-		if (routeN >= 10000 && routeN < 10001) {
-			r.addKey = "EVT";
+		if (routeN >= CommonConstants.route8000 && routeN <= CommonConstants.route9600) {
+			r.addKey = String.valueOf(routeN);
 		}
 		else { r.addKey = " ";}
 		v = getCellValue(line, RnColumns.ORDER_N, rnCols);
-		if (v != null && v.length() > 4) {
+		if (v.length() > 4) {
 			String v1 = v.substring(4);
 			try {
 				Long.parseLong(v1);
@@ -275,6 +276,10 @@ public class ShipmentDataDb {
 		r.orderN = v;
 		r.orderType = getCellValue(line, RnColumns.ORDER_TYPE, rnCols);
 		r.cmdty = getCommodity(r.dc, r.lw, r.orderType, routeN);
+		if (r.cmdty == null) {
+			log.error("Cannot determine commodity for the order: "+r.orderN);
+			return;
+		}
 		r.pallets = getQty(line, RnColumns.PALLETS, rnCols);
 		r.units = getQty(line, RnColumns.UNITS, rnCols);
 		r.weight = getQty(line, RnColumns.WEIGHT, rnCols);
@@ -407,7 +412,10 @@ public class ShipmentDataDb {
 			case "50": return "DCV";
 			case "70": return "DCB";
 			}
-		default: return "RX";
+		case "40":
+		case "45":
+		case "50": return "RX";
+		default: return null;
 		}
 	}
 	private static class Key {

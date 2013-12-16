@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import com.logisticsalliance.general.CommonConstants;
@@ -26,8 +27,10 @@ public class DeliveryNote implements Serializable {
 	Date shipDate, delDate;
 	Time arrivalTime, serviceTime, delTimeFrom, delTimeTo;
 	String id, routeN, addKey, province, delCarrier, firstUserFile, nextUserFile;
+	boolean delay;
 	ArrayList<Cmdty> cmdtyList = new ArrayList<Cmdty>(4);
 	ArrayList<DeliveryItem> items = new ArrayList<DeliveryItem>(32);
+	HashSet<Long> ns = new HashSet<Long>(4);
 
 	String getCmdtyList(boolean totalPallets) {
 		StringBuilder sb = new StringBuilder(32);
@@ -39,7 +42,8 @@ public class DeliveryNote implements Serializable {
 				sb.append(getTotalPallets(c.cmdty));
 			}
 			else {
-				String v = addKey.isEmpty() ? c.cmdty : addKey;
+				//String v = addKey.isEmpty() ? c.cmdty : addKey;
+				String v = c.cmdty;
 				sb.append(v);
 				if (v.equals("EVT")) {
 					sb.append('2');
@@ -66,6 +70,7 @@ public class DeliveryNote implements Serializable {
 		TBuilder tb = new TBuilder();
 		tb.newLine();
 		tb.add(id);
+		if (delay) { tb.add(" Delay");}
 		tb.newLine();
 		tb.addProperty20(RnColumns.STORE_N, storeN, 6);
 		tb.addProperty20("Province", province, 4);

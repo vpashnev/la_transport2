@@ -86,6 +86,7 @@ public class ScheduledWorker implements Runnable {
 			shipments = getValue(appProperties, "shipments"),
 			ttTable = getValue(appProperties, "ttTable"),
 			onlyTestStoresToRpt = getValue(appProperties, "onlyTestStoresToRpt"),
+			sendDelayedNotesOff = getValue(appProperties, "sendDelayedNotesOff"),
 			notifyHoursAhead = getValue(appProperties, "notifyHoursAhead"),
 			notifyStartingTime = getValue(appProperties, "notifyStartingTime"),
 			notifyEndingTime = getValue(appProperties, "notifyEndingTime"),
@@ -127,11 +128,12 @@ public class ScheduledWorker implements Runnable {
 				//database
 				ShipmentDataDb.update(rnFolder, rnaFolder, rnCols, localDcMap);
 
-				boolean isOnlyTestStoresToRpt = onlyTestStoresToRpt != null && storeSubset != null;
 				if (storeNotifications != null) {
 					//Notify Stores
-					NotificationDb.process(notifyStartingTime, notifyEndingTime,
-						nTime, emailSent, storeSubset, isOnlyTestStoresToRpt);
+					boolean isOnlyTestStoresToRpt = onlyTestStoresToRpt != null && storeSubset != null,
+						isSendDelayedNotesOff = sendDelayedNotesOff != null;
+					NotificationDb.process(notifyStartingTime, notifyEndingTime, nTime,
+						emailSent, storeSubset, isOnlyTestStoresToRpt, isSendDelayedNotesOff);
 					notifyStartingTime = null; notifyEndingTime = null;
 				}
 
