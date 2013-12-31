@@ -1,0 +1,55 @@
+<!DOCTYPE html [
+<!ATTLIST input id ID #IMPLIED>
+]>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style>
+
+.center {
+
+ margin:auto; width:80%; font-size:16px;
+
+}
+td {
+
+ font-weight:bold; margin-top:10px; padding:5px;
+
+}
+input {
+
+ font-size:16px;
+ cursor:inherit;
+
+}
+</style>
+</head>
+<body>
+<form action="login" autocomplete="on" method="post" onsubmit="parentNode.setAttribute('style','cursor:wait;')">
+<table class="center">
+<tbody>
+<tr>
+<td style="width:80px;">Store #</td><td style="width:85%;">
+<input id="store" name="store" size="6" type="text" />
+</td>
+</tr>
+<tr>
+<td>Region</td><td><input id="region" name="region" size="6" type="text" /></td>
+</tr>
+<tr>
+<td>Address</td><td><input id="address" name="address" size="40" type="text" /></td>
+</tr>
+<tr>
+<td>City</td><td><input id="city" name="city" size="20" type="text" /></td>
+</tr>
+<tr>
+<td>Province</td><td><input id="prov" name="prov" size="6" type="text" /></td>
+</tr>
+<tr>
+<td>Postal Code</td><td><input id="pcode" name="pcode" size="6" type="text" /></td>
+</tr>
+</tbody>
+</table>
+</form>
+</body>
+</html>

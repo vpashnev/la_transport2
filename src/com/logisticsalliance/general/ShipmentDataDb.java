@@ -195,18 +195,20 @@ public class ShipmentDataDb {
 				if (ln.isEmpty()) { continue;}
 				int j = ln.indexOf(';');
 				if (j != -1) {
+					if (!semicolons) { semicolons = true;}
 					int n = ln.indexOf('|');
-					if (n != -1 && n < j) {
-						log.error("Semicolon is illegal character:\r\n"+ln.substring(0, j+1));
-						err = true;
+					if (n == -1 || n > j) {
+						continue;
 					}
-					else if (!semicolons) { semicolons = true;}
-					continue;
 				}
 				ln = ln.replaceAll("\"", "");
 				try {
 					setRow(r, k, i, ln, rnCols);
-					if (r.cmdty == null) { continue;}
+					if (r.cmdty == null) {
+						log.error("Cannot determine commodity for the order: "+r.orderN);
+						if (!err) { err = true;}
+						continue;
+					}
 					if (r.cmdty.equals("EVT")) {
 						delFound = -1;
 						update(st, r, userFile, delNotFound);
@@ -277,7 +279,6 @@ public class ShipmentDataDb {
 		r.orderType = getCellValue(line, RnColumns.ORDER_TYPE, rnCols);
 		r.cmdty = getCommodity(r.dc, r.lw, r.orderType, routeN);
 		if (r.cmdty == null) {
-			log.error("Cannot determine commodity for the order: "+r.orderN);
 			return;
 		}
 		r.pallets = getQty(line, RnColumns.PALLETS, rnCols);

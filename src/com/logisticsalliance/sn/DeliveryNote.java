@@ -45,7 +45,7 @@ public class DeliveryNote implements Serializable {
 				//String v = addKey.isEmpty() ? c.cmdty : addKey;
 				String v = c.cmdty;
 				sb.append(v);
-				if (v.equals("EVT")) {
+				if (v.equals(CommonConstants.EVT)) {
 					sb.append('2');
 				}
 			}

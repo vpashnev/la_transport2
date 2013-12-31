@@ -6,6 +6,8 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import javax.sql.DataSource;
+
 /**
  * This class represents a factory for connections to the physical data source.
  * It produces connections using the {@code DriverManger}.
@@ -18,6 +20,7 @@ public class ConnectFactory implements Serializable {
 
 	private String driver, url,
 		user, password = "";
+	private transient DataSource dataSource;
 
 	public ConnectFactory() { }
 	/**
@@ -43,6 +46,20 @@ public class ConnectFactory implements Serializable {
 		this(driver, url);
 		setUser(user);
 		setPassword(password);
+	}
+	/**
+	 * Returns the DataSource factory that creates connections
+	 * @return DataSource factory
+	 */
+	public DataSource getDataSource() {
+		return dataSource;
+	}
+	/**
+	 * Sets the specified DataSource factory to create connections
+	 * @param v the DataSource factory to set
+	 */
+	public void setDataSource(DataSource v) {
+		dataSource = v;
 	}
 	/**
 	 * Returns driver class which was loaded by {@code DriverManger}
@@ -122,12 +139,14 @@ public class ConnectFactory implements Serializable {
 	 * @throws SQLException
 	 */
 	public Connection getConnection() throws SQLException {
+		DataSource ds = getDataSource();
+		if (ds != null) {
+			return forward(ds.getConnection());
+		}
 		Connection c;
 		String u = user;
 		if (u == null) {
-			c = DriverManager.getConnection(url);
-			c.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-			c.setAutoCommit(false);
+			c = forward(DriverManager.getConnection(url));
 		}
 		else {
 			String p = password;
@@ -147,33 +166,11 @@ public class ConnectFactory implements Serializable {
 	public Connection getConnection(String user,
 		String password) throws SQLException {
 		Connection c = DriverManager.getConnection(url, user, password);
+		return forward(c);
+	}
+	private static Connection forward(Connection c) throws SQLException {
 		c.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 		c.setAutoCommit(false);
-		return c;
-	}
-	/**
-	 * Creates connection with the method {@link #getConnection()} and makes
-	 * the connection ReadOnly 
-	 * @return Connection
-	 * @throws SQLException
-	 */
-	public Connection getReadOnlyConnection() throws SQLException {
-		Connection c = getConnection();
-		c.setReadOnly(true);
-		return c;
-	}
-	/**
-	 * Creates connection with the method {@link #getConnection(String,String)
-	 * getConnection(user,password)} and makes the connection ReadOnly 
-	 * @param user the database user
-	 * @param password the user's password
-	 * @return Connection
-	 * @throws SQLException
-	 */
-	public Connection getReadOnlyConnection(String user,
-		String password) throws SQLException {
-		Connection c = getConnection(user, password);
-		c.setReadOnly(true);
 		return c;
 	}
 	/**

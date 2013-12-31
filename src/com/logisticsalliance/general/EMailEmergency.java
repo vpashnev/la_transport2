@@ -5,6 +5,7 @@ import javax.mail.Session;
 import org.apache.log4j.Logger;
 
 import com.logisticsalliance.general.ScheduledWorker.EmailSent;
+import com.logisticsalliance.util.SupportTime;
 
 /**
  * This class sends emergency e-mails when the application has no progress.
@@ -25,7 +26,7 @@ public class EMailEmergency implements Runnable {
 	@Override
 	public void run() {
 		try {
-			Thread.sleep(3600000);// 60 minutes
+			Thread.sleep(SupportTime.HOUR);
 			send(emailSent);
 		}
 		catch (InterruptedException e) { }

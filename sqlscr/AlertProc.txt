@@ -1,0 +1,25 @@
+CREATE PROCEDURE la.update_alert (
+  store_n1 INT,
+  comm_n1 INT,
+  cmdty1 VARCHAR(4),
+  comm_id1 VARCHAR(50),
+  note_type1 INT)
+BEGIN 
+  DECLARE n2 BIGINT;
+  DECLARE comm_id2 VARCHAR(50);
+  DECLARE note_type2 INT;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET n2=0;
+
+  SELECT n,comm_id,note_type INTO n2,comm_id2,note_type2
+    FROM la.hstore_alert WHERE store_n=store_n1 AND comm_n=comm_n1 AND cmdty=cmdty1;
+  IF n2 = 0 THEN  
+    INSERT INTO la.hstore_alert (store_n,comm_n,cmdty,comm_id,note_type)
+      VALUES (store_n1,comm_n1,cmdty1,comm_id1,note_type1);
+  ELSEIF comm_id1<>comm_id2 OR note_type1<>note_type2 THEN 
+    UPDATE la.hstore_alert SET comm_id=comm_id1,note_type=note_type1,
+      update_time=CURRENT_TIMESTAMP WHERE n=n2;
+  END IF;
+
+END
+@
+

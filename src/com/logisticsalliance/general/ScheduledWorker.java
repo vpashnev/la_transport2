@@ -306,7 +306,7 @@ public class ScheduledWorker implements Runnable {
 			rcptHost, qcStorePrefix1, qcStorePrefix2, qcRcptHost, reportsTo, rnFileListTo,
 			emergencyTo, emailSentOnlyToBbc, emailUnsent;
 
-		private EmailSent(Properties props, String pwd) {
+		public EmailSent(Properties props, String pwd) {
 			host = getValue(props, "emailSentHost");
 			port = getValue(props, "emailSentPort");
 			email = getValue(props, "emailSentFrom");

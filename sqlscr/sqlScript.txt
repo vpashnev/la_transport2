@@ -18,6 +18,20 @@ CREATE TABLE la.hstore_profile (
   CONSTRAINT chk_hstore_profile_n CHECK (n>0),
   CONSTRAINT pk_hstore_profile PRIMARY KEY (n)
 ) ;
+CREATE TABLE la.hstore_alert (
+  n BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
+  store_n INT NOT NULL,
+  comm_n INT NOT NULL,
+  cmdty VARCHAR(4) NOT NULL,
+  comm_id VARCHAR(50) DEFAULT '' NOT NULL,
+  note_type INT NOT NULL,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT fk_hstore_alert_store_n FOREIGN KEY (store_n)
+  REFERENCES la.hstore_profile (n),
+  CONSTRAINT chk_hstore_alert_comm_n CHECK (comm_n>=0 AND comm_n<4),
+  CONSTRAINT chk_hstore_alert_note_type CHECK (note_type>=0 AND note_type<4),
+  CONSTRAINT pk_hstore_alert PRIMARY KEY (n)
+) ;
 CREATE TABLE la.hship_data (
   n BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
   store_n INT NOT NULL,
@@ -156,11 +170,14 @@ CREATE UNIQUE INDEX la.hstore_schedule_key ON la.hstore_schedule (store_n,cmdty,
 CREATE INDEX la.hstore_schedule_holiday ON la.hstore_schedule (store_n,cmdty,ship_date) ;
 CREATE INDEX la.hstore_schedule_in_use ON la.hstore_schedule (in_use) ;
 CREATE UNIQUE INDEX la.hstore_profile_user_id ON la.hstore_profile (user_id) ;
+CREATE UNIQUE INDEX la.hstore_alert_key ON la.hstore_alert (store_n,comm_n,cmdty) ;
 
 drop procedure la.update_shipment_data;
 drop procedure la.update_scheduled_delivery;
 drop procedure la.clean_evt;
+drop procedure la.update_alert;
 drop table la.hstore_schedule;
+drop table la.hstore_alert;
 drop table la.hrn_order;
 drop table la.hship_data;
 drop table la.hstore_profile;
@@ -173,6 +190,7 @@ drop table la.henvr;
 db2 -td@ -vf C:\dev\laWorkspace\la_transport2\sqlscr\DsProc.txt
 db2 -td@ -vf C:\dev\laWorkspace\la_transport2\sqlscr\RnProc.txt
 db2 -td@ -vf C:\dev\laWorkspace\la_transport2\sqlscr\EvtProc.txt
+db2 -td@ -vf C:\dev\laWorkspace\la_transport2\sqlscr\AlertProc.txt
 
 db2 CREATE DATABASE myDbase AUTOMATIC STORAGE YES ON C:
 CREATE SCHEMA la AUTHORIZATION db2admin ;

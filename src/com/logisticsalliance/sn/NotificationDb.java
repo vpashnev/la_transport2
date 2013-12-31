@@ -68,7 +68,8 @@ public class NotificationDb {
 				
 		CCS = "Canada Cartage Systems", TBD ="TBD";
 
-	private final static DeliveryNote.Cmdty DCV_CMDTY = new DeliveryNote.Cmdty("DCV", null, null, null);
+	private final static DeliveryNote.Cmdty DCV_CMDTY =
+		new DeliveryNote.Cmdty(CommonConstants.DCV, null, null, null);
 
 	private static HashSet<DsKey> carriersNotFound = new HashSet<DsKey>();
 

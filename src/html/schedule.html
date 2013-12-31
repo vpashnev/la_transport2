@@ -1,0 +1,52 @@
+<!DOCTYPE html [
+<!ATTLIST input id ID #IMPLIED>
+<!ATTLIST tbody id ID #IMPLIED>
+]>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style>
+
+td {
+
+ padding:3px;padding-left:20px;
+
+}
+input {
+
+ cursor:inherit;
+
+}
+span {
+
+ margin-left:8px;margin-right:8px;
+
+}
+</style>
+</head>
+<body>
+<div style="width:100%;height:35px;background:lightgray;padding-top:10px;">
+<form action="schedule" method="post" onsubmit="parentNode.parentNode.setAttribute('style','cursor:wait;')">
+  <span><input id="reg" name="schedule" type="radio" value="reg"
+   onchange="form.submit();" />Regular</span>
+  <input id="hld" name="schedule" type="radio" value="hld"
+   onchange="form.submit();" />Holidays
+</form>
+</div>
+<div>
+<table style="width:100%;border-collapse:collapse;">
+<thead>
+<tr style="background:Gainsboro;">
+<th style="width:10%;max-width:100px;">Delivery</th>
+<th colspan="2" style="width:16%;max-width:180px;">Time window</th>
+<th style="width:10%;max-width:100px;">Ship.day</th>
+<th style="width:90px;">Week</th>
+<th style="width:90px;">Cmdty</th>
+<th style="width:50%;text-align:left;padding-left:40px;">Description</th>
+</tr>
+</thead>
+<tbody id="table"></tbody>
+</table>
+</div>
+</body>
+</html>

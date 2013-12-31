@@ -1,0 +1,144 @@
+<!DOCTYPE html [
+<!ATTLIST input id ID #IMPLIED>
+<!ATTLIST script id ID #IMPLIED>
+]>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style>
+
+td {
+
+ padding:3px;
+
+}
+td.mid {
+
+ padding-top:16px;padding-bottom:16px;
+ padding-left:3px;padding-right:3px;
+
+}
+input {
+
+ height:20px;
+ cursor:inherit;
+ vertical-align: middle;
+
+}
+span {
+
+ margin-left:4px;
+ vertical-align: middle;
+
+}
+</style>
+<script type="text/javascript" src="js/alert1.js">
+</script>
+</head>
+<body style="background:lightgray;">
+<form action="alert" method="post" onsubmit="return save(this);">
+<table style="padding:3px;width:100%;border-collapse:collapse;">
+<tbody>
+<tr>
+<td colspan="2"><b>Send email to address:</b></td>
+<td colspan="2"><b>Send text to phone:</b></td>
+</tr>
+<tr>
+<td>
+<input id="comm1" name="comm1" type="email" size="30" maxlength="50" />
+</td>
+<td>
+<input id="comm2" name="comm2" type="email" size="30" maxlength="50" />
+</td>
+<td>
+<input id="comm31" name="comm31" style="width:46px" maxlength="3"
+  type="number" max="999" min="100" />-<input id="comm32" name="comm32" style="width:46px" maxlength="3"
+  type="number" max="999" min="100" />-<input id="comm33" name="comm33" style="width:51px" maxlength="4"
+  type="number" max="9999" min="1000" />@<input id="comm34" name="comm34"
+  type="text" size="12" maxlength="25" />
+</td>
+<td>
+<input id="comm41" name="comm41" style="width:46px" maxlength="3"
+  type="number" max="999" min="100" />-<input id="comm42" name="comm42" style="width:46px" maxlength="3"
+  type="number" max="999" min="100" />-<input id="comm43" name="comm43" style="width:51px" maxlength="4"
+  type="number" max="9999" min="1000" />@<input id="comm44" name="comm44"
+  type="text" size="12" maxlength="25" />
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td class="mid">
+<input id="note11" name="note11" type="checkbox" value="1" onchange="select1(this,1);" />
+<span>Exceptions</span> <br/>
+<input id="note12" name="note12" type="checkbox" value="1" onchange="select1(this,1);" />
+<span>All</span>
+</td>
+<td class="mid">
+<input id="note21" name="note21" type="checkbox" value="1" onchange="select1(this,2);" />
+<span>Exceptions</span> <br/>
+<input id="note22" name="note22" type="checkbox" value="1" onchange="select1(this,2);" />
+<span>All</span>
+</td>
+<td class="mid">
+<input id="note31" name="note31" type="checkbox" value="1" onchange="select1(this,3);" />
+<span>Exceptions</span> <br/>
+<input id="note32" name="note32" type="checkbox" value="1" onchange="select1(this,3);" />
+<span>All</span>
+</td>
+<td class="mid">
+<input id="note41" name="note41" type="checkbox" value="1" onchange="select1(this,4);" />
+<span>Exceptions</span> <br/>
+<input id="note42" name="note42" type="checkbox" value="1" onchange="select1(this,4);" />
+<span>All</span>
+</td>
+</tr>
+<tr>
+<td>
+<input id="DCB1" name="DCB1" type="checkbox" value="1" /><span>DCB</span> <br/>
+<input id="DCV1" name="DCV1" type="checkbox" value="1" /><span>DCV</span> <br/>
+<input id="DCX1" name="DCX1" type="checkbox" value="1" /><span>DCX</span> <br/>
+<input id="DCF1" name="DCF1" type="checkbox" value="1" /><span>DCF</span> <br/>
+<input id="EVT1" name="EVT1" type="checkbox" value="1" /><span>EVT</span> <br/>
+<input id="EVT21" name="EVT21" type="checkbox" value="1" /><span>EVT2</span> <br/>
+</td>
+<td>
+<input id="DCB2" name="DCB2" type="checkbox" value="1" /><span>DCB</span> <br/>
+<input id="DCV2" name="DCV2" type="checkbox" value="1" /><span>DCV</span> <br/>
+<input id="DCX2" name="DCX2" type="checkbox" value="1" /><span>DCX</span> <br/>
+<input id="DCF2" name="DCF2" type="checkbox" value="1" /><span>DCF</span> <br/>
+<input id="EVT2" name="EVT2" type="checkbox" value="1" /><span>EVT</span> <br/>
+<input id="EVT22" name="EVT22" type="checkbox" value="1" /><span>EVT2</span> <br/>
+</td>
+<td>
+<input id="DCB3" name="DCB3" type="checkbox" value="1" /><span>DCB</span> <br/>
+<input id="DCV3" name="DCV3" type="checkbox" value="1" /><span>DCV</span> <br/>
+<input id="DCX3" name="DCX3" type="checkbox" value="1" /><span>DCX</span> <br/>
+<input id="DCF3" name="DCF3" type="checkbox" value="1" /><span>DCF</span> <br/>
+<input id="EVT3" name="EVT3" type="checkbox" value="1" /><span>EVT</span> <br/>
+<input id="EVT23" name="EVT23" type="checkbox" value="1" /><span>EVT2</span> <br/>
+</td>
+<td>
+<input id="DCB4" name="DCB4" type="checkbox" value="1" /><span>DCB</span> <br/>
+<input id="DCV4" name="DCV4" type="checkbox" value="1" /><span>DCV</span> <br/>
+<input id="DCX4" name="DCX4" type="checkbox" value="1" /><span>DCX</span> <br/>
+<input id="DCF4" name="DCF4" type="checkbox" value="1" /><span>DCF</span> <br/>
+<input id="EVT4" name="EVT4" type="checkbox" value="1" /><span>EVT</span> <br/>
+<input id="EVT24" name="EVT24" type="checkbox" value="1" /><span>EVT2</span> <br/>
+</td>
+</tr>
+<tr>
+<td colspan="4">
+<div style="margin-top:8px;">
+<input type="submit" value="Update" style="width:150px;height:30;font-weight:bold;"/>
+<span style="margin-left:8px;">
+</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</form>
+<script id="msg"></script>
+</body>
+</html>

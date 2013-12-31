@@ -1,0 +1,50 @@
+<!DOCTYPE html [
+<!ATTLIST input id ID #IMPLIED>
+<!ATTLIST span id ID #IMPLIED>
+]>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style>
+
+.center {
+
+ margin:auto; width:50%; font-size:16px;
+
+}
+td {
+
+ font-weight:bold; margin-top:10px; padding:5px;
+
+}
+input {
+
+ font-size:16px;
+ cursor:inherit;
+
+}
+</style>
+</head>
+<body>
+<form action="login" autocomplete="on" method="post" onsubmit="parentNode.setAttribute('style','cursor:wait;')">
+<table class="center">
+<tbody>
+<tr>
+<td style="width:15%;">User</td><td style="width:85%;">
+<input id="user" name="user" size="32" type="text" />
+</td>
+</tr>
+<tr>
+<td>Password</td><td><input name="pwd" size="32" type="password" /></td>
+</tr>
+<tr>
+<td></td><td><input name="login" type="submit" value="Login" /></td>
+</tr>
+<tr>
+<td></td><td style="color:red;"><span id="error"></span><br/><span id="error2"></span></td>
+</tr>
+</tbody>
+</table>
+</form>
+</body>
+</html>
