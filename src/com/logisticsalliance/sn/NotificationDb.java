@@ -6,9 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,7 +30,7 @@ import com.logisticsalliance.util.SupportTime;
  * @version %I%,%G%
  * @since 1.0
  */
-public class NotificationDb {
+public class NotificationDb extends Notify1 {
 
 	private static Logger log = Logger.getLogger(NotificationDb.class);
 
@@ -73,8 +71,6 @@ public class NotificationDb {
 
 	private static HashSet<DsKey> carriersNotFound = new HashSet<DsKey>();
 
-	private static Timestamp nextTime;
-
 	public static void clearCarriersNotFound() {
 		carriersNotFound.clear();
 	}
@@ -84,25 +80,24 @@ public class NotificationDb {
 		long timeAheadInMins = timeAhead/60000;
 		Timestamp t0 = null, t1 = null;
 		if (notifyStartingTime != null) {
-			java.util.Date d = SupportTime.dd_MM_yyyy_HH_mm_Format.parse(notifyStartingTime);
-			t0 = new Timestamp(d.getTime());
+			t0 = SupportTime.parseDdMMyyyyHHmm(notifyStartingTime);
 		}
 		if (notifyEndingTime != null) {
-			java.util.Date d = SupportTime.dd_MM_yyyy_HH_mm_Format.parse(notifyEndingTime);
-			t1 = new Timestamp(d.getTime());
+			t1 = SupportTime.parseDdMMyyyyHHmm(notifyEndingTime);
 		}
 		Session s = null;
 		Connection con = null, con1 = null;
 		try {
 			con = ConnectFactory1.one().getConnection();
 			con1 = ConnectFactory1.one().getConnection();
-			PreparedStatement timeSt, selDelSt = con.prepareStatement(SQL_SEL_DELIVERIES),
+			PreparedStatement selDelSt = con.prepareStatement(SQL_SEL_DELIVERIES),
 				updUnsent = con.prepareStatement(SQL_UPD_UNSENT);
 			if (t1 == null) {
 				t1 = SqlSupport.getDb2CurrentTime(con1);
 			}
 			while (true) {
-				t0 = getNextTime(con1, t0, t1, timeAhead, timeAheadInMins);
+				t0 = getNextTime(con1, SQL_SEL_ENVR, SQL_INS_ENVR,
+					t0, t1, 1800000, timeAheadInMins, log);
 				if (t0 == null) {
 					break;
 				}
@@ -116,12 +111,7 @@ public class NotificationDb {
 						t2, s, es, storeSubset, onlyTestStoresToRpt, true);
 				}
 				if (notifyEndingTime == null) {
-					// Update time
-					timeSt = con1.prepareStatement(SQL_UPD_ENVR);
-					timeSt.setTimestamp(1, t0);
-					timeSt.executeUpdate();
-					con1.commit();
-					timeSt.close();
+					updateNotifyEndingTime(con1, SQL_UPD_ENVR, t0);
 				}
 			}
 			selDelSt.close();
@@ -134,44 +124,6 @@ public class NotificationDb {
 			ConnectFactory.close(con);
 			ConnectFactory.close(con1);
 		}
-	}
-	private static Timestamp getNextTime(Connection con, Timestamp t0,
-		Timestamp t1, long timeAhead, long timeAheadInMins) throws Exception {
-		PreparedStatement st = con.prepareStatement(SQL_SEL_ENVR);
-		ResultSet rs = st.executeQuery();
-		if (rs.next()) {
-			if (t0 == null) { t0 = rs.getTimestamp(1);}
-			st.close();
-		}
-		else {
-			st.close();
-			st = con.prepareStatement(SQL_INS_ENVR);
-			st.setNull(1, Types.TIMESTAMP);
-			st.executeUpdate();
-			con.commit();
-			st.close();
-		}
-		if (t0 == null) {
-			Calendar cal = Calendar.getInstance();
-			cal.setTime(t1);
-			cal.set(Calendar.MINUTE, 0);
-			cal.set(Calendar.SECOND, 0);
-			cal.set(Calendar.MILLISECOND, 0);
-			t0 = new Timestamp(cal.getTime().getTime()+timeAheadInMins*60000);
-			return t0;
-		}
-		else {
-			long mins = (t0.getTime() - t1.getTime())/60000;
-			if (mins < timeAheadInMins) { // 24-30 hours
-				t0.setTime(t0.getTime()+1800000); // plus 30 minutes
-				return t0;
-			}
-			if (!t0.equals(nextTime)) {
-				log.debug("NEXT "+SupportTime.dd_MM_yyyy_HH_mm_Format.format(t0)+"\r\n");
-				nextTime = t0;
-			}
-		}
-		return null;
 	}
 	private static DeliveryNote getNote(int storeN, String addKey, Time delTimeFrom) {
 		DeliveryNote dn = new DeliveryNote();

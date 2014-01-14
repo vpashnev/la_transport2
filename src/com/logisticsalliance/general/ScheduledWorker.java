@@ -10,6 +10,7 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
+import com.logisticsalliance.sa.SendAlertDb;
 import com.logisticsalliance.shp.ShipmentDb;
 import com.logisticsalliance.sn.NotificationDb;
 import com.logisticsalliance.sqla.ConnectFactory;
@@ -83,6 +84,7 @@ public class ScheduledWorker implements Runnable {
 
 		String quickReport = getValue(appProperties, "quickReport"),
 			storeNotifications = getValue(appProperties, "storeNotifications"),
+			storeAlerts = getValue(appProperties, "storeAlerts"),
 			shipments = getValue(appProperties, "shipments"),
 			ttTable = getValue(appProperties, "ttTable"),
 			onlyTestStoresToRpt = getValue(appProperties, "onlyTestStoresToRpt"),
@@ -90,8 +92,11 @@ public class ScheduledWorker implements Runnable {
 			notifyHoursAhead = getValue(appProperties, "notifyHoursAhead"),
 			notifyStartingTime = getValue(appProperties, "notifyStartingTime"),
 			notifyEndingTime = getValue(appProperties, "notifyEndingTime"),
+			alertStartingTime = getValue(appProperties, "alertStartingTime"),
+			alertEndingTime = getValue(appProperties, "alertEndingTime"),
 			shipmentDate = getValue(appProperties, "shipmentDate"),
-			daysOutCleaningDB = getValue(appProperties, "daysOutCleaningDB");
+			daysOutCleaningDB = getValue(appProperties, "daysOutCleaningDB"),
+			alertStoresByPhone = getValue(appProperties, "alertStoresByPhone");
 		int nTime = notifyHoursAhead == null ? 30 : Integer.parseInt(notifyHoursAhead);
 		nTime *= SupportTime.HOUR;
 
@@ -102,6 +107,7 @@ public class ScheduledWorker implements Runnable {
 			dbPassword, dbPasswordI5);
 		ShipmentDb.setConnectFactoryI5(cfI5);
 		TtTableDb.setConnectFactoryI5(cfI5);
+		SendAlertDb.setConnectFactoryI5(cfI5);
 		UserAuth.process(appDir, ksPassword, 3000, cf);
 		while (!stopped) {
 			System.out.println("Data in process..., starting at "+
@@ -137,6 +143,13 @@ public class ScheduledWorker implements Runnable {
 					notifyStartingTime = null; notifyEndingTime = null;
 				}
 
+				if (storeAlerts != null) {
+					//Alert Stores
+					SendAlertDb.process(alertStartingTime, alertEndingTime,
+						emailSent, alertStoresByPhone != null);
+					alertStartingTime = null; alertEndingTime = null;
+				}
+
 				//Make daily reports
 				Calendar c = SqlSupport.getDb2CurrentTime();
 				int h = c.get(Calendar.HOUR_OF_DAY);
@@ -148,7 +161,8 @@ public class ScheduledWorker implements Runnable {
 				}
 				else if (h != 21) { curHour = h;}
 				if (quickReport != null ||
-					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH)) {
+					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH) ||
+					!ShipmentDb.isDone() || !TtTableDb.isDone()) {
 
 					Date d = getShipDate(shipmentDate, c);
 					if (shipments != null) {

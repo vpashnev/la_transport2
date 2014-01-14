@@ -22,14 +22,20 @@ CREATE TABLE la.hstore_alert (
   n BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
   store_n INT NOT NULL,
   comm_n INT NOT NULL,
-  cmdty VARCHAR(4) NOT NULL,
-  comm_id VARCHAR(50) DEFAULT '' NOT NULL,
-  note_type INT NOT NULL,
+  email VARCHAR(80) DEFAULT '' NOT NULL,
+  email2 VARCHAR(80) DEFAULT '' NOT NULL,
+  phone VARCHAR(80) DEFAULT '' NOT NULL,
+  phone2 VARCHAR(80) DEFAULT '' NOT NULL,
+  dcb CHAR(1),
+  dcv CHAR(1),
+  dcx CHAR(1),
+  dcf CHAR(1),
+  evt CHAR(1),
+  evt2 CHAR(1),
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   CONSTRAINT fk_hstore_alert_store_n FOREIGN KEY (store_n)
   REFERENCES la.hstore_profile (n),
-  CONSTRAINT chk_hstore_alert_comm_n CHECK (comm_n>=0 AND comm_n<4),
-  CONSTRAINT chk_hstore_alert_note_type CHECK (note_type>=0 AND note_type<4),
+  CONSTRAINT chk_hstore_alert_comm_n CHECK (comm_n>=0 AND comm_n<3),
   CONSTRAINT pk_hstore_alert PRIMARY KEY (n)
 ) ;
 CREATE TABLE la.hship_data (
@@ -161,7 +167,7 @@ CREATE TABLE la.huser (
 ) ;
 
 CREATE TABLE la.henvr (
-  time_store_notified TIMESTAMP,daily_rn_files VARCHAR(1024)
+  time_store_notified TIMESTAMP,time_store_alerted TIMESTAMP,daily_rn_files VARCHAR(1024)
 ) ;
 
 CREATE UNIQUE INDEX la.hship_data_key ON la.hship_data (store_n,cmdty,ship_date,dc,add_key) ;
@@ -170,7 +176,7 @@ CREATE UNIQUE INDEX la.hstore_schedule_key ON la.hstore_schedule (store_n,cmdty,
 CREATE INDEX la.hstore_schedule_holiday ON la.hstore_schedule (store_n,cmdty,ship_date) ;
 CREATE INDEX la.hstore_schedule_in_use ON la.hstore_schedule (in_use) ;
 CREATE UNIQUE INDEX la.hstore_profile_user_id ON la.hstore_profile (user_id) ;
-CREATE UNIQUE INDEX la.hstore_alert_key ON la.hstore_alert (store_n,comm_n,cmdty) ;
+CREATE UNIQUE INDEX la.hstore_alert_key ON la.hstore_alert (store_n,comm_n) ;
 
 drop procedure la.update_shipment_data;
 drop procedure la.update_scheduled_delivery;
@@ -192,14 +198,14 @@ db2 -td@ -vf C:\dev\laWorkspace\la_transport2\sqlscr\RnProc.txt
 db2 -td@ -vf C:\dev\laWorkspace\la_transport2\sqlscr\EvtProc.txt
 db2 -td@ -vf C:\dev\laWorkspace\la_transport2\sqlscr\AlertProc.txt
 
+db2 connect to mydbase user db2admin
+
 db2 CREATE DATABASE myDbase AUTOMATIC STORAGE YES ON C:
 CREATE SCHEMA la AUTHORIZATION db2admin ;
 
 db2 DROP DATABASE myDbase
 
 db2 UPDATE db cfg for mydbase using LOGFILSIZ 10000
-
-db2 connect to mydbase user db2admin
 
 db2 BACKUP DATABASE mydbase ON ALL DBPARTITIONNUMS TO c:\db2\backup
 db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20131210105333 INTO mydbase REPLACE EXISTING
@@ -210,12 +216,14 @@ alter table la.hstore_profile add column user_id VARCHAR(20) DEFAULT '' NOT NULL
 alter table la.hstore_profile add column user_pwd VARCHAR(20) DEFAULT '' NOT NULL;
 alter table la.hstore_profile add column pwd_time TIMESTAMP;
 alter table la.hstore_profile add column login_failures INT DEFAULT 0 NOT NULL;
+alter table la.henvr add column time_store_alerted TIMESTAMP;
 
 alter table la.hship_data drop column tt_table;
 drop index la.hship_data_key;
 
 REORG TABLE la.hship_data;
 REORG TABLE la.hstore_profile;
+REORG TABLE la.henvr;
 
 
 update la.hstore_profile set user_id=CAST(n AS VARCHAR(4));

@@ -66,13 +66,16 @@ public class TtTableDb {
 
 	private static HashSet<DsKey> carriersNotFound = new HashSet<DsKey>();
 
-	private static boolean done;
+	private static boolean done = true;
 
 	public static void setConnectFactoryI5(ConnectFactory cf) {
 		connectFactoryI5 = cf;
 	}
 	public static void clearCarriersNotFound() {
 		carriersNotFound.clear();
+	}
+	public static boolean isDone() {
+		return done;
 	}
 	public static void process(final Date shipDate) throws InterruptedException {
 		done = false;

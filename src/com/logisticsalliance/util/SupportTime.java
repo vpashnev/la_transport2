@@ -1,6 +1,7 @@
 package com.logisticsalliance.util;
 
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -28,6 +29,16 @@ public class SupportTime {
 		HH_mm_Format = new SimpleDateFormat("HH:mm");
 	public static final long HOUR = 60L*60000, DAY = HOUR*24;
 
+	public static String toHH_mm(String t) throws Exception {
+		while (t.length() < 4) {
+			t = "0"+t;
+		}
+		return t.substring(0, 2)+":"+t.substring(2);
+	}
+	public static Timestamp parseDdMMyyyyHHmm(String v) throws ParseException {
+		Date d = SupportTime.dd_MM_yyyy_HH_mm_Format.parse(v);
+		return new Timestamp(d.getTime());
+	}
 	public static Time parseTimeHHmm(String v) throws ParseException {
 		Date d = v.length() == 3 ? Hmm_Format.parse(v) : HHmm_Format.parse(v);
 		return new Time(d.getTime());

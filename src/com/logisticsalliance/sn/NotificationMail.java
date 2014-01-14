@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.EMailSender;
 import com.logisticsalliance.general.ScheduledWorker.EmailSent;
+import com.logisticsalliance.general.SupportGeneral;
 import com.logisticsalliance.util.SupportTime;
 
 /**
@@ -22,7 +23,7 @@ import com.logisticsalliance.util.SupportTime;
  */
 public class NotificationMail {
 
-	private static Logger log = Logger.getLogger(NotificationDb.class);
+	private static Logger log = Logger.getLogger(NotificationMail.class);
 
 	static Session send(Session s, EmailSent es, HashSet<Integer> storeSubset,
 		ArrayList<DeliveryNote> al, String interval) throws Exception {
@@ -30,25 +31,7 @@ public class NotificationMail {
 			DeliveryNote dn = it.next();
 			if (storeSubset != null && !storeSubset.contains(dn.storeN)) { continue;}
 			StringBuilder rb = new StringBuilder(256);
-			if (dn.province != null && (dn.province.trim().equalsIgnoreCase("PQ") ||
-				dn.province.trim().equalsIgnoreCase("QC"))) {
-				String sn = String.valueOf(dn.storeN);
-				while (sn.length() < 3) {
-					sn = "0" + sn;
-				}
-	        	rb.append(es.qcStorePrefix1); rb.append(sn);
-	        	rb.append('@'); rb.append(es.qcRcptHost);
-	        	rb.append(',');
-	        	rb.append(es.qcStorePrefix2); rb.append(sn);
-	        	rb.append('@'); rb.append(es.qcRcptHost);
-	        }
-	        else {
-	        	rb.append(es.storePrefix1); rb.append(dn.storeN);
-	        	rb.append('@'); rb.append(es.rcptHost);
-	        	rb.append(',');
-	        	rb.append(es.storePrefix2); rb.append(dn.storeN);
-	        	rb.append('@'); rb.append(es.rcptHost);
-	        }
+			SupportGeneral.addEmailAddress(rb, es, dn.storeN, dn.province);
 			String delDate = SupportTime.yyyy_MM_dd_Format.format(dn.delDate),
 				cmdtyList = dn.getCmdtyList(false),
 				delTimeFrom = SupportTime.HH_mm_Format.format(dn.delTimeFrom),

@@ -21,7 +21,8 @@ public class EMailReports {
 
 	private static Logger log = Logger.getLogger(EMailReports.class);
 
-	static final String[] logFileNames = { "general.log", "snRpt.log", "shpRpt.log", "ttRpt.log"};
+	private static final String[] logFileNames = { "general.log",
+		"snRpt.log", "saRpt.log", "shpRpt.log", "ttRpt.log"};
 	private File[] files;
 	private File zip;
 	

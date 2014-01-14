@@ -157,7 +157,7 @@ public class ShipmentDb {
 
 	private static HashSet<DsKey> carriersNotFound = new HashSet<DsKey>();
 
-	private static boolean done;
+	private static boolean done = true;
 
 	public static void setConnectFactoryI5(ConnectFactory cf) {
 		ConnectFactory cf1 = new ConnectFactory(cf.getDriver(),
