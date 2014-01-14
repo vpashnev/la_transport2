@@ -3,25 +3,32 @@ package com.logisticsalliance.tt.web;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Types;
 
-import com.logisticsalliance.general.CommonConstants;
+import com.logisticsalliance.general.SupportGeneral;
 import com.logisticsalliance.sqla.ConnectFactory;
 import com.logisticsalliance.sqla.ConnectFactory1;
 
-class AlertDB {
+public class AlertDB {
 
-	private static String
+	private static final String
 	SQL_SEL =
-	"SELECT comm_n,comm_id,note_type,cmdty " +
+	"SELECT comm_n,email,email2,phone,phone2,dcb,dcv,dcx,dcf,evt,evt2 " +
 	"FROM la.hstore_alert " +
-	"WHERE store_n=?" +
+	"WHERE store_n=? " +
 	"ORDER BY comm_n",
 
-	SQL_UPD = "{call la.update_alert(?,?,?,?,?)}";
+	SQL_SEL_PROV =
+	"SELECT province " +
+	"FROM la.hstore_profile " +
+	"WHERE n=? ",
 
-	static void select(int store, Alert[] alerts) throws Exception {
+	SQL_UPD = "{call la.update_alert(?,?,?,?,?,?,?,?,?,?,?,?)}";
+
+	public static void select(int store, Alert[] alerts,
+		boolean setInitEmail) throws Exception {
 		reset(alerts);
-		int commN1 = -1;
+		boolean empty = true;
 		Connection con = null;
 		try {
 			con = ConnectFactory1.one().getConnection();
@@ -29,34 +36,48 @@ class AlertDB {
 			st.setInt(1, store);
 			ResultSet rs = st.executeQuery();
 			while (rs.next()) {
-				int commN = rs.getInt(1), noteType = rs.getInt(3);
+				int commN = rs.getInt(1);
 				Alert a = alerts[commN];
-				if (commN != commN1) {
-					a.commId = rs.getString(2).trim();
-					if (commN > 1 && a.commId.length() < 12) { // phone e-mails
-						a.commId = "";
-					}
-					commN1 = commN;
-					if (a.commId.isEmpty()) {
-						continue;
+				boolean has = false;
+				int n = 2;
+				for (int i = 0; i != a.comm.length; i++) {
+					a.comm[i] = rs.getString(n++).trim();
+					if (!has && !a.comm[i].isEmpty()) {
+						has = true;
 					}
 				}
-				if (noteType > a.noteType) { a.noteType = noteType;}
-				if (noteType != 0) {
-					String cmdty = rs.getString(4);
-					switch (cmdty) {
-					case (CommonConstants.DCB): a.cmdty[0] = true; break;
-					case (CommonConstants.DCV): a.cmdty[1] = true; break;
-					case (CommonConstants.DCX): a.cmdty[2] = true; break;
-					case (CommonConstants.DCF): a.cmdty[3] = true; break;
-					case (CommonConstants.EVT): a.cmdty[4] = true; break;
-					case (CommonConstants.EVT2): a.cmdty[5] = true; break;
-					}
+				if (!has) {
+					continue;
 				}
+				for (int i = 0; i != a.cmdty.length; i++) {
+					a.cmdty[i] = rs.getString(n++) != null;
+				}
+				if (empty) {
+					empty = false;
+				}
+			}
+			rs.close();
+			st.close();
+			if (setInitEmail && empty) {
+				setInitEmail(con, store, alerts);
 			}
 		}
 		finally {
 			ConnectFactory.close(con);
+		}
+	}
+	private static void setInitEmail(Connection con, int store, Alert[] alerts) throws Exception {
+		PreparedStatement st = con.prepareStatement(SQL_SEL_PROV);
+		st.setInt(1, store);
+		ResultSet rs = st.executeQuery();
+		if (rs.next()) {
+			String province = rs.getString(1);
+			StringBuilder b = new StringBuilder(64);
+			SupportGeneral.addEmailAddress(b, LoginServlet.emailSent, store, province);
+			String s = b.toString();
+			int i = s.indexOf(',');
+			alerts[0].comm[0] = s.substring(0, i);
+			//alerts[0].comm[1] = s.substring(i+1);
 		}
 	}
 	private static void reset(Alert[] alerts) {
@@ -65,7 +86,6 @@ class AlertDB {
 		}
 	}
 	static void reset(Alert a) {
-		a.noteType = 0;
 		for (int j = 0; j != a.cmdty.length; j++) {
 			a.cmdty[j] = false;
 		}
@@ -77,30 +97,28 @@ class AlertDB {
 			PreparedStatement st = con.prepareStatement(SQL_UPD);
 			for (int i = 0; i != alerts.length; i++) {
 				Alert a = alerts[i];
-				for (int j = 0; j != a.cmdty.length; j++) {
-					st.setInt(1, store);
-					st.setInt(2, i); // comm_n
-					st.setString(3, getCmdty(j));
-					st.setString(4, a.commId);
-					st.setInt(5, a.cmdty[j] ? a.noteType : 0);
-					st.addBatch();
+				st.setInt(1, store);
+				st.setInt(2, i); // comm_n
+				int n = 3;
+				for (int j = 0; j != a.comm.length; j++) {
+					st.setString(n++, a.comm[j]);
 				}
+				for (int j = 0; j != a.cmdty.length; j++) {
+					if (a.cmdty[j]) {
+						st.setString(n, "1");
+					}
+					else {
+						st.setNull(n, Types.VARCHAR);
+					}
+					n++;
+				}
+				st.addBatch();
 			}
 			st.executeBatch();
 			con.commit();
 		}
 		finally {
 			ConnectFactory.close(con);
-		}
-	}
-	private static String getCmdty(int index) throws Exception {
-		switch (index) {
-		case (0): return CommonConstants.DCB;
-		case (1): return CommonConstants.DCV;
-		case (2): return CommonConstants.DCX;
-		case (3): return CommonConstants.DCF;
-		case (4): return CommonConstants.EVT;
-		default: return CommonConstants.EVT2;
 		}
 	}
 }

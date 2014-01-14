@@ -14,96 +14,94 @@ import com.glossium.web.HServlet;
 public class AlertServlet extends HServlet {
 	private static final long serialVersionUID = 10L;
 
-	static final String[]
-		comm1 =
-		{"comm1", "comm2", "comm31", "comm32", "comm33", "comm34",
-		"comm41", "comm42", "comm43", "comm44"},
-		note1 =
-		{"note11", "note12", "note21", "note22", "note31", "note32", "note41", "note42"};
-	static final String[][] cmdty1 = {
+	static final String[][]
+		comm1 = {
+		{"email1", "email21", "phone11", "phone12", "phone13", "phone14",
+		"phone211", "phone212", "phone213", "phone214"},
+		{"email2", "email22", "phone21", "phone22", "phone23", "phone24",
+		"phone221", "phone222", "phone223", "phone224"},
+		{"email3", "email23", "phone31", "phone32", "phone33", "phone34",
+		"phone231", "phone232", "phone233", "phone234"},
+		},
+		cmdty1 = {
 		{"DCB1", "DCV1", "DCX1", "DCF1", "EVT1", "EVT21"},
 		{"DCB2", "DCV2", "DCX2", "DCF2", "EVT2", "EVT22"},
 		{"DCB3", "DCV3", "DCX3", "DCF3", "EVT3", "EVT23"},
 		{"DCB4", "DCV4", "DCX4", "DCF4", "EVT4", "EVT24"},
-	};
-	static final String msg1 = "msg",
-		check = "alert('Please check your email and phone for updates confirmation')";
+		};
+	static final String[] select1 = {"select1", "select2", "select3"};
+	private static final String msg1 = "msg",
+		check = "alert('Please check your email and phone. " +
+			"A confirmation should be received within a few minutes.')";
 
-	private HNode[] comm, note;
+	private HNode[][] comm = new HNode[3][0];
 	private HNode[][] cmdty = new HNode[4][0];
+	private HNode[] sel;
 	private HNode msg;
 
 	public void init(ServletConfig config) throws ServletException {
-		HFrame html = getHtml(getClass().getResourceAsStream("/html/alert.html"));
+		HFrame html = getHtml(getClass().getResourceAsStream("/html/tt/alert2.html"));
 		setControls(html);
 		setHtml(html);
 		super.init(config);
 	}
 	private void setControls(HFrame html) {
-		comm = html.getNodes(comm1);
-		note = html.getNodes(note1);
+		comm[0] = html.getNodes(comm1[0]);
+		comm[1] = html.getNodes(comm1[1]);
+		comm[2] = html.getNodes(comm1[2]);
 		cmdty[0] = html.getNodes(cmdty1[0]);
 		cmdty[1] = html.getNodes(cmdty1[1]);
 		cmdty[2] = html.getNodes(cmdty1[2]);
 		cmdty[3] = html.getNodes(cmdty1[3]);
+		sel = html.getNodes(select1);
 		msg = html.getNodes(msg1)[0];
 	}
 
 	@Override
 	protected void fillHtml(Object data) {
 		Alert[] d = (Alert[])data;
-		for (int i = 0; i != d.length; i++) {
-			Alert a = d[i];
-			if (a.commId == null || a.commId.trim().isEmpty()) {
-				if (i < 2) {
-					comm[i].setValue(null);
-				}
-				else if (i == 2) {
-					comm[i].setValue(null); comm[i+1].setValue(null);
-					comm[i+2].setValue(null); comm[i+3].setValue(null);
-				}
-				else {
-					comm[i+3].setValue(null); comm[i+4].setValue(null);
-					comm[i+5].setValue(null); comm[i+6].setValue(null);
-				}
-			}
-			else {
-				if (i < 2) {
-					comm[i].setValue(a.commId);
-				}
-				else if (i == 2) {
-					comm[i].setValue(a.commId.substring(0, 3));
-					comm[i+1].setValue(a.commId.substring(3, 6));
-					comm[i+2].setValue(a.commId.substring(6, 10));
-					comm[i+3].setValue(a.commId.substring(11));
+		for (int n = 0; n != d.length; n++) {
+			Alert a = d[n];
+			for (int i = 0; i != a.comm.length; i++) {
+				if (a.comm[i] == null || a.comm[i].trim().isEmpty()) {
+					if (i < 2) {
+						comm[n][i].setValue(null);
+					}
+					else if (i == 2) {
+						comm[n][i].setValue(null); comm[n][i+1].setValue(null);
+						comm[n][i+2].setValue(null); comm[n][i+3].setValue(null);
+					}
+					else {
+						comm[n][i+3].setValue(null); comm[n][i+4].setValue(null);
+						comm[n][i+5].setValue(null); comm[n][i+6].setValue(null);
+					}
 				}
 				else {
-					comm[i+3].setValue(a.commId.substring(0, 3));
-					comm[i+4].setValue(a.commId.substring(3, 6));
-					comm[i+5].setValue(a.commId.substring(6, 10));
-					comm[i+6].setValue(a.commId.substring(11));
+					if (i < 2) {
+						comm[n][i].setValue(a.comm[i]);
+					}
+					else if (i == 2) {
+						comm[n][i].setValue(a.comm[i].substring(0, 3));
+						comm[n][i+1].setValue(a.comm[i].substring(3, 6));
+						comm[n][i+2].setValue(a.comm[i].substring(6, 10));
+						comm[n][i+3].setValue(a.comm[i].substring(11));
+					}
+					else {
+						comm[n][i+3].setValue(a.comm[i].substring(0, 3));
+						comm[n][i+4].setValue(a.comm[i].substring(3, 6));
+						comm[n][i+5].setValue(a.comm[i].substring(6, 10));
+						comm[n][i+6].setValue(a.comm[i].substring(11));
+					}
 				}
 			}
-			int ii = i<<1;
-			switch (a.noteType) {
-			case (0):
-				note[ii].setChecked(false);
-				note[ii+1].setChecked(false);
-				break;
-			case (1):
-				note[ii].setChecked(true);
-				note[ii+1].setChecked(false);
-				break;
-			case (2):
-				note[ii].setChecked(false);
-				note[ii+1].setChecked(true);
-			case (3):
-				note[ii].setChecked(true);
-				note[ii+1].setChecked(true);
+			boolean has = false;
+			for (int i = 0; i != a.cmdty.length; i++) {
+				cmdty[n][i].setChecked(a.cmdty[i]);
+				if (!has && a.cmdty[i]) {
+					has = true;
+				}
 			}
-			for (int j = 0; j != a.cmdty.length; j++) {
-				cmdty[i][j].setChecked(a.cmdty[j]);
-			}
+			sel[n].setChecked(has);
 		}
 		msg.setTextValue(d[0].checkMsg);
 	}
@@ -117,74 +115,58 @@ public class AlertServlet extends HServlet {
 		}
 		Alert[] d = a.alerts;
 		if (d == null) {
-			d = new Alert[]{ new Alert(), new Alert(), new Alert(), new Alert()};
+			d = new Alert[]{ new Alert(), new Alert(), new Alert()};
 			a.alerts = d;
-			AlertDB.select(a.store, d);
+			AlertDB.select(a.store, d, true);
 			d[0].checkMsg = null;
 		}
 		else if (post) {
 			setData(d, req);
 			AlertDB.update(a.store, d);
-			AlertDB.select(a.store, d);
-			TestComm.send(LoginServlet.emailSent, d[0].commId,
-				d[1].commId, d[2].commId, d[3].commId, a.store);
+			//AlertDB.select(a.store, d, true);
+			TestComm.send(LoginServlet.emailSent, d, a.store);
 			d[0].checkMsg = check;
 		}
 		else { d[0].checkMsg = null;}
 		return d;
 	}
 	private static void setData(Alert[] d, HttpServletRequest req) {
-		for (int i = 0; i != d.length; i++) {
-			Alert a = d[i];
-			if (i < 2) {
-				a.commId = req.getParameter(comm1[i]);
-			}
-			else if (i == 2) {
-				a.commId = getPhone(req, i, i+1, i+2, i+3);
-			}
-			else {
-				a.commId = getPhone(req, i+3, i+4, i+5, i+6);
-			}
-			if (a.commId == null) {
-				a.commId = "";
-			}
-			else {
-				a.commId = a.commId.trim();
+		for (int n = 0; n != d.length; n++) {
+			Alert a = d[n];
+			boolean has = false;
+			for (int i = 0; i != a.comm.length; i++) {
+				if (i < 2) {
+					a.comm[i] = req.getParameter(comm1[n][i]);
+				}
+				else if (i == 2) {
+					a.comm[i] = getPhone(req, n, i, i+1, i+2, i+3);
+				}
+				else {
+					a.comm[i] = getPhone(req, n, i+3, i+4, i+5, i+6);
+				}
+				a.comm[i] = a.comm[i].trim();
+				if (!has && !a.comm[i].isEmpty()) {
+					has = true;
+				}
 			}
 			AlertDB.reset(a);
-			if (a.commId.isEmpty()) {
+			if (!has) {
 				continue;
 			}
-			int ii = i<<1;
-			boolean t1 = req.getParameter(note1[ii]) != null,
-				t2 = req.getParameter(note1[ii+1]) != null;
-			if (t1 && t2) {
-				a.noteType = 3;
-			}
-			else if (t1) {
-				a.noteType = 1;
-			}
-			else if (t2) {
-				a.noteType = 2;
-			}
-			else {
-				a.noteType = 0;
-			}
-			if (a.noteType != 0) {
-				for (int j = 0; j != a.cmdty.length; j++) {
-					a.cmdty[j] = req.getParameter(cmdty1[i][j]) != null;
-				}
+			for (int i = 0; i != a.cmdty.length; i++) {
+				a.cmdty[i] = req.getParameter(cmdty1[n][i]) != null;
 			}
 		}
 	}
-	private static String getPhone(HttpServletRequest req, int i1, int i2, int i3, int i4) {
+	private static String getPhone(HttpServletRequest req, int n, int i1, int i2, int i3, int i4) {
 		StringBuilder b = new StringBuilder(40);
-		b.append(req.getParameter(comm1[i1]));
-		b.append(req.getParameter(comm1[i2]));
-		b.append(req.getParameter(comm1[i3]));
+		b.append(req.getParameter(comm1[n][i1]));
+		b.append(req.getParameter(comm1[n][i2]));
+		b.append(req.getParameter(comm1[n][i3]));
+		if (b.length() < 10) { return "";}
 		b.append('@');
-		b.append(req.getParameter(comm1[i4]));
-		return b.length() < 12 ? null : b.toString();
+		b.append(req.getParameter(comm1[n][i4]));
+		return b.length() < 12 ? "" : b.toString();
 	}
 
 }

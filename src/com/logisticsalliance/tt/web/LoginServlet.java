@@ -60,8 +60,14 @@ public class LoginServlet extends HServlet {
 			throw new ServletException(e);
 		}
 		connectFactoryI5 = SupportGeneral.makeDataSource1I5(appProps, pwd1, pwdI5);
+		try {
+			UserDB.fill();
+		}
+		catch (Exception e) {
+			throw new ServletException(e);
+		}
 		emailSent = new EmailSent(appProps, emailPwd);
-		HFrame html = getHtml(getClass().getResourceAsStream("/html/login.html"));
+		HFrame html = getHtml(getClass().getResourceAsStream("/html/tt/login.html"));
 		setControls(html);
 		setHtml(html);
 		super.init(config);

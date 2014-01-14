@@ -11,7 +11,7 @@ import com.logisticsalliance.sqla.ConnectFactory1;
 
 class ScheduleDB {
 
-	private static String
+	private static final String
 	SQL_REG =
 	"SELECT del_day,del_time_from,del_time_to,ship_day,del_week,cmdty,ship_date " +
 	"FROM la.hstore_schedule " +

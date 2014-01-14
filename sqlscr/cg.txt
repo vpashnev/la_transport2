@@ -1,0 +1,90 @@
+select * from la.hcarrier_schedule where store_n=726 and del_carrier_id='CCS' and del_day=5;
+
+INSERT INTO la.hcarrier_schedule
+  (store_n,cmdty,del_day,del_carrier_id,del_carrier,first_user_file,next_user_file)
+  SELECT 1012,'DCV',del_day,del_carrier_id,del_carrier,first_user_file,next_user_file
+  FROM la.hcarrier_schedule WHERE
+  store_n = 989 AND
+  cmdty = 'DCV' AND
+  del_day = 5 AND
+  del_carrier_id ='CCS'
+  AND NOT EXISTS
+  (SELECT * FROM la.hcarrier_schedule c WHERE
+  c.store_n = 1012 AND
+  c.cmdty = 'DCV' AND
+  c.del_day = 5 AND
+  c.del_carrier_id ='CCS'
+  ) ;
+INSERT INTO la.hcarrier_schedule
+  (store_n,cmdty,del_day,del_carrier_id,del_carrier,first_user_file,next_user_file)
+  SELECT 1012,'DCF',del_day,del_carrier_id,del_carrier,first_user_file,next_user_file
+  FROM la.hcarrier_schedule WHERE
+  store_n = 989 AND
+  cmdty = 'DCV' AND
+  del_day = 5 AND
+  del_carrier_id ='CCS'
+  AND NOT EXISTS
+  (SELECT * FROM la.hcarrier_schedule c WHERE
+  c.store_n = 1012 AND
+  c.cmdty = 'DCF' AND
+  c.del_day = 5 AND
+  c.del_carrier_id ='CCS'
+  ) ;
+
+select * from la.hrn_order where n=238247;
+select * from la.hship_data where store_n=803 and route_n=1301;
+select * from la.hship_data where ship_date='2013-11-15' and dc='30' and store_n=726 ;
+select * from la.hship_data where ship_date='2013-11-19' and dc='30' and store_n= 702 ;
+
+3020141414  1131118 dcv - same route (no records in carrier grid)
+3020401144 1131118 dcv,evt - same route (no records in carrier grid)
+3030070998 1131119 (no records in the file leminguo@20131117_195113_.up)
+3030091377 1131119 dcf - route 302, dcv - route 3015 (file leminguo@20131117_195113_.up has both route 3009 and 3015)
+3030220732 1131119 dcf - route 345 (no records in the file leminguo@20131117_195113_.up)
+3030470702 1131119 no records (delivery not found)
+3060101330 1131115 dcf - route 602
+3060370726 1131115 dcv - same route (Shipment was created on Monday 11/18/13, the date when delivery database had no records)
+3070030857 1131116 no records
+
+
+SELECT 
+sd.store_n, sd.cmdty, sd.del_date, route_n, stop_n, dc,
+dc_depart_time, prev_distance, prev_travel_time, arrival_time, service_time,
+total_service_time, total_travel_time,
+order_n, pallets, units, weight, cube, del_time_from, del_time_to,
+spec_instructs, lh_carrier, lh_service, del_carrier_id, del_service,
+sd.first_user_file, sd.next_user_file, rno.first_user_file, rno.next_user_file,
+sts.first_user_file, sts.next_user_file, sts.ship_date 
+
+FROM 
+la.hship_data sd LEFT JOIN la.hcarrier_schedule cs ON 
+cs.store_n=sd.store_n AND ((sd.cmdty='DCX' OR sd.cmdty='EVT' OR sd.cmdty='EVT2') AND 
+(cs.cmdty='DCB' OR cs.cmdty='DCV') OR sd.cmdty<>'DCX' AND sd.cmdty<>'EVT' AND 
+sd.cmdty<>'EVT2' AND cs.cmdty=sd.cmdty) AND cs.del_day=DAYOFWEEK(sd.del_date)-1,
+la.hrn_order rno,la.hstore_schedule sts,la.hstore_profile sp 
+
+WHERE 
+ship_n=sd.n AND sp.n=sd.store_n AND sd.store_n=726 AND
+sts.store_n=sd.store_n AND sts.cmdty=sd.cmdty AND 
+(sts.ship_date IS NOT NULL AND sts.ship_date=sd.ship_date OR 
+sts.ship_date IS NULL AND sts.ship_day=DAYOFWEEK(sd.ship_date)-1) AND 
+sd.ship_date='2013-11-15'
+
+ORDER BY 
+1,6,4,2;
+
+SELECT 
+count(*) 
+
+FROM 
+la.hship_data sd LEFT JOIN la.hcarrier_schedule cs ON 
+cs.store_n=sd.store_n AND ((sd.cmdty='DCX' OR sd.cmdty='EVT' OR sd.cmdty='EVT2') AND 
+(cs.cmdty='DCB' OR cs.cmdty='DCV') OR sd.cmdty<>'DCX' AND sd.cmdty<>'EVT' AND 
+sd.cmdty<>'EVT2' AND cs.cmdty=sd.cmdty) AND cs.del_day=DAYOFWEEK(sd.del_date)-1,
+la.hrn_order rno,la.hstore_schedule sts,la.hstore_profile sp 
+
+WHERE 
+ship_n=sd.n AND sp.n=sd.store_n AND sd.store_n=726 AND
+sts.store_n=sd.store_n AND sts.cmdty=sd.cmdty AND 
+(sts.ship_date IS NOT NULL AND sts.ship_date=sd.ship_date) AND 
+sd.ship_date='2013-11-15';

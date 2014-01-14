@@ -10,25 +10,36 @@ import com.logisticsalliance.general.ScheduledWorker.EmailSent;
 public class TestComm {
 
 	private static Logger log = Logger.getLogger(TestComm.class);
+	private static final String subject = "Shoppers Drug Mart - Store # ", msg = "Congratulations!\r\n" +
+		"You have successfully registered to receive alerts via Track and Trace portal.";
 	
-	static void send(final EmailSent es, final String to1, final String to2,
-		final String to3, final String to4, final int store) {
-		if (to1.isEmpty() && to2.isEmpty() && to3.isEmpty() && to4.isEmpty()) { return;}
+	static void send(final EmailSent es, Alert[] alerts, final int store) {
+		StringBuilder b = new StringBuilder(200);
+		for (int n = 0; n != alerts.length; n++) {
+			Alert a = alerts[n];
+			for (int i = 0; i != a.comm.length; i++) {
+				if (!a.comm[i].isEmpty()) {
+					b.append(a.comm[i]);
+					b.append(',');
+				}
+			}
+		}
+		final String to = b.toString();
+		if (to.isEmpty()) {
+			return;
+		}
 		if (es.emailUnsent == null || es.emailSentOnlyToBbc != null) {
 			Thread t = new Thread() {
 				@Override
 				public void run() {
 					int[] trials = {0};
-					String to = to1+','+to2+','+to3+','+to4;
-					Session s = EMailSender.send(null, es, to, "Shoppers Drug Mart - Store # "+store,
-						"Truck and Trace updates confirmation", trials);
+					Session s = EMailSender.send(null, es, to, subject+store, msg, trials);
 					while (s == null && trials[0] < 20) {
 						try {
 							Thread.sleep(500);
 						}
 						catch (InterruptedException e) { }
-						s = EMailSender.send(s, es, to, "Shoppers Drug Mart - Store # "+store,
-							"Truck and Trace updates confirmation", trials);
+						s = EMailSender.send(null, es, to, subject+store, msg, trials);
 					}
 					if (s == null) {
 						log.error("Unable to send test message");

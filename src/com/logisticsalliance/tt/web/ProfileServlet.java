@@ -17,7 +17,7 @@ public class ProfileServlet extends HServlet {
 		cmdty1 = "cmdty", store1 = "store", table1 = "table";
 
 	public void init(ServletConfig config) throws ServletException {
-		HFrame html = getHtml(getClass().getResourceAsStream("/html/profile.html"));
+		HFrame html = getHtml(getClass().getResourceAsStream("/html/tt/profile.html"));
 		setControls(html);
 		setHtml(html);
 		super.init(config);

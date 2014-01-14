@@ -27,7 +27,7 @@ public class SearchServlet extends HServlet {
 	private HNode month, day, year, cmdty, table;
 
 	public void init(ServletConfig config) throws ServletException {
-		HFrame html = getHtml(getClass().getResourceAsStream("/html/search.html"));
+		HFrame html = getHtml(getClass().getResourceAsStream("/html/tt/search.html"));
 		setControls(html);
 		setHtml(html);
 		super.init(config);
@@ -80,9 +80,9 @@ public class SearchServlet extends HServlet {
 		for (Iterator<Delivery> it = d.list.iterator(); it.hasNext();) {
 			Delivery e = it.next();
 			HRow r = new HRow(table);
-			HCell c = new HCell(r, e.oldDate == null ? null : SupportTime.MMM_dd_yy_Format.format(e.oldDate));
+			HCell c = new HCell(r, e.delDate == null ? null : SupportTime.MMM_dd_yy_Format.format(e.delDate));
 			c.setClass("center");
-			c = new HCell(r, e.oldTime);
+			c = new HCell(r, e.arrivalTime);
 			c.setClass("center");
 			new HCell(r, e.carrier);
 			new HCell(r, e.cmdty);

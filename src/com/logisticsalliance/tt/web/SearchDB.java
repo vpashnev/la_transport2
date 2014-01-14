@@ -6,57 +6,55 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
+import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.sqla.ConnectFactory;
 import com.logisticsalliance.util.SupportTime;
 
 class SearchDB {
 
-	private static String
+	private static final String
 	SQL_EXP1 =
 	"SELECT dvdlvd,dvdlvt,dvcar,dvcom,dvstsd,mvtext " +
 	"FROM OS61LXDTA.OSPDLVS d LEFT JOIN OS61LXDTA.SMPMOVM m ON " +
 	"dvstore# = mvstore# AND dvshpd=mvshpd AND dvcom=mvcom AND dvdc=mvdc " +
 	"WHERE dvstore# = ? AND dvdlvd>? AND ",
-	SQL_EXP2 = " ORDER BY 1 DESC, 2",
+	SQL_EXP2 = " ORDER BY 1 DESC, 2 DESC, 3",
 
 	SQL_EXPD = SQL_EXP1+"dvdlvd<=?"+SQL_EXP2,
 	SQL_EXPC = SQL_EXP1+"dvcom=?"+SQL_EXP2,
-	SQL_EXPDC = SQL_EXP1+"dvdlvd<=? AND dvcom=?"+SQL_EXP2,
-	
-	EXCE = "EXCE", EXCEPTION = "EXCEPTION";
+	SQL_EXPDC = SQL_EXP1+"dvdlvd<=? AND dvcom=?"+SQL_EXP2;
 
-	static ArrayList<Delivery> select(int store, Date delDate, String cmdty) throws Exception {
+	static ArrayList<Delivery> select(int store, Date toDate, String cmdty) throws Exception {
 		ArrayList<Delivery> al = new ArrayList<Delivery>();
-		if (delDate == null && cmdty == null) { return al;}
+		if (toDate == null && cmdty == null) { return al;}
 		Connection con = null;
 		try {
 			con = LoginServlet.connectFactoryI5.getConnection();
-			ResultSet rs = getRowSet(con, store, delDate, cmdty);
-			String oldTime = null, carrier = null, status = null, exp = null;
-			Date oldDate = null;
+			ResultSet rs = getRowSet(con, store, toDate, cmdty);
+			String carrier = null, status = null, exp = null;
+			Date delDate = null;
 			while (rs.next()) {
 				Delivery d = new Delivery();
-				d.oldDate = rs.getDate(1);
-				d.oldTime = toTime(rs.getString(2));
+				d.delDate = rs.getDate(1);
 				d.carrier = rs.getString(3);
 				d.cmdty = rs.getString(4);
 				d.status = rs.getString(5);
-				if (d.status.equalsIgnoreCase(EXCE)) {
-					d.status = EXCEPTION;
+				if (d.status.equalsIgnoreCase(CommonConstants.EXCE)) {
+					d.status = CommonConstants.EXCEPTION;
 				}
-				boolean oldDateSame = d.oldDate.equals(oldDate);
-				if (oldDateSame && d.oldTime.equals(oldTime) &&
-					d.carrier.equals(carrier) && d.status.equals(status)) {
-					d.oldDate = null; d.oldTime = null;
+				boolean delDateSame = d.delDate.equals(delDate);
+				if (delDateSame && d.carrier.equals(carrier) && d.status.equals(status)) {
+					d.delDate = null; d.arrivalTime = null;
 					d.carrier = null; d.status = null;
 				}
 				else {
-					oldDate = d.oldDate; oldTime = d.oldTime;
+					delDate = d.delDate;
+					d.arrivalTime = SupportTime.toHH_mm(rs.getString(2));
 					carrier = d.carrier; status = d.status;
 				}
 				d.exp = rs.getString(6);
 				if (d.exp != null) {
-					if (oldDateSame && d.exp.equals(exp)) {
+					if (delDateSame && d.exp.equals(exp)) {
 						d.exp = null;
 					}
 					else {
@@ -90,11 +88,5 @@ class SearchDB {
 		st.setInt(1, store);
 		st.setDate(2, new Date(delDate.getTime()-SupportTime.DAY*90));
 		return st.executeQuery();
-	}
-	private static String toTime(String t) throws Exception {
-		if (t.length() == 3) {
-			t = "0"+t;
-		}
-		return t.substring(0, 2)+":"+t.substring(2);
 	}
 }

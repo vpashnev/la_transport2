@@ -1,0 +1,217 @@
+<!DOCTYPE html [
+<!ATTLIST input id ID #IMPLIED>
+<!ATTLIST script id ID #IMPLIED>
+]>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style>
+
+td {
+
+ padding:3px;padding-top:10px;vertical-align:top;
+
+}
+input {
+
+ height:20px;
+ cursor:inherit;
+ vertical-align: middle;
+
+}
+span {
+
+ margin-left:4px;
+ vertical-align: middle;
+
+}
+</style>
+<script type="text/javascript" src="js/alert1.js">
+</script>
+</head>
+<body style="background:lightgray;">
+<form action="alert" method="post" onsubmit="return save(this);">
+<table style="padding:3px;width:100%;border-collapse:collapse;">
+<thead>
+<tr>
+<td style="width:25%;padding-top:3px;">Email</td>
+<td colspan="2" style="width:40%;padding-top:3px;">Phones</td>
+<td colspan="2" style="width:35%;padding-top:3px;">Commodity preferences</td>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<input id="email1" name="email1" type="email" size="34" maxlength="80"/>
+<div style="margin-top:5px;">
+<input id="email21" name="email21" type="email" size="34" maxlength="80"/>
+</div>
+</td>
+<td>
+<div style="margin-left:1px;">
+<input id="phone11" name="phone11" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone12" name="phone12" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone13" name="phone13" style="width:50px" maxlength="4"
+  type="text" /> @
+</div>
+<div style="margin-top:5px;">
+<input id="phone14" name="phone14" type="text" size="18" maxlength="70" />
+<select style="width:30px;vertical-align:middle;" onchange="selectItem('phone14', this)">
+  <option></option>
+  <option>sms.rogers.com</option>
+  <option>txt.bell.ca</option>
+</select>
+</div>
+</td>
+<td>
+<div style="margin-left:1px;">
+<input id="phone211" name="phone211" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone212" name="phone212" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone213" name="phone213" style="width:50px" maxlength="4"
+  type="text" /> @
+</div>
+<div style="margin-top:5px;">
+<input id="phone214" name="phone214" type="text" size="18" maxlength="70" />
+<select style="width:30px;vertical-align:middle;" onchange="selectItem('phone214', this)">
+  <option></option>
+  <option>sms.rogers.com</option>
+  <option>txt.bell.ca</option>
+</select>
+</div>
+</td>
+<td style="width:8%;">
+<input id="select1" name="select1" type="checkbox" value="1" onchange="selectAll(this,1);" />
+<span>Select</span>
+</td>
+<td>
+<input id="DCB1" name="DCB1" type="checkbox" value="1" /><span>DCB</span>
+<input id="DCV1" name="DCV1" type="checkbox" value="1" /><span>DCV</span> <br/>
+<input id="DCX1" name="DCX1" type="checkbox" value="1" /><span>DCX</span>
+<input id="DCF1" name="DCF1" type="checkbox" value="1" /><span>DCF</span> <br/>
+<input id="EVT1" name="EVT1" type="checkbox" value="1" /><span>EVT</span>
+<input id="EVT21" name="EVT21" type="checkbox" value="1" /><span>EVT2</span>
+</td>
+</tr>
+
+<tr>
+<td>
+<input id="email2" name="email2" type="email" size="34" maxlength="80"/>
+<div style="margin-top:5px;">
+<input id="email22" name="email22" type="email" size="34" maxlength="80"/>
+</div>
+</td>
+<td>
+<div style="margin-left:1px;">
+<input id="phone21" name="phone21" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone22" name="phone22" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone23" name="phone23" style="width:50px" maxlength="4"
+  type="text" /> @
+</div>
+<div style="margin-top:5px;">
+<input id="phone24" name="phone24" type="text" size="18" maxlength="70" />
+<select style="width:30px;vertical-align:middle;" onchange="selectItem('phone24', this)">
+  <option></option>
+  <option>sms.rogers.com</option>
+  <option>txt.bell.ca</option>
+</select>
+</div>
+</td>
+<td>
+<div style="margin-left:1px;">
+<input id="phone221" name="phone221" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone222" name="phone222" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone223" name="phone223" style="width:50px" maxlength="4"
+  type="text" /> @
+</div>
+<div style="margin-top:5px;">
+<input id="phone224" name="phone224" type="text" size="18" maxlength="70" />
+<select style="width:30px;vertical-align:middle;" onchange="selectItem('phone224', this)">
+  <option></option>
+  <option>sms.rogers.com</option>
+  <option>txt.bell.ca</option>
+</select>
+</div>
+</td>
+<td style="width:8%;">
+<input id="select2" name="select2" type="checkbox" value="1" onchange="selectAll(this,2);" />
+<span>Select</span>
+</td>
+<td>
+<input id="DCB2" name="DCB2" type="checkbox" value="1" /><span>DCB</span>
+<input id="DCV2" name="DCV2" type="checkbox" value="1" /><span>DCV</span> <br/>
+<input id="DCX2" name="DCX2" type="checkbox" value="1" /><span>DCX</span>
+<input id="DCF2" name="DCF2" type="checkbox" value="1" /><span>DCF</span> <br/>
+<input id="EVT2" name="EVT2" type="checkbox" value="1" /><span>EVT</span>
+<input id="EVT22" name="EVT22" type="checkbox" value="1" /><span>EVT2</span>
+</td>
+</tr>
+
+<tr>
+<td>
+<input id="email3" name="email3" type="email" size="34" maxlength="80"/>
+<div style="margin-top:5px;">
+<input id="email23" name="email23" type="email" size="34" maxlength="80"/>
+</div>
+</td>
+<td>
+<div style="margin-left:1px;">
+<input id="phone31" name="phone31" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone32" name="phone32" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone33" name="phone33" style="width:50px" maxlength="4"
+  type="text" /> @
+</div>
+<div style="margin-top:5px;">
+<input id="phone34" name="phone34" type="text" size="18" maxlength="70" />
+<select style="width:30px;vertical-align:middle;" onchange="selectItem('phone34', this)">
+  <option></option>
+  <option>sms.rogers.com</option>
+  <option>txt.bell.ca</option>
+</select>
+</div>
+</td>
+<td>
+<div style="margin-left:1px;">
+<input id="phone231" name="phone231" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone232" name="phone232" style="width:40px" maxlength="3"
+  type="text" />-<input id="phone233" name="phone233" style="width:50px" maxlength="4"
+  type="text" /> @
+</div>
+<div style="margin-top:5px;">
+<input id="phone234" name="phone234" type="text" size="18" maxlength="70" />
+<select style="width:30px;vertical-align:middle;" onchange="selectItem('phone234', this)">
+  <option></option>
+  <option>sms.rogers.com</option>
+  <option>txt.bell.ca</option>
+</select>
+</div>
+</td>
+<td style="width:8%;">
+<input id="select3" name="select3" type="checkbox" value="1" onchange="selectAll(this,3);" />
+<span>Select</span>
+</td>
+<td>
+<input id="DCB3" name="DCB3" type="checkbox" value="1" /><span>DCB</span>
+<input id="DCV3" name="DCV3" type="checkbox" value="1" /><span>DCV</span> <br/>
+<input id="DCX3" name="DCX3" type="checkbox" value="1" /><span>DCX</span>
+<input id="DCF3" name="DCF3" type="checkbox" value="1" /><span>DCF</span> <br/>
+<input id="EVT3" name="EVT3" type="checkbox" value="1" /><span>EVT</span>
+<input id="EVT23" name="EVT23" type="checkbox" value="1" /><span>EVT2</span>
+</td>
+</tr>
+
+<tr>
+<td colspan="4">
+<div style="margin-top:8px;">
+<input type="submit" value="Update" style="width:150px;height:30;font-weight:bold;"/>
+<span style="margin-left:8px;">
+</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</form>
+<script id="msg"></script>
+</body>
+</html>

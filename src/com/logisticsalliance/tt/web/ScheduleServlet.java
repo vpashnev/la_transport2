@@ -23,7 +23,7 @@ public class ScheduleServlet extends HServlet {
 	private HNode reg, hld, table;
 
 	public void init(ServletConfig config) throws ServletException {
-		HFrame html = getHtml(getClass().getResourceAsStream("/html/schedule.html"));
+		HFrame html = getHtml(getClass().getResourceAsStream("/html/tt/schedule.html"));
 		setControls(html);
 		setHtml(html);
 		super.init(config);
