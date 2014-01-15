@@ -43,7 +43,6 @@ class UserDB {
 		if (p.pwd.equals(pwd)) {
 			return p.storeN;
 		}
-		map.remove(user);
 		Connection con = null;
 		try {
 			con = ConnectFactory1.one().getConnection();

@@ -38,8 +38,8 @@ public class SendAlertDb extends Notify1 {
 	SQL_SEL_ALERT =
 	"SELECT dvstore#,dvshpd,dvdlvd,dvdlvt,dvroute,dvcar,dvcom," +
 	"mvnarvd,mvnarvt,mvstsd,mvreexc,tmdsc,mvtext,mvcrtz " +
-	"FROM OS61LXDTA.OSPDLVS, " +
-	"OS61LXDTA.SMPMOVM LEFT JOIN OS61LXDTA.##PTABM ON mvreexc = tment " +
+	"FROM OS61LYDTA.OSPDLVS, " +
+	"OS61LYDTA.SMPMOVM LEFT JOIN OS61LYDTA.##PTABM ON mvreexc = tment " +
 	"WHERE dvstore# = mvstore# AND dvshpd=mvshpd AND dvcom=mvcom AND dvdc=mvdc AND " +
 	"mvcrtz>=? AND mvcrtz<? " +
 //	"DVCHGZ NOT IN (SELECT alts FROM OS61LYDTA.OSPALERTS) " +
@@ -57,7 +57,9 @@ public class SendAlertDb extends Notify1 {
 	private static ConnectFactory connectFactoryI5;
 
 	public static void setConnectFactoryI5(ConnectFactory cf) {
-		connectFactoryI5 = cf;
+		ConnectFactory cf1 = new ConnectFactory(cf.getDriver(),
+			"jdbc:as400:tmsodev.nulogx.com;prompt=false", cf.getUser(), cf.getPassword());
+		connectFactoryI5 = cf1;
 	}
 
 	public static void process(final String alertStartingTime, final String alertEndingTime,
@@ -107,12 +109,12 @@ public class SendAlertDb extends Notify1 {
 			}
 			while (true) {
 				t0 = getNextTime(con1, SQL_SEL_ENVR, SQL_INS_ENVR,
-					t0, t1, nextTime, 900000, 0, log);
+					t0, t1, nextTime, 120000, 0, log);
 				if (t0 == null) {
 					break;
 				}
 				// Select exceptions
-				Timestamp t2 = new Timestamp(t0.getTime()-900000);// less 15 minutes
+				Timestamp t2 = new Timestamp(t0.getTime()-120000);// less 15 minutes
 				s = select(selSt, t2, t0, s, es, alertStoresByPhone);
 				if (alertEndingTime == null) {
 					updateNotifyEndingTime(con1, SQL_UPD_ENVR, t0);

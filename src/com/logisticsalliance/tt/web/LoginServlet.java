@@ -59,7 +59,10 @@ public class LoginServlet extends HServlet {
 		catch (IOException e) {
 			throw new ServletException(e);
 		}
-		connectFactoryI5 = SupportGeneral.makeDataSource1I5(appProps, pwd1, pwdI5);
+		ConnectFactory cf = SupportGeneral.makeDataSource1I5(appProps, pwd1, pwdI5);
+		cf = new ConnectFactory(cf.getDriver(),
+			"jdbc:as400:tmsodev.nulogx.com;prompt=false", cf.getUser(), cf.getPassword());
+		connectFactoryI5 = cf;
 		try {
 			UserDB.fill();
 		}

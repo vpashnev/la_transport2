@@ -15,7 +15,7 @@ class SearchDB {
 	private static final String
 	SQL_EXP1 =
 	"SELECT dvdlvd,dvdlvt,dvcar,dvcom,dvstsd,mvtext " +
-	"FROM OS61LXDTA.OSPDLVS d LEFT JOIN OS61LXDTA.SMPMOVM m ON " +
+	"FROM OS61LYDTA.OSPDLVS d LEFT JOIN OS61LYDTA.SMPMOVM m ON " +
 	"dvstore# = mvstore# AND dvshpd=mvshpd AND dvcom=mvcom AND dvdc=mvdc " +
 	"WHERE dvstore# = ? AND dvdlvd>? AND ",
 	SQL_EXP2 = " ORDER BY 1 DESC, 2 DESC, 3",
