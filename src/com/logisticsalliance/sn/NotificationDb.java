@@ -69,6 +69,7 @@ public class NotificationDb extends Notify1 {
 	private final static DeliveryNote.Cmdty DCV_CMDTY =
 		new DeliveryNote.Cmdty(CommonConstants.DCV, null, null, null);
 
+	private static Timestamp nextTime = new Timestamp(0);
 	private static HashSet<DsKey> carriersNotFound = new HashSet<DsKey>();
 
 	public static void clearCarriersNotFound() {
@@ -97,7 +98,7 @@ public class NotificationDb extends Notify1 {
 			}
 			while (true) {
 				t0 = getNextTime(con1, SQL_SEL_ENVR, SQL_INS_ENVR,
-					t0, t1, 1800000, timeAheadInMins, log);
+					t0, t1, nextTime, 1800000, timeAheadInMins, log);
 				if (t0 == null) {
 					break;
 				}

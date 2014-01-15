@@ -13,8 +13,6 @@ import com.logisticsalliance.util.SupportTime;
 
 public class Notify1 {
 
-	protected static Timestamp nextTime;
-
 	public static void updateNotifyEndingTime(Connection con1, String sql,
 		Timestamp t) throws Exception {
 		PreparedStatement timeSt = con1.prepareStatement(sql);
@@ -24,7 +22,7 @@ public class Notify1 {
 		timeSt.close();
 	}
 	public static Timestamp getNextTime(Connection con, String selSql, String insSql,
-		Timestamp t0, Timestamp t1, long period, long timeAheadInMins,
+		Timestamp t0, Timestamp t1, Timestamp nextTime, long period, long timeAheadInMins,
 		Logger log) throws Exception {
 		PreparedStatement st = con.prepareStatement(selSql);
 		ResultSet rs = st.executeQuery();
@@ -57,7 +55,7 @@ public class Notify1 {
 			}
 			if (!t0.equals(nextTime)) {
 				log.debug("NEXT "+SupportTime.dd_MM_yyyy_HH_mm_Format.format(t0)+"\r\n");
-				nextTime = t0;
+				nextTime.setTime(t0.getTime());
 			}
 		}
 		return null;

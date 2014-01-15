@@ -52,9 +52,9 @@ public class SendAlertDb extends Notify1 {
 
 	static HashMap<Integer,Alert[]> alertPrefs = new HashMap<Integer,Alert[]>(4, .5f);
 
-	private static ConnectFactory connectFactoryI5;
-
 	private static boolean done;
+	private static Timestamp nextTime = new Timestamp(0);
+	private static ConnectFactory connectFactoryI5;
 
 	public static void setConnectFactoryI5(ConnectFactory cf) {
 		connectFactoryI5 = cf;
@@ -106,7 +106,8 @@ public class SendAlertDb extends Notify1 {
 				t1 = SqlSupport.getDb2CurrentTime(con1);
 			}
 			while (true) {
-				t0 = getNextTime(con1, SQL_SEL_ENVR, SQL_INS_ENVR, t0, t1, 900000, 0, log);
+				t0 = getNextTime(con1, SQL_SEL_ENVR, SQL_INS_ENVR,
+					t0, t1, nextTime, 900000, 0, log);
 				if (t0 == null) {
 					break;
 				}
