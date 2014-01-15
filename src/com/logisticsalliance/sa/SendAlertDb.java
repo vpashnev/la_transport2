@@ -187,7 +187,7 @@ public class SendAlertDb extends Notify1 {
 		an.route = rs.getString(5);
 		an.carrier = carrier;
 		if (!alertPrefs.containsKey(storeN)) {
-			Alert[] alerts = { new Alert(), new Alert(), new Alert()};
+			Alert[] alerts = { new Alert(), new Alert(), new Alert(), new Alert()};
 			AlertDB.select(storeN, alerts, false);
 			alertPrefs.put(storeN, alerts);
 		}

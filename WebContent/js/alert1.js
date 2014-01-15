@@ -23,6 +23,14 @@ function save(form) {
 	if (!b) {
 		return false;
 	}
+	b = validate(form, "phone41", "phone42", "phone43", "phone44");
+	if (!b) {
+		return false;
+	}
+	b = validate(form, "phone241", "phone242", "phone243", "phone244");
+	if (!b) {
+		return false;
+	}
 	if (confirm("Save parameters?")) {
 		form.parentNode.setAttribute("style","cursor:wait;");
 	}
