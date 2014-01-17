@@ -14,7 +14,7 @@ class AlertNote implements Serializable {
 
 	int storeN;
 	Date shipDate, delDate, newDelDate, timestamp;
-	String arrivalTime, newArrivalTime, route, carrier;
+	String arrivalTime, newArrivalTime, route, carrier, cmdtyList;
 	boolean exception;
 	HashSet<String> cmdtySet = new HashSet<String>(2, .5f);
 	HashSet<AlertItem> items = new HashSet<AlertItem>(2, .5f);
@@ -23,8 +23,10 @@ class AlertNote implements Serializable {
 		StringBuilder sb = new StringBuilder(32);
 		for (Iterator<String> it = cmdtySet.iterator(); it.hasNext();) {
 			String v = it.next();
+			if (sb.length() != 0) {
+				sb.append(','); sb.append(' ');
+			}
 			sb.append(v);
-			sb.append(','); sb.append(' ');
 		}
 		return sb.toString();
 	}
@@ -50,7 +52,7 @@ class AlertNote implements Serializable {
 		tb.addProperty20("New time", newArrivalTime, 5);
 		tb.addProperty20(RnColumns.ROUTE_N, route, 8);
 		tb.addProperty20("Carrier", carrier, 32);
-		tb.addProperty20(RnColumns.COMMODITY, getCmdtyList(), 64);
+		tb.addProperty20(RnColumns.COMMODITY, cmdtyList, 64);
 		tb.addProperty20("Timestamp", SupportTime.dd_MM_yyyy_Format.format(timestamp), 10);
 		if (!delDate.equals(timestamp)) {
 			tb.add("outdated");

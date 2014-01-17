@@ -37,6 +37,14 @@
     <url-pattern>/profile</url-pattern>
   </servlet-mapping>
   <servlet>
+    <servlet-name>FeedbackServlet</servlet-name>
+    <servlet-class>com.logisticsalliance.tt.web.FeedbackServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>FeedbackServlet</servlet-name>
+    <url-pattern>/feedback</url-pattern>
+  </servlet-mapping>
+  <servlet>
     <servlet-name>AlertServlet</servlet-name>
     <servlet-class>com.logisticsalliance.tt.web.AlertServlet</servlet-class>
   </servlet>

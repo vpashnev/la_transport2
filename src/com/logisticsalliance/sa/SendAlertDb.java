@@ -155,6 +155,7 @@ public class SendAlertDb extends Notify1 {
 			}
 			else if (storeN != an.storeN || !delDate.equals(an.delDate) ||
 				!carrier.equals(an.carrier)) {
+				an.cmdtyList = an.getCmdtyList();
 				al.add(an);
 				an = newData(storeN, delDate, carrier, rs);
 			}
@@ -163,6 +164,7 @@ public class SendAlertDb extends Notify1 {
 			addItem(an, rs);
 			if (!rs.next()) {
 				rs.close();
+				an.cmdtyList = an.getCmdtyList();
 				al.add(an);
 				break;
 			}

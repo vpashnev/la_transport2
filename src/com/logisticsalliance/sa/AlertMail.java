@@ -132,7 +132,9 @@ public class AlertMail {
 			cb.append("<b>***NOTE: Une version français de ce message suit la version anglaise ci-dessous***</b>\n");
 			cb.append("</p>\n");//
 			cb.append("<b>Attention:</b> Associate and Front Store Manager<br><br>\n");
-			cb.append("The following status update has been made to the delivery that your store is scheduled to receive on <b>");
+			cb.append("The following status update has been made to the <b> ");
+			cb.append(an.cmdtyList);
+			cb.append(" </b> that your store is scheduled to receive on <b>");
 			cb.append(delDate+"</b>\n");
 			cb.append("<ul>\n");
 			for (Iterator<AlertItem> it = an.items.iterator(); it.hasNext();) {

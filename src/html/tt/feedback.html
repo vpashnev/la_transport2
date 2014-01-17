@@ -1,0 +1,81 @@
+<!DOCTYPE html [
+<!ATTLIST input id ID #IMPLIED>
+]>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script type="text/javascript" src="js/gen.js">
+</script>
+</head>
+<body>
+<form action="feedback" autocomplete="on" method="post" onsubmit="parentNode.setAttribute('style','cursor:wait;')">
+<table>
+<tbody>
+<tr>
+<td style="font-size: 13px;">
+<p style="margin-bottom:30px;">
+  <span style="color: #333333">&#160;  &#160;&#160;&#160;&#160;&#160;&#160;&#160; &#160;&#160;&#160;</span>
+<span style="color: #000000; font-size: 18px; font-family: Verdana, Geneva, sans-serif;">
+Delivery Search:</span>
+</p>
+<p>
+  <span style="color: #333333">&#160;&#160;&#160;&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160;&#160;  STORE #</span>
+  <label for="STORE_NUMBER"></label>
+  <input name="STORE_NUMBER" type="text" id="STORE_NUMBER" size="10" style="color: #FFFFFF; background: #53BDEC"/>
+  &#160;
+  <span style="color: #333333">&#160; ROUTE #</span>
+  <label for="ROUTE_NUMBER"></label>
+  <input name="ROUTE_NUMBER" type="text" id="ROUTE_NUMBER" size="10" style="color: #FFFFFF; background: #53BDEC"/>
+  &#160;
+  <span style="color: #333333">&#160; DATE #</span>
+  <label for="DATE"></label>
+  <input name="DATE" type="text" id="DATE" size="10" style="color: #FFFFFF; background: #53BDEC"/>
+  <br />
+</p>
+<p>
+  <span style="color: #333333">&#160;  &#160;&#160;&#160;&#160;&#160;&#160;&#160; &#160;&#160;&#160; FEEDBACK TYPE</span>
+  &#160;
+  <select name="FEEDBACK_TYPE" size="1" id="FEEDBACK_TYPE" style="color: #FFFFFF; background: #53BDEC">
+    <option>Please select type</option>
+  </select>
+  <span style="color: #333333">&#160;  &#160;&#160;&#160;&#160;&#160;</span>
+</p>
+<p>
+  <span style="color: #333333"> &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; &#160;MESSAGE
+  </span>
+  <br />
+  <label for="MESSAGE"></label>
+  <span style="color: #333333"> &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; &#160;
+  </span>
+  <textarea name="MESSAGE" id="MESSAGE" cols="45" rows="6" style="color: #FFFFFF; background: #53BDEC"></textarea>
+</p>
+<p>
+  <span style="color: #333333">&#160; &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; SUBMITTED BY</span>
+  <label for="STORE_NUMBER4"></label>
+  <input name="SUBMITTED_BY" type="text" id="STORE_NUMBER4" size="20" style="color: #FFFFFF; background: #53BDEC" />
+  &#160;
+  <span style="color: #333333">&#160; EMAIL #</span>
+  <label for="ROUTE_NUMBER"></label>
+  <input name="EMAIL" type="text" id="ROUTE_NUMBER" size="20" style="color: #FFFFFF; background: #53BDEC" />
+  &#160;
+  <span style="color: #333333">&#160; PHONE #</span>
+  <label for="DATE"></label>
+  <input name="PHONE_NUMBER" type="text" id="DATE" size="20" style="color: #FFFFFF; background: #53BDEC" />
+</p>
+<p> &#160;
+                &#160; 
+                &#160; 
+                &#160; 
+                &#160; 
+                &#160; 
+                &#160;
+<input type="submit" name="SENT" id="SENT" value="SEND MESSAGE" style="color: #FFFFFF; background: #53BDEC" />
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</form>
+<script>setIFrameTitle("Delivery Feedback")</script>
+</body>
+</html>
