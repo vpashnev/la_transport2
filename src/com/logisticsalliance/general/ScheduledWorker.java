@@ -162,16 +162,16 @@ public class ScheduledWorker implements Runnable {
 				else if (h != 21) { curHour = h;}
 				if (quickReport != null ||
 					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH) ||
-					!ShipmentDb.isDone() || !TtTableDb.isDone()) {
+					ShipmentDb.getTrials() > 0 || TtTableDb.getTrials() > 0) {
 
 					Date d = getShipDate(shipmentDate, c);
 					if (shipments != null) {
 						//Shipments
-						ShipmentDb.process(d, getValue(appProperties, "ftpServer"));
+						ShipmentDb.process(d, getValue(appProperties, "ftpServer"), emailSent);
 					}
 					if (ttTable != null) {
 						//ttTable
-						TtTableDb.process(d);
+						TtTableDb.process(d, emailSent);
 					}
 					if (shipmentDate != null) {
 						shipmentDate = null;

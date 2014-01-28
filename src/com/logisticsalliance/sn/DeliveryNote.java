@@ -111,8 +111,6 @@ public class DeliveryNote implements Serializable {
 		tb.newLine();
 		tb.addCell("Total:", 26, false, false);
 		tb.addCell(totalPallets == 0 ? getTotalPallets(null) : totalPallets, 8, true, true);
-		tb.newLine();
-
 		tb.newLine(); tb.newLine();
 		return tb.toString();
 	}

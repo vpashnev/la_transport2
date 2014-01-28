@@ -2,26 +2,40 @@ package com.logisticsalliance.sa;
 
 import java.io.Serializable;
 import java.sql.Date;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 
 import com.logisticsalliance.general.RnColumns;
 import com.logisticsalliance.text.TBuilder;
 import com.logisticsalliance.util.SupportTime;
 
-class AlertNote implements Serializable {
+public class TrackingNote implements Serializable {
 	private static final long serialVersionUID = 10L;
 
-	int storeN;
-	Date shipDate, delDate, newDelDate, timestamp;
-	String arrivalTime, newArrivalTime, route, carrier, cmdtyList;
+	public int storeN, pallets;
+	public Date shipDate, delDate, newDelDate, timestamp;
+	public String arrivalTime, newArrivalTime, serviceTime, dc, route, stopN,
+		carrier, cmdtyList, delTimeFrom, delTimeTo;
 	boolean exception;
-	HashSet<String> cmdtySet = new HashSet<String>(2, .5f);
-	HashSet<AlertItem> items = new HashSet<AlertItem>(2, .5f);
+	HashMap<String,Integer> cmdtyPallets = new HashMap<String,Integer>(4, .5f);
+	public ArrayList<AlertItem> items = new ArrayList<AlertItem>(2);
 
-	String getCmdtyList() {
+	int getTotalPallets() {
+		double v = 0;
+		for (Iterator<Integer> it = cmdtyPallets.values().iterator(); it.hasNext();) {
+			Integer p = it.next();
+			v += p;
+		}
+		return (int)Math.ceil(v);
+	}
+	static String getCmdtyList(Set<String> set) {
 		StringBuilder sb = new StringBuilder(32);
-		for (Iterator<String> it = cmdtySet.iterator(); it.hasNext();) {
+		ArrayList<String> al = new ArrayList<String>(set);
+		Collections.sort(al);
+		for (Iterator<String> it = al.iterator(); it.hasNext();) {
 			String v = it.next();
 			if (sb.length() != 0) {
 				sb.append(','); sb.append(' ');
@@ -50,9 +64,14 @@ class AlertNote implements Serializable {
 		tb.addProperty20(RnColumns.ARRIVAL_TIME, arrivalTime, 5);
 		tb.addProperty20("New date", SupportTime.dd_MM_yyyy_Format.format(newDelDate), 10);
 		tb.addProperty20("New time", newArrivalTime, 5);
-		tb.addProperty20(RnColumns.ROUTE_N, route, 8);
-		tb.addProperty20("Carrier", carrier, 32);
+		tb.addProperty20(RnColumns.SERVICE_TIME, serviceTime, 5);
+		tb.addProperty20(RnColumns.DC, dc, 8);
+		tb.addProperty20(RnColumns.ROUTE_N, route, 4);
+		tb.addProperty20(RnColumns.STOP_N, stopN, 4);
 		tb.addProperty20(RnColumns.COMMODITY, cmdtyList, 64);
+		tb.addProperty20(RnColumns.PALLETS, pallets, 6);
+		tb.addProperty20("Delivery window", delTimeFrom+" - "+delTimeTo, 20);
+		tb.addProperty20("Carrier", carrier, 32);
 		tb.addProperty20("Timestamp", SupportTime.dd_MM_yyyy_Format.format(timestamp), 10);
 		if (!delDate.equals(timestamp)) {
 			tb.add("outdated");

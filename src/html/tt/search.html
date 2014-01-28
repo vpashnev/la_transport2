@@ -9,9 +9,14 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <style>
 
+th {
+
+ text-align:left;
+
+}
 td {
 
- padding:3px;
+ padding:3px;vertical-align:top;cursor:default;
 
 }
 td.center {
@@ -30,11 +35,38 @@ span {
  margin-left:8px;margin-right:8px;
 
 }
+.circle
+{
+ width:16x;height:16px;max-width:16px;min-width:16px;
+ border-radius:40%;
+ line-height:16px;
+ text-align:center;
+ font-weight:900;
+ background:lightgray;
+ border:1px solid gray;
+ cursor:pointer;
+}
+.num
+{
+ text-align:right;padding-right:20px;
+}
+#info {
+z-index:2;
+position:fixed;top:72px;left:338px;
+}
+.browseBut {
+
+ width:50px;height:24;
+ border-radius:4px;
+
+}
 </style>
 <script type="text/javascript" src="js/gen.js">
 </script>
+<script type="text/javascript" src="js/search1.js">
+</script>
 </head>
-<body>
+<body id="body1" ondrop="drop(event)" ondragover="allowDrop(event)" onload="curRowIdx = -1;">
 <div style="width:100%;height:37px;background:lightgray;padding-top:10px;">
 <form action="search" method="post" onsubmit="parentNode.parentNode.setAttribute('style','cursor:wait;')">
 <span><b>Delivery on:</b>
@@ -46,7 +78,8 @@ span {
 <input id="year" name="year" size="4" type="number" max="2020" min="2010" />
 <span></span>
 <span><select id="cmdty" name="cmdty"></select></span>
-<span><input name="search" type="submit" value="Refresh" style="width:120px;height:24"/></span>
+<span><input name="search" type="submit" value="Refresh" style="width:100px;height:24"/></span>
+<span><button type="button" style="width:100px;height:24" onclick="browseInfo();">Browse</button></span>
 <!--
 <span><b>Store:</b></span>
 <input id="store" name="store" size="4" type="number" max="9999" min="1" />
@@ -57,16 +90,59 @@ span {
 <table style="width:100%;border-collapse:collapse;">
 <thead>
 <tr style="background:Gainsboro;">
-<th style="width:90px;">Date</th>
-<th style="width:70px;">Time</th>
-<th style="width:80px;text-align:left;">Carrier</th>
-<th style="width:60px;text-align:left;">Cmdty</th>
-<th style="width:100px;text-align:left;">Status</th>
-<th style="width:52%;text-align:left;padding-left:20px;">Comment</th>
+<th style="width:28px;">&#160;</th>
+<th style="width:80px;padding-left:15px;">Date</th>
+<th style="width:60px;">Time</th>
+<!--
+<th style="width:80px;">Carrier</th>
+-->
+<th style="width:32px;padding-right:6px;">Skids</th>
+<th style="width:17%;padding-left:7px;">Cmdty</th>
+<th style="width:70px;padding-left:15px;">Status</th>
+<th colspan="2" style="width:auto;padding-left:20px;">Comment</th>
 </tr>
 </thead>
 <tbody id="table"></tbody>
 </table>
+</div>
+<div id="info" draggable="true" ondragstart="drag(event)" style="visibility:hidden">
+<div style="height:32px;background:red;padding-top:6px;
+  border-top-left-radius:5px;border-top-right-radius:5px;">
+<span><button type="button" class="browseBut" onclick="selPriorRow();">Prior</button></span>
+<button type="button" class="browseBut" onclick="selNextRow();">Next</button><span></span>
+<span><button type="button" class="browseBut" onclick="closeInfo();">Close</button></span>
+</div>
+<div style="background:gray;padding:5px;border-bottom-left-radius:5px;border-bottom-right-radius:5px;">
+<table>
+<tbody>
+<tr>
+<td>Delivery</td><td><input id="date" size="10" type="text" /> @
+ <input id="time" size="5" type="text" /></td>
+</tr>
+<tr>
+<td>Skids</td><td><input id="skids" size="3" type="text" /></td>
+</tr>
+<tr>
+<td>Commodity</td><td><input id="cmdty1" size="25" type="text" /></td>
+</tr>
+<tr>
+<td>Carrier</td><td><input id="car" size="50" type="text" /></td>
+</tr>
+<tr>
+<td>Service time</td><td><input id="stime" size="10" type="text" /></td>
+</tr>
+<tr>
+<td>Status</td><td><input id="status" size="10" type="text" /></td>
+</tr>
+<tr>
+<td>Alert</td><td><input id="reason" size="50" type="text" /></td>
+</tr>
+<tr>
+<td></td><td><textarea id="comment" rows="3" cols="38"></textarea></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <script>setIFrameTitle("Store Delivery Status")</script>
 </body>

@@ -142,7 +142,6 @@ public class ShipmentData implements Serializable {
 		tb.addCell("lb(kg*2.2046),ft3(m3*35.315)", 46, false, false);
 		tb.addCell(getTotalWeight(true), 12, sizeFormat, false);
 		tb.addCell(getTotalCube(true), 14, sizeFormat, true);
-
 		tb.newLine(); tb.newLine();
 		return tb.toString();
 	}

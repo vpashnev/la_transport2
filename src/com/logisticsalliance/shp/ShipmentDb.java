@@ -15,7 +15,9 @@ import org.apache.log4j.Logger;
 
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
+import com.logisticsalliance.general.EMailEmergency;
 import com.logisticsalliance.general.ScheduledWorker;
+import com.logisticsalliance.general.ScheduledWorker.EmailSent;
 import com.logisticsalliance.sqla.ConnectFactory;
 import com.logisticsalliance.sqla.ConnectFactory1;
 import com.logisticsalliance.text.TBuilder;
@@ -157,7 +159,7 @@ public class ShipmentDb {
 
 	private static HashSet<DsKey> carriersNotFound = new HashSet<DsKey>();
 
-	private static boolean done = true;
+	private static int trials = 0;
 
 	public static void setConnectFactoryI5(ConnectFactory cf) {
 		ConnectFactory cf1 = new ConnectFactory(cf.getDriver(),
@@ -167,26 +169,30 @@ public class ShipmentDb {
 	public static void clearCarriersNotFound() {
 		carriersNotFound.clear();
 	}
-	public static boolean isDone() {
-		return done;
+	public static int getTrials() {
+		return trials;
 	}
-	public static void process(final Date shipDate, final String ftpSrv) throws InterruptedException {
-		done = false;
+	public static void process(final Date shipDate, final String ftpSrv,
+		EmailSent es) throws InterruptedException {
+		trials++;
 		Thread t = new Thread() {
 			@Override
 			public void run() {
 				process1(shipDate, ftpSrv);
-				done = true;
+				trials = 0;
 			}
 		};
 		t.setDaemon(true);
 		t.start();
 		int i = 0;
-		while (!done && i++ != 480) {
+		while (trials > 0 && i++ != 480) {
 			Thread.sleep(5000);
 		}
-		if (!done) {
+		if (trials > 0) {
 			log.error("Report incomplete shipments");
+			if (trials > 2) {
+				EMailEmergency.send(es, trials+" trials to process shipments failed");
+			}
 		}
 	}
 	private static void process1(Date date, String ftpSrv) {

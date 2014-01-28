@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import javax.mail.Session;
@@ -36,14 +37,14 @@ public class SendAlertDb extends Notify1 {
 
 	private static String
 	SQL_SEL_ALERT =
-	"SELECT dvstore#,dvshpd,dvdlvd,dvdlvt,dvroute,dvcar,dvcom," +
-	"mvnarvd,mvnarvt,mvstsd,mvreexc,tmdsc,mvtext,mvcrtz " +
+	"SELECT dvstore#,dvshpd,dvdlvd,dvdlvt,dvsrvtime,dvdc,dvroute,dvstop#,dvcom," +
+	"dvpallets,dvetato,dvetatc,dvcar,mvnarvd,mvnarvt,mvstsd,mvreexc,tmdsc,mvtext,mvcrtz " +
 	"FROM OS61LYDTA.OSPDLVS, " +
 	"OS61LYDTA.SMPMOVM LEFT JOIN OS61LYDTA.##PTABM ON mvreexc = tment " +
 	"WHERE dvstore# = mvstore# AND dvshpd=mvshpd AND dvcom=mvcom AND dvdc=mvdc AND " +
 	"mvcrtz>=? AND mvcrtz<? " +
 //	"DVCHGZ NOT IN (SELECT alts FROM OS61LYDTA.OSPALERTS) " +
-	"ORDER BY 1, 3, 4 DESC, 6";
+	"ORDER BY 1, 3 DESC, 11 DESC, 4 DESC";
 
 	private final static String
 	SQL_SEL_ENVR = "SELECT time_store_alerted FROM la.henvr",
@@ -109,12 +110,12 @@ public class SendAlertDb extends Notify1 {
 			}
 			while (true) {
 				t0 = getNextTime(con1, SQL_SEL_ENVR, SQL_INS_ENVR,
-					t0, t1, nextTime, 120000, 0, log);
+					t0, t1, nextTime, 1200000, 0, log);
 				if (t0 == null) {
 					break;
 				}
 				// Select exceptions
-				Timestamp t2 = new Timestamp(t0.getTime()-120000);// less 15 minutes
+				Timestamp t2 = new Timestamp(t0.getTime()-1200000);// less 15 minutes
 				s = select(selSt, t2, t0, s, es, alertStoresByPhone);
 				if (alertEndingTime == null) {
 					updateNotifyEndingTime(con1, SQL_UPD_ENVR, t0);
@@ -141,34 +142,7 @@ public class SendAlertDb extends Notify1 {
 			rs.close();
 			return s;
 		}
-		int storeN = 0;
-		Date delDate = null;
-		String carrier = null;
-		AlertNote an = null;
-		ArrayList<AlertNote> al = new ArrayList<AlertNote>(8);
-		while (true) {
-			storeN = rs.getInt(1);
-			delDate = rs.getDate(3);
-			carrier = rs.getString(6);
-			if (an == null) {
-				an = newData(storeN, delDate, carrier, rs);
-			}
-			else if (storeN != an.storeN || !delDate.equals(an.delDate) ||
-				!carrier.equals(an.carrier)) {
-				an.cmdtyList = an.getCmdtyList();
-				al.add(an);
-				an = newData(storeN, delDate, carrier, rs);
-			}
-			String cmdty = rs.getString(7).trim();
-			an.cmdtySet.add(cmdty);
-			addItem(an, rs);
-			if (!rs.next()) {
-				rs.close();
-				an.cmdtyList = an.getCmdtyList();
-				al.add(an);
-				break;
-			}
-		}
+		ArrayList<TrackingNote> al = select(rs, true);
 		if (al.size() != 0) {
 			String interval = SupportTime.dd_MM_yyyy_HH_mm_Format.format(t0)+" - "+
 				SupportTime.dd_MM_yyyy_HH_mm_Format.format(t);
@@ -180,46 +154,111 @@ public class SendAlertDb extends Notify1 {
 		}
 		return s;
 	}
-	private static AlertNote newData(int storeN, Date delDate,
-		String carrier, ResultSet rs) throws Exception {
-		AlertNote an = new AlertNote();
-		an.storeN = storeN;
-		an.shipDate = rs.getDate(2);
-		an.delDate = delDate;
-		an.arrivalTime = SupportTime.toHH_mm(rs.getString(4));
-		an.newDelDate = rs.getDate(8);
-		an.newArrivalTime = SupportTime.toHH_mm(rs.getString(9));
-		an.route = rs.getString(5);
-		an.carrier = carrier;
-		if (!alertPrefs.containsKey(storeN)) {
+	public static ArrayList<TrackingNote> select(ResultSet rs, boolean alertPref) throws Exception {
+		int storeN = 0;
+		Date delDate = null;
+		String delTimeFrom = null;
+		TrackingNote tn = null;
+		ArrayList<TrackingNote> al = new ArrayList<TrackingNote>(8);
+		HashMap<AlertItem,AlertItem> items = new HashMap<AlertItem,AlertItem>(2, .5f);
+		while (true) {
+			storeN = rs.getInt(1);
+			delDate = rs.getDate(3);
+			delTimeFrom = SupportTime.toHH_mm(rs.getString(11));
+			if (tn == null) {
+				tn = newData(storeN, delDate, delTimeFrom, rs, alertPref);
+			}
+			else if (storeN != tn.storeN || !delDate.equals(tn.delDate) ||
+				!delTimeFrom.equals(tn.delTimeFrom)) {
+				addData(al, tn, items);
+				tn = newData(storeN, delDate, delTimeFrom, rs, alertPref);
+			}
+			addCmdtyAndAlert(items, tn, rs);
+			if (!rs.next()) {
+				rs.close();
+				addData(al, tn, items);
+				break;
+			}
+		}
+		return al;
+	}
+	private static TrackingNote newData(int storeN, Date delDate,
+		String delTimeFrom, ResultSet rs, boolean alertPref) throws Exception {
+		TrackingNote tn = new TrackingNote();
+		tn.storeN = storeN;
+		tn.shipDate = rs.getDate(2);
+		tn.delDate = delDate;
+		tn.arrivalTime = SupportTime.toHH_mm(rs.getString(4));
+		tn.serviceTime = SupportTime.toHH_mm(rs.getString(5));
+		tn.newDelDate = rs.getDate(14);
+		String nt = rs.getString(15);
+		tn.newArrivalTime = nt == null ? "" : SupportTime.toHH_mm(nt);
+		tn.dc = rs.getString(6).trim();
+		tn.route = rs.getString(7);
+		tn.stopN = rs.getString(8);
+		tn.delTimeFrom = delTimeFrom;
+		tn.delTimeTo = SupportTime.toHH_mm(rs.getString(12));
+		tn.carrier = rs.getString(13);
+		if (alertPref && !alertPrefs.containsKey(storeN)) {
 			Alert[] alerts = { new Alert(), new Alert(), new Alert(), new Alert()};
 			AlertDB.select(storeN, alerts, false);
 			alertPrefs.put(storeN, alerts);
 		}
-		return an;
+		return tn;
 	}
-	private static void addItem(AlertNote an, ResultSet rs) throws Exception {
+	private static void addData(ArrayList<TrackingNote> al, TrackingNote tn,
+		HashMap<AlertItem,AlertItem> items) {
+		tn.cmdtyList = TrackingNote.getCmdtyList(tn.cmdtyPallets.keySet());
+		tn.pallets = tn.getTotalPallets();
+		tn.items.addAll(items.values());
+		if (tn.cmdtyPallets.containsKey(CommonConstants.DCF) ||
+			!CommonConstants.CCS.equals(tn.carrier)) {
+			tn.serviceTime = CommonConstants.N_A;
+		}
+		Collections.sort(tn.items);
+		items.clear();
+		al.add(tn);
+	}
+	private static void addCmdtyAndAlert(HashMap<AlertItem,AlertItem> items, TrackingNote tn,
+		ResultSet rs) throws Exception {
+		String cmdty = rs.getString(9).trim();
+		int pallets = rs.getInt(10);
+		tn.cmdtyPallets.put(cmdty, pallets);
 		AlertItem ai = new AlertItem();
-		ai.status = rs.getString(10).trim();
-		ai.reasonID = rs.getString(11).trim();
-		ai.reason = rs.getString(12);
-		if (ai.reason == null) {
-			ai.reason = "noDescription";
-		}
-		else { ai.reason = ai.reason.trim();}
-		ai.comment = rs.getString(13).trim();
-		ai.ts = rs.getTimestamp(14);
-		Date tsd = rs.getDate(14);
-		if (!tsd.equals(an.timestamp)) {
-			an.timestamp = tsd;
-		}
+		ai.status = trim(rs, 16);
+		ai.reasonID = trim(rs, 17);
+		ai.reason = trim(rs, 18);
+		ai.comment = trim(rs, 19).trim();
+		ai.ts = rs.getTimestamp(20);
+		Date tsd = rs.getDate(20);
+
 		if (ai.status.equalsIgnoreCase(CommonConstants.EXCE)) {
 			ai.status = CommonConstants.EXCEPTION;
 			ai.exception = true;
-			if (!an.exception) {
-				an.exception = true;
+			if (!tn.exception) {
+				tn.exception = true;
 			}
 		}
-		an.items.add(ai);
+
+		AlertItem ai2 = items.get(ai);
+		if (ai2 == null) {
+			items.put(ai, ai);
+		}
+		else { ai = ai2;}
+		ai.cmdty.add(cmdty);
+		if (tsd == null) {
+			ai.ts = new Timestamp(0);
+			tn.timestamp = new Date(0);
+		}
+		else if (!tsd.equals(tn.timestamp)) {
+			tn.timestamp = tsd;
+		}
+	}
+	private static String trim(ResultSet rs, int idx) throws Exception {
+		String v = rs.getString(idx);
+		if (v == null) {
+			return "";
+		}
+		else { return v.trim();}
 	}
 }

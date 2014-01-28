@@ -28,20 +28,20 @@ public class EMailEmergency implements Runnable {
 		try {
 			long t = SupportTime.HOUR<<1;
 			Thread.sleep(t);
-			send(emailSent);
+			send(emailSent, "Application has no progress");
 		}
 		catch (InterruptedException e) { }
 	}
 
-	private static void send(EmailSent es) throws InterruptedException {
+	public static void send(EmailSent es, String msg) throws InterruptedException {
 		if (es.emailUnsent == null || es.emailSentOnlyToBbc != null) {
 			int[] trials = {0};
 			Session s = EMailSender.send(null, es, es.emergencyTo,
-				"Emergency : Application has no progress", "", null, trials);
+				"Emergency : "+msg, "", null, trials);
 			while (s == null && trials[0] < 20) {
 				Thread.sleep(20000);
 				s = EMailSender.send(s, es, es.emergencyTo,
-					"Emergency : Application has no progress", "", null, trials);
+					"Emergency : "+msg, "", null, trials);
 			}
 			if (s == null) {
 				log.error("Unable to send Emergency");

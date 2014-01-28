@@ -10,12 +10,17 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.glossium.ui.html.HAnchor;
 import com.glossium.ui.html.HCell;
+import com.glossium.ui.html.HDiv;
 import com.glossium.ui.html.HFrame;
 import com.glossium.ui.html.HNode;
 import com.glossium.ui.html.HOption;
+import com.glossium.ui.html.HParam;
 import com.glossium.ui.html.HRow;
 import com.glossium.web.HServlet;
+import com.logisticsalliance.sa.AlertItem;
+import com.logisticsalliance.sa.TrackingNote;
 import com.logisticsalliance.util.SupportTime;
 
 public class SearchServlet extends HServlet {
@@ -77,18 +82,55 @@ public class SearchServlet extends HServlet {
 		year.setValue(v.substring(0, 4));
 		cmdty.setSelectedOption(d.cmdty);
 		table.clearChildren();
-		for (Iterator<Delivery> it = d.list.iterator(); it.hasNext();) {
-			Delivery e = it.next();
+		for (Iterator<TrackingNote> it1 = d.list.iterator(); it1.hasNext();) {
+			TrackingNote e = it1.next();
 			HRow r = new HRow(table);
-			HCell c = new HCell(r, e.delDate == null ? null : SupportTime.MMM_dd_yy_Format.format(e.delDate));
-			c.setClass("center");
-			c = new HCell(r, e.arrivalTime);
-			c.setClass("center");
-			new HCell(r, e.carrier);
-			new HCell(r, e.cmdty);
-			new HCell(r, e.status);
-			new HCell(r, e.exp);
+			r.setStyle("display:block;");
+			r.setOnClick("selRow(this)");
+			HCell c0 = new HCell(r, null);
+			new HAnchor(c0, "-");
+			new HCell(r, e.delDate == null ? null : SupportTime.MMM_dd_yy_Format.format(e.delDate));
+			new HCell(r, e.arrivalTime);
+			HCell c = new HCell(r, e.pallets);
+			c.setClass("num");
+			c = new HCell(r, e.cmdtyList);
+			c.setStyle("text-wrap:none;");
+			addAlert(r, c0, e);
 		}
+	}
+	private void addAlert(HRow r, HCell c0, TrackingNote tn) {
+		boolean ext = tn.items.size() > 1, first = true;
+		for (Iterator<AlertItem> it2 = tn.items.iterator(); it2.hasNext();) {
+			AlertItem ai = it2.next();
+			new HCell(r, ai.status);
+			new HCell(r, ai.comment);
+			HCell c = new HCell(r, null);
+			c.setStyle("display:none;");
+			new HParam(c, ai.reason);
+			if (first) {
+				addOthers(c, tn);
+			}
+			if (ext && it2.hasNext()) {
+				if (first) {
+					c0.setStyle("padding:0px;vertical-align:middle;");
+					HDiv n = new HDiv(c0);
+					n.setClass("circle");
+					n.setTextValue("+");
+					first = false;
+					n.setOnClick("unfold(this);");
+				}
+				r = new HRow(table);
+				new HAnchor(new HCell(r, null), "-");
+				new HCell(r, null); new HCell(r, null);
+				new HCell(r, null); new HCell(r, null);
+				r.setStyle("display:none;");
+				r.setOnClick("selRow(this)");
+			}
+		}
+	}
+	private static void addOthers(HCell c, TrackingNote tn) {
+		new HParam(c, tn.serviceTime);
+		new HParam(c, tn.carrier);
 	}
 
 	@Override
