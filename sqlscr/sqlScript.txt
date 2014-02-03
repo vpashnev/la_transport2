@@ -35,7 +35,7 @@ CREATE TABLE la.hstore_alert (
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   CONSTRAINT fk_hstore_alert_store_n FOREIGN KEY (store_n)
   REFERENCES la.hstore_profile (n),
-  CONSTRAINT chk_hstore_alert_comm_n CHECK (comm_n>=0 AND comm_n<4),
+  CONSTRAINT chk_hstore_alert_comm_n CHECK (comm_n>=0 AND comm_n<3),
   CONSTRAINT pk_hstore_alert PRIMARY KEY (n)
 ) ;
 CREATE TABLE la.hship_data (

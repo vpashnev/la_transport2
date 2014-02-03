@@ -235,6 +235,7 @@ public class ShipmentDb {
 				con1.prepareStatement(SQL_INS2), con1.prepareStatement(SQL_UPD2),
 				con1.prepareStatement(SQL_INS9), con1.prepareStatement(SQL_UPD9),
 				al, shpDate);
+			con1.commit();
 			
 			if (al.size() != 0) {
 				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(date)+

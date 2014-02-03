@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 
 import javax.mail.Session;
@@ -110,12 +109,12 @@ public class SendAlertDb extends Notify1 {
 			}
 			while (true) {
 				t0 = getNextTime(con1, SQL_SEL_ENVR, SQL_INS_ENVR,
-					t0, t1, nextTime, 1200000, 0, log);
+					t0, t1, nextTime, 150000, 0, log);
 				if (t0 == null) {
 					break;
 				}
-				// Select exceptions
-				Timestamp t2 = new Timestamp(t0.getTime()-1200000);// less 15 minutes
+				// Select alerts
+				Timestamp t2 = new Timestamp(t0.getTime()-150000);// less 15 minutes
 				s = select(selSt, t2, t0, s, es, alertStoresByPhone);
 				if (alertEndingTime == null) {
 					updateNotifyEndingTime(con1, SQL_UPD_ENVR, t0);
@@ -160,7 +159,6 @@ public class SendAlertDb extends Notify1 {
 		String delTimeFrom = null;
 		TrackingNote tn = null;
 		ArrayList<TrackingNote> al = new ArrayList<TrackingNote>(8);
-		HashMap<AlertItem,AlertItem> items = new HashMap<AlertItem,AlertItem>(2, .5f);
 		while (true) {
 			storeN = rs.getInt(1);
 			delDate = rs.getDate(3);
@@ -170,13 +168,13 @@ public class SendAlertDb extends Notify1 {
 			}
 			else if (storeN != tn.storeN || !delDate.equals(tn.delDate) ||
 				!delTimeFrom.equals(tn.delTimeFrom)) {
-				addData(al, tn, items);
+				addData(al, tn);
 				tn = newData(storeN, delDate, delTimeFrom, rs, alertPref);
 			}
-			addCmdtyAndAlert(items, tn, rs);
+			putCmdtyAndAlerts(tn, rs);
 			if (!rs.next()) {
 				rs.close();
-				addData(al, tn, items);
+				addData(al, tn);
 				break;
 			}
 		}
@@ -188,6 +186,7 @@ public class SendAlertDb extends Notify1 {
 		tn.storeN = storeN;
 		tn.shipDate = rs.getDate(2);
 		tn.delDate = delDate;
+		tn.delDate1 = SupportTime.dd_MM_yyyy_Format.format(delDate);
 		tn.arrivalTime = SupportTime.toHH_mm(rs.getString(4));
 		tn.serviceTime = SupportTime.toHH_mm(rs.getString(5));
 		tn.newDelDate = rs.getDate(14);
@@ -200,38 +199,32 @@ public class SendAlertDb extends Notify1 {
 		tn.delTimeTo = SupportTime.toHH_mm(rs.getString(12));
 		tn.carrier = rs.getString(13);
 		if (alertPref && !alertPrefs.containsKey(storeN)) {
-			Alert[] alerts = { new Alert(), new Alert(), new Alert(), new Alert()};
+			Alert[] alerts = { new Alert(), new Alert(), new Alert()};
 			AlertDB.select(storeN, alerts, false);
 			alertPrefs.put(storeN, alerts);
 		}
 		return tn;
 	}
-	private static void addData(ArrayList<TrackingNote> al, TrackingNote tn,
-		HashMap<AlertItem,AlertItem> items) {
-		tn.cmdtyList = TrackingNote.getCmdtyList(tn.cmdtyPallets.keySet());
-		tn.pallets = tn.getTotalPallets();
-		tn.items.addAll(items.values());
-		if (tn.cmdtyPallets.containsKey(CommonConstants.DCF) ||
+	private static void addData(ArrayList<TrackingNote> al, TrackingNote tn) {
+		if (tn.cmdtyAlerts.containsKey(CommonConstants.DCF) ||
 			!CommonConstants.CCS.equals(tn.carrier)) {
 			tn.serviceTime = CommonConstants.N_A;
 		}
-		Collections.sort(tn.items);
-		items.clear();
+		tn.updateAlerts();
 		al.add(tn);
 	}
-	private static void addCmdtyAndAlert(HashMap<AlertItem,AlertItem> items, TrackingNote tn,
-		ResultSet rs) throws Exception {
+	private static void putCmdtyAndAlerts(TrackingNote tn, ResultSet rs) throws Exception {
 		String cmdty = rs.getString(9).trim();
-		int pallets = rs.getInt(10);
-		tn.cmdtyPallets.put(cmdty, pallets);
+		Alerts as = tn.cmdtyAlerts.get(cmdty);
+		if (as == null) {
+			as = new Alerts();
+			tn.cmdtyAlerts.put(cmdty, as);
+		}
+		as.pallets = rs.getInt(10);
 		AlertItem ai = new AlertItem();
 		ai.status = trim(rs, 16);
 		ai.reasonID = trim(rs, 17);
-		ai.reason = trim(rs, 18);
 		ai.comment = trim(rs, 19).trim();
-		ai.ts = rs.getTimestamp(20);
-		Date tsd = rs.getDate(20);
-
 		if (ai.status.equalsIgnoreCase(CommonConstants.EXCE)) {
 			ai.status = CommonConstants.EXCEPTION;
 			ai.exception = true;
@@ -239,19 +232,18 @@ public class SendAlertDb extends Notify1 {
 				tn.exception = true;
 			}
 		}
-
-		AlertItem ai2 = items.get(ai);
-		if (ai2 == null) {
-			items.put(ai, ai);
-		}
-		else { ai = ai2;}
-		ai.cmdty.add(cmdty);
-		if (tsd == null) {
-			ai.ts = new Timestamp(0);
-			tn.timestamp = new Date(0);
-		}
-		else if (!tsd.equals(tn.timestamp)) {
-			tn.timestamp = tsd;
+		if (!as.hset.contains(ai)) {
+			as.hset.add(ai);
+			ai.reason = trim(rs, 18);
+			ai.ts = rs.getTimestamp(20);
+			Date tsd = rs.getDate(20);
+			if (tsd == null) {
+				ai.ts = new Timestamp(0);
+				tn.timestamp = new Date(0);
+			}
+			else if (!tsd.equals(tn.timestamp)) {
+				tn.timestamp = tsd;
+			}
 		}
 	}
 	private static String trim(ResultSet rs, int idx) throws Exception {

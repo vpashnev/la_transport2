@@ -22,16 +22,13 @@ public class AlertServlet extends HServlet {
 		"phone221", "phone222", "phone223", "phone224"},
 		{"email3", "email23", "phone31", "phone32", "phone33", "phone34",
 		"phone231", "phone232", "phone233", "phone234"},
-		{"email4", "email24", "phone41", "phone42", "phone43", "phone44",
-		"phone241", "phone242", "phone243", "phone244"},
 		},
 		cmdty1 = {
 		{"DCB1", "DCV1", "DCX1", "DCF1", "EVT1", "EVT21"},
 		{"DCB2", "DCV2", "DCX2", "DCF2", "EVT2", "EVT22"},
 		{"DCB3", "DCV3", "DCX3", "DCF3", "EVT3", "EVT23"},
-		{"DCB4", "DCV4", "DCX4", "DCF4", "EVT4", "EVT24"},
 		};
-	static final String[] select1 = {"select1", "select2", "select3", "select4"};
+	static final String[] select1 = {"select1", "select2", "select3"};
 	private static final String msg1 = "msg",
 		check = "alert('Please check your email and phone. " +
 			"A confirmation should be received within a few minutes.')";
@@ -42,7 +39,7 @@ public class AlertServlet extends HServlet {
 	private HNode msg;
 
 	public void init(ServletConfig config) throws ServletException {
-		HFrame html = getHtml(getClass().getResourceAsStream("/html/tt/alert2.html"));
+		HFrame html = getHtml(getClass().getResourceAsStream("/html/tt/alert.html"));
 		setControls(html);
 		setHtml(html);
 		super.init(config);
@@ -51,11 +48,9 @@ public class AlertServlet extends HServlet {
 		comm[0] = html.getNodes(comm1[0]);
 		comm[1] = html.getNodes(comm1[1]);
 		comm[2] = html.getNodes(comm1[2]);
-		comm[3] = html.getNodes(comm1[3]);
 		cmdty[0] = html.getNodes(cmdty1[0]);
 		cmdty[1] = html.getNodes(cmdty1[1]);
 		cmdty[2] = html.getNodes(cmdty1[2]);
-		cmdty[3] = html.getNodes(cmdty1[3]);
 		sel = html.getNodes(select1);
 		msg = html.getNodes(msg1)[0];
 	}
@@ -118,7 +113,7 @@ public class AlertServlet extends HServlet {
 		}
 		Alert[] d = a.alerts;
 		if (d == null) {
-			d = new Alert[]{ new Alert(), new Alert(), new Alert(), new Alert()};
+			d = new Alert[]{ new Alert(), new Alert(), new Alert()};
 			a.alerts = d;
 			AlertDB.select(a.store, d, true);
 			d[0].checkMsg = null;

@@ -123,6 +123,7 @@ public class TtTableDb {
 			int n = st.executeUpdate();
 			st.close();*/
 			update(con1.prepareStatement(SQL_INS), con1.prepareStatement(SQL_UPD), al, shipDate);
+			con1.commit();
 			if (al.size() != 0) {
 				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(shipDate)+
 					"\r\n\r\n"+al+

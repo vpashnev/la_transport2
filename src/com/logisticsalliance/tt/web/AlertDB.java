@@ -77,7 +77,7 @@ public class AlertDB {
 			String s = b.toString();
 			int i = s.indexOf(',');
 			alerts[0].comm[0] = s.substring(0, i);
-			//alerts[0].comm[1] = s.substring(i+1);
+			alerts[0].comm[1] = s.substring(i+1);
 		}
 	}
 	private static void reset(Alert[] alerts) {

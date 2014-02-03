@@ -4,11 +4,13 @@ import java.io.PrintWriter;
 import java.sql.Date;
 import java.util.Calendar;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.DatatypeConverter;
 
 import com.glossium.ui.html.HAnchor;
 import com.glossium.ui.html.HCell;
@@ -20,6 +22,7 @@ import com.glossium.ui.html.HParam;
 import com.glossium.ui.html.HRow;
 import com.glossium.web.HServlet;
 import com.logisticsalliance.sa.AlertItem;
+import com.logisticsalliance.sa.Alerts;
 import com.logisticsalliance.sa.TrackingNote;
 import com.logisticsalliance.util.SupportTime;
 
@@ -27,7 +30,7 @@ public class SearchServlet extends HServlet {
 	private static final long serialVersionUID = 10L;
 
 	static final String month1 = "month", day1 = "day", year1 = "year",
-		cmdty1 = "cmdty", table1 = "table";
+		cmdty1 = "cmdty", table1 = "table", nbsp = DatatypeConverter.parseString("\u00A0");
 
 	private HNode month, day, year, cmdty, table;
 
@@ -82,51 +85,71 @@ public class SearchServlet extends HServlet {
 		year.setValue(v.substring(0, 4));
 		cmdty.setSelectedOption(d.cmdty);
 		table.clearChildren();
-		for (Iterator<TrackingNote> it1 = d.list.iterator(); it1.hasNext();) {
-			TrackingNote e = it1.next();
-			HRow r = new HRow(table);
-			r.setStyle("display:block;");
-			r.setOnClick("selRow(this)");
+		for (Iterator<TrackingNote> it = d.list.iterator(); it.hasNext();) {
+			TrackingNote tn = it.next();
+			HRow r = newRow();
 			HCell c0 = new HCell(r, null);
-			new HAnchor(c0, "-");
-			new HCell(r, e.delDate == null ? null : SupportTime.MMM_dd_yy_Format.format(e.delDate));
-			new HCell(r, e.arrivalTime);
-			HCell c = new HCell(r, e.pallets);
-			c.setClass("num");
-			c = new HCell(r, e.cmdtyList);
-			c.setStyle("text-wrap:none;");
-			addAlert(r, c0, e);
+			setRowFocus(c0);
+			new HCell(r, tn.delDate1);
+			new HCell(r, tn.arrivalTime);
+			boolean[] first = {true};
+			for (Iterator<Map.Entry<String,Alerts>> it1 = tn.cmdtyAlerts.entrySet().iterator();
+				it1.hasNext();) {
+				Map.Entry<String,Alerts> e = it1.next();
+				String cmdty = e.getKey();
+				Alerts as = e.getValue();
+				HCell c = new HCell(r, as.pallets);
+				c.setClass("num");
+				new HCell(r, cmdty);
+				addAlert(r, c0, tn, as, first);
+				if (it1.hasNext()) {
+					r = newRow();
+					c0 = new HCell(r, null);
+					setRowFocus(c0);
+					new HCell(r, null); new HCell(r, null);
+				}
+			}
 		}
 	}
-	private void addAlert(HRow r, HCell c0, TrackingNote tn) {
-		boolean ext = tn.items.size() > 1, first = true;
-		for (Iterator<AlertItem> it2 = tn.items.iterator(); it2.hasNext();) {
+	private void addAlert(HRow r, HCell c0, TrackingNote tn, Alerts as, boolean[] first) {
+		boolean ext = as.items.size() > 1, first1 = true;
+		for (Iterator<AlertItem> it2 = as.items.iterator(); it2.hasNext();) {
 			AlertItem ai = it2.next();
 			new HCell(r, ai.status);
 			new HCell(r, ai.comment);
 			HCell c = new HCell(r, null);
 			c.setStyle("display:none;");
 			new HParam(c, ai.reason);
-			if (first) {
+			if (first[0]) {
 				addOthers(c, tn);
+				first[0] = false;
 			}
 			if (ext && it2.hasNext()) {
-				if (first) {
+				if (first1) {
 					c0.setStyle("padding:0px;vertical-align:middle;");
 					HDiv n = new HDiv(c0);
 					n.setClass("circle");
 					n.setTextValue("+");
-					first = false;
+					first1 = false;
 					n.setOnClick("unfold(this);");
 				}
-				r = new HRow(table);
-				new HAnchor(new HCell(r, null), "-");
-				new HCell(r, null); new HCell(r, null);
-				new HCell(r, null); new HCell(r, null);
+				r = newRow();
 				r.setStyle("display:none;");
-				r.setOnClick("selRow(this)");
+				setRowFocus(new HCell(r, null));
+				new HCell(r, null); new HCell(r, null);
+				new HCell(r, null); new HCell(r, null);
 			}
 		}
+	}
+	private HRow newRow() {
+		HRow r = new HRow(table);
+		r.setOnClick("selRow(this);");
+		return r;
+	}
+	private static void setRowFocus(HCell c) {
+		HAnchor a = new HAnchor(c, "-");
+		a.setClass("rf");
+		a.setTextValue(nbsp);
 	}
 	private static void addOthers(HCell c, TrackingNote tn) {
 		new HParam(c, tn.serviceTime);

@@ -1,4 +1,4 @@
-var dx = 360, dy = 96, dToX, dToY, curRowIdx;
+var dx = 338, dy = 72, dToX, dToY, curRowIdx;
 
 function unfold(but) {
 	var s = but.innerHTML;
@@ -8,11 +8,11 @@ function unfold(but) {
 	t = r.parentNode;
 	for (var i = start; i < t.rows.length; i++) {
 		r = t.rows[i];
-		c = r.cells[1];
+		c = r.cells[4];
 		var v = c.innerHTML;
 		if (v == null || v.length == 0) {
 			if (b) {
-				r.style.display = "block";
+				r.style.display = "";
 			}
 			else {
 				r.style.display = "none";
@@ -69,7 +69,7 @@ function fillRow(table, rowIdx) {
 	}
 	curRowIdx = rowIdx;
 	r.style.background = "lightblue";
-	//setInfo(table, r);
+	setInfo(table, r);
 	focusCurRow();
 }
 function setInfo(table, row) {
@@ -77,15 +77,22 @@ function setInfo(table, row) {
 	document.getElementById("reason").value = c[1].textContent;
 	document.getElementById("status").value = row.cells[5].innerHTML;
 	document.getElementById("comment").value = row.cells[6].innerHTML;
-	var v = row.cells[1].innerHTML;
+
+	var v = row.cells[4].innerHTML;
+	for (var i = row.rowIndex-2; i >= 0 && (v == null || v.length == 0); i--) {
+		row = table.rows[i];
+		v = row.cells[4].innerHTML;
+	}
+	document.getElementById("skids").value = row.cells[3].innerHTML;
+	document.getElementById("cmdty1").value = v;
+
+	v = row.cells[1].innerHTML;
 	for (var i = row.rowIndex-2; i >= 0 && (v == null || v.length == 0); i--) {
 		row = table.rows[i];
 		v = row.cells[1].innerHTML;
 	}
 	document.getElementById("date").value = v;
 	document.getElementById("time").value = row.cells[2].innerHTML;
-	document.getElementById("skids").value = row.cells[3].innerHTML;
-	document.getElementById("cmdty1").value = row.cells[4].innerHTML;
 	c = row.cells[7].childNodes;
 	document.getElementById("stime").value = c[3].textContent;
 	document.getElementById("car").value = c[5].textContent;
@@ -97,7 +104,7 @@ function focusCurRow() {
 	}
 	row = table.rows[i];
 	c = row.cells[0].childNodes;
-	c[0].focus();
+	c[0].focus(); c[0].blur();
 
 	i = curRowIdx+1;
 	if (i >= table.rows.length) {
@@ -105,7 +112,7 @@ function focusCurRow() {
 	}
 	row = table.rows[i];
 	c = row.cells[0].childNodes;
-	c[0].focus();
+	c[0].focus(); c[0].blur();
 }
 function closeInfo() {
 	d = document.getElementById("info");

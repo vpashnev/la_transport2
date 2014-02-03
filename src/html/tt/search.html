@@ -19,11 +19,6 @@ td {
  padding:3px;vertical-align:top;cursor:default;
 
 }
-td.center {
-
- text-align:center;
-
-}
 input {
 
  height:20px;
@@ -60,10 +55,16 @@ position:fixed;top:72px;left:338px;
  border-radius:4px;
 
 }
+.rf {
+
+ font-size:1px;
+ color:transparent;
+
+}
 </style>
-<script type="text/javascript" src="js/gen.js">
+<script type="text/javascript" src="js/tt/gen.js">
 </script>
-<script type="text/javascript" src="js/search1.js">
+<script type="text/javascript" src="js/tt/search.js">
 </script>
 </head>
 <body id="body1" ondrop="drop(event)" ondragover="allowDrop(event)" onload="curRowIdx = -1;">
@@ -78,7 +79,7 @@ position:fixed;top:72px;left:338px;
 <input id="year" name="year" size="4" type="number" max="2020" min="2010" />
 <span></span>
 <span><select id="cmdty" name="cmdty"></select></span>
-<span><input name="search" type="submit" value="Refresh" style="width:100px;height:24"/></span>
+<span><button name="search" type="submit" style="width:100px;height:24">Refresh</button></span>
 <span><button type="button" style="width:100px;height:24" onclick="browseInfo();">Browse</button></span>
 <!--
 <span><b>Store:</b></span>
@@ -96,8 +97,8 @@ position:fixed;top:72px;left:338px;
 <!--
 <th style="width:80px;">Carrier</th>
 -->
-<th style="width:32px;padding-right:6px;">Skids</th>
-<th style="width:17%;padding-left:7px;">Cmdty</th>
+<th style="width:48px;padding-right:6px;">Skids</th>
+<th style="width:56px;">Cmdty</th>
 <th style="width:70px;padding-left:15px;">Status</th>
 <th colspan="2" style="width:auto;padding-left:20px;">Comment</th>
 </tr>
@@ -123,7 +124,7 @@ position:fixed;top:72px;left:338px;
 <td>Skids</td><td><input id="skids" size="3" type="text" /></td>
 </tr>
 <tr>
-<td>Commodity</td><td><input id="cmdty1" size="25" type="text" /></td>
+<td>Commodity</td><td><input id="cmdty1" size="10" type="text" /></td>
 </tr>
 <tr>
 <td>Carrier</td><td><input id="car" size="50" type="text" /></td>
