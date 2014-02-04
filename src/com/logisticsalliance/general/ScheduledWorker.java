@@ -34,6 +34,7 @@ public class ScheduledWorker implements Runnable {
 	private File appDir, srcDir;
 	private String dbPassword, dbPasswordI5, ksPassword;
 	private int daysOutCleaning = -1;
+	private FtpManager ftpManager;
 	private EmailRead emailRead;
 	private EmailSent emailSent;
 	private EMailReports emailReports;
@@ -47,9 +48,9 @@ public class ScheduledWorker implements Runnable {
 	private static final DecimalFormat oooo = new DecimalFormat("0000");
 
 	public ScheduledWorker(File appDirectory, File srcDirectory, String databasePassword,
-		String databasePasswordI5, String emailReadPassword, String emailSentPassword,
-		String keyStorePassword, Properties appProps, HashMap<Integer, String> localDCs,
-		EMailReports mr, RnColumns rcs) {
+		String databasePasswordI5, String ftpPassword, String emailReadPassword,
+		String emailSentPassword, String keyStorePassword, Properties appProps,
+		HashMap<Integer, String> localDCs, EMailReports mr, RnColumns rcs) {
 		if (!srcDirectory.exists() && !srcDirectory.mkdir()) {
 			throw new IllegalArgumentException("The directory '"+srcDirectory+"' does not exist");
 		}
@@ -58,6 +59,7 @@ public class ScheduledWorker implements Runnable {
 		dbPassword = databasePassword;
 		dbPasswordI5 = databasePasswordI5;
 		ksPassword = keyStorePassword;
+		ftpManager = new FtpManager(appProps, ftpPassword);
 		emailRead = new EmailRead(appProps, emailReadPassword);
 		emailSent = new EmailSent(appProps, emailSentPassword);
 		emailEmergency = new EMailEmergency(emailSent);
@@ -126,6 +128,10 @@ public class ScheduledWorker implements Runnable {
 				StoreScheduleDb.update(dsFolder, dsaFolder);
 
 				//Roadnet
+				if (ftpManager.unread == null && isTimeToReadRoadnet()) {
+					//email
+					FtpReader.read(ftpManager, rnFolder, emailSent);
+				}
 				if (emailRead.emailUnread == null && isTimeToReadRoadnet()) {
 					//email
 					EMailReader.read(sysProps, emailRead, emailRead.rnFolder,
@@ -167,7 +173,7 @@ public class ScheduledWorker implements Runnable {
 					Date d = getShipDate(shipmentDate, c);
 					if (shipments != null) {
 						//Shipments
-						ShipmentDb.process(d, getValue(appProperties, "ftpServer"), emailSent);
+						ShipmentDb.process(d, getValue(appProperties, "ftpNLServer"), emailSent);
 					}
 					if (ttTable != null) {
 						//ttTable
@@ -253,29 +259,32 @@ public class ScheduledWorker implements Runnable {
 			if (!dir.mkdir()) { return f;}
 		}
 		for (int i = 0; f.exists() && i != 10000; i++) {
-			String fn = f.getName();
-			int idx = fn.lastIndexOf('.');
-			if (idx == -1) {
-				fn = fn+i;
-			}
-			else {
-				int j = idx-1, idx0 = j-4;
-				for (; j != idx0 && j >= 0; j--) {
-					char c = fn.charAt(j);
-					if (!Character.isDigit(c)) { break;}
-				}
-				String n = oooo.format(i+1);
-				StringBuilder b = new StringBuilder(fn);
-				if (j == idx0++) {
-					b.delete(idx0, idx);
-					b.insert(idx0, n);
-				}
-				else { b.insert(idx, n);}
-				fn = b.toString();
-			}
+			String fn = toUniqueName(f.getName(), i);
 			f = new File(dir, fn);
 		}
 		return f;
+	}
+	static String toUniqueName(String fn, int i) {
+		int idx = fn.lastIndexOf('.');
+		if (idx == -1) {
+			fn = fn+i;
+		}
+		else {
+			int j = idx-1, idx0 = j-4;
+			for (; j != idx0 && j >= 0; j--) {
+				char c = fn.charAt(j);
+				if (!Character.isDigit(c)) { break;}
+			}
+			String n = oooo.format(i+1);
+			StringBuilder b = new StringBuilder(fn);
+			if (j == idx0++) {
+				b.delete(idx0, idx);
+				b.insert(idx0, n);
+			}
+			else { b.insert(idx, n);}
+			fn = b.toString();
+		}
+		return fn;
 	}
 
 	void start() {
@@ -298,6 +307,19 @@ public class ScheduledWorker implements Runnable {
 	private static String getValue(Properties props, String propName) {
 		return SupportGeneral.getValue(props, propName);
 	}
+	static class FtpManager {
+		String host, user, password, folder, archiveFolder, unread;
+
+		private FtpManager(Properties props, String pwd) {
+			host = getValue(props, "ftpHost");
+			user = getValue(props, "ftpUser");
+			password = pwd;
+			folder = getValue(props, "ftpFolder");
+			archiveFolder = getValue(props, "ftpArchiveFolder");
+			unread = getValue(props, "ftpUnread");
+		}
+	}
+
 	static class EmailRead {
 		String protocol, host, email, password, dsFolder, dsArchiveFolder,
 			rnFolder, rnArchiveFolder, emailUnread;
