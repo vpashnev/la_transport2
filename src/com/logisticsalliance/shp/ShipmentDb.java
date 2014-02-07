@@ -481,7 +481,8 @@ public class ShipmentDb {
 		ins2.executeBatch();
 		ins9.executeBatch();
 	}
-	private static void setTable1(PreparedStatement st, ShipmentData sd, int shpDate) throws Exception {
+	private static void setTable1(PreparedStatement st, ShipmentData sd,
+		int shpDate) throws Exception {
 		st.setDouble(1, sd.getTotalWeight(true));
 		st.setDouble(2, 1);//sd.getTotalUnits(null));
 		st.setDouble(3, sd.getTotalCube(true));

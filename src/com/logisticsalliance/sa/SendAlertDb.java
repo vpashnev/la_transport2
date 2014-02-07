@@ -223,6 +223,9 @@ public class SendAlertDb extends Notify1 {
 		as.pallets = rs.getInt(10);
 		AlertItem ai = new AlertItem();
 		ai.status = trim(rs, 16);
+		if (ai.status.length() == 0) {
+			ai.status = "Plan";
+		}
 		ai.reasonID = trim(rs, 17);
 		ai.comment = trim(rs, 19).trim();
 		if (ai.status.equalsIgnoreCase(CommonConstants.EXCE)) {

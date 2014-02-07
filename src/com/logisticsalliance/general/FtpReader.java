@@ -2,6 +2,7 @@ package com.logisticsalliance.general;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Arrays;
 import java.util.Date;
 
 import org.apache.commons.net.ftp.FTPClient;
@@ -36,21 +37,19 @@ public class FtpReader {
 	private static int read1(FtpManager fm, File dir, EmailSent es, int trials) {
 		FTPClient fc = new FTPClient();
 		try {
-			fc.connect(fm.host);
-			fc.login(fm.user, fm.password);
-			checkReply(fc);
-			//f.enterLocalPassiveMode();
+			fc.connect(fm.host); checkReply(fc);
+			fc.login(fm.user, fm.password); checkReply(fc);
+			fc.enterLocalPassiveMode(); checkReply(fc);
 			if (!fc.changeWorkingDirectory(fm.archiveFolder)) {
 				fc.makeDirectory(fm.archiveFolder);
 				checkReply(fc);
 			}
-			fc.changeWorkingDirectory(fm.folder);
-			checkReply(fc);
-			//System.out.println("Current directory is " + fc.printWorkingDirectory());
-			FTPFile[] fs = fc.listFiles();
-			if (fs != null) {
+			fc.changeWorkingDirectory(fm.folder); checkReply(fc);
+			FTPFile[] ffs = fc.listFiles();
+			if (ffs != null) {
+				File1[] fs = toFiles(ffs);
 				for (int i = 0; i != fs.length; i++) {
-					FTPFile ff = fs[i];
+					FTPFile ff = fs[i].f;
 					if (!ff.isFile()) {
 						continue;
 					}
@@ -62,11 +61,14 @@ public class FtpReader {
 					Date d = ff.getTimestamp().getTime();
 					fn = SupportTime.yyyyMMdd_HHmmss__Format.format(d)+".up";
 					fn = toName(fn, user);
-					File f = new File(dir, fn);
-					log.debug("FTP file: "+fn);
+					File f = new File(dir, "ftp_"+fn);
 					f = ScheduledWorker.toUnique(dir, f);
+					fn = f.getName();
+					log.debug("FTP file: "+fn);
 					FileOutputStream out = new FileOutputStream(f);
 					String fn0 = ff.getName();
+					fc.setControlKeepAliveTimeout(300000);
+					checkReply(fc);
 					fc.retrieveFile(fn0, out);
 					out.close();
 					checkReply(fc);
@@ -113,6 +115,28 @@ public class FtpReader {
 		checkReply(fc);
 	}
 	private static String getUser(String fileName) {
+		if (fileName.length() > 8) {
+			int i = fileName.indexOf('-', 8);
+			if (i > 0) {
+				return fileName.substring(8, i)+'@';
+			}
+		}
 		return "unknown@";
+	}
+	private static File1[] toFiles(FTPFile[] fs) {
+		File1[] arr = new File1[fs.length];
+		for (int i = 0; i != fs.length; i++) {
+			arr[i] = new File1();
+			arr[i].f = fs[i];
+		}
+		Arrays.sort(arr);
+		return arr;
+	}
+	private static class File1 implements Comparable<File1> {
+		FTPFile f;
+		@Override
+		public int compareTo(File1 f1) {
+			return f.getTimestamp().compareTo(f1.f.getTimestamp());
+		}
 	}
 }

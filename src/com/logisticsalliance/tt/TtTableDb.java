@@ -34,12 +34,12 @@ public class TtTableDb {
 
 	private static final String
 		SQL_INS =
-		"INSERT INTO OS61LYDTA.OSPDLVS (dvsts,dvstsd,dvlsts,dvlstsd,dvstore#,dvcom," +
+		"INSERT INTO OS61LXDTA.OSPDLVS (dvsts,dvstsd,dvlsts,dvlstsd,dvstore#,dvcom," +
 		"dvdc,dvshpd,dvdlvd,dvdlvt,dvsrvtime,dvroute,dvstop#,dvpallets,dvetato,dvetatc," +
 		"dvcar) VALUES ('10','PLAN','10','PLAN',?,?,?,?,?,?,?,?,?,?,?,?,?)",
 
 		SQL_UPD =
-		"UPDATE OS61LYDTA.OSPDLVS SET dvdlvd=?,dvdlvt=?,dvsrvtime=?,dvroute=?,dvstop#=?," +
+		"UPDATE OS61LXDTA.OSPDLVS SET dvdlvd=?,dvdlvt=?,dvsrvtime=?,dvroute=?,dvstop#=?," +
 		"dvpallets=?,dvetato=?,dvetatc=?,dvcar=? WHERE dvstore#=? AND dvcom=? AND " +
 		"dvdc=? AND dvshpd=?",
 
@@ -74,9 +74,7 @@ public class TtTableDb {
 	private static int trials = 0;
 
 	public static void setConnectFactoryI5(ConnectFactory cf) {
-		ConnectFactory cf1 = new ConnectFactory(cf.getDriver(),
-			"jdbc:as400:tmsodev.nulogx.com;prompt=false", cf.getUser(), cf.getPassword());
-		connectFactoryI5 = cf1;
+		connectFactoryI5 = cf;
 	}
 	public static void clearCarriersNotFound() {
 		carriersNotFound.clear();
