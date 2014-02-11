@@ -30,7 +30,7 @@ public class StoreScheduleDb {
 	private static Logger log = Logger.getLogger(StoreScheduleDb.class);
 
 	private static final String SQL =
-		"{call la.update_scheduled_delivery(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}",
+		"{call la.update_scheduled_delivery(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}",
 		SQL_RESET_IN_USE = "UPDATE la.hstore_schedule SET in_use=NULL WHERE ship_date IS NULL",
 		SQL_DELETE_NOT_IN_USE = "DELETE FROM la.hstore_schedule WHERE in_use IS NULL";
 
@@ -120,12 +120,18 @@ public class StoreScheduleDb {
 			r.province = arr[4];
 			r.postCode = arr[5];
 			r.description = arr[6];
-			r.shipDay = SupportTime.getDayNumber(arr[16]);
+			r.polDay = SupportTime.getDayNumber(arr[9]);
+			java.util.Date d = SupportTime.dd_MM_yyyy_Format.parse(arr[10]);
+			r.polDate = new Date(d.getTime());
+			r.polTime = SupportTime.parseTimeHHmm(arr[12]);
 			r.dallasDay = SupportTime.getDayNumber(arr[13]);
-			java.util.Date d = SupportTime.dd_MM_yyyy_Format.parse(arr[14]);
+			d = SupportTime.dd_MM_yyyy_Format.parse(arr[14]);
 			r.dallasDate = new Date(d.getTime());
+			r.dallasTime = SupportTime.parseTimeHHmm(arr[15]);
+			r.shipDay = SupportTime.getDayNumber(arr[16]);
 			d = SupportTime.dd_MM_yyyy_Format.parse(arr[17]);
 			r.shipDate = new Date(d.getTime());
+			r.shipTime = SupportTime.parseTimeHHmm(arr[18]);
 			r.delDay = SupportTime.getDayNumber(arr[19]);
 			d = SupportTime.dd_MM_yyyy_Format.parse(arr[20]);
 			r.delDate = new Date(d.getTime());
@@ -142,7 +148,12 @@ public class StoreScheduleDb {
 			r.city = arr[2];
 			r.province = arr[3];
 			r.postCode = arr[4];
+			r.polDay = SupportTime.getDayNumber(arr[5]);
+			r.polTime = SupportTime.parseTimeHHmm(arr[7]);
+			r.dallasDay = SupportTime.getDayNumber(arr[8]);
+			r.dallasTime = SupportTime.parseTimeHHmm(arr[9]);
 			r.shipDay = SupportTime.getDayNumber(arr[10]);
+			r.shipTime = SupportTime.parseTimeHHmm(arr[11]);
 			r.delDay = SupportTime.getDayNumber(arr[12]);
 			r.delTimeFrom = SupportTime.parseTimeHHmm(arr[13]);
 			r.delTimeTo = SupportTime.parseTimeHHmm(arr[14]);
@@ -209,6 +220,20 @@ public class StoreScheduleDb {
 			}
 		}
 	}
+	private static String getDc(String userFile) {
+		int i = userFile.indexOf("_DC");
+		if (i == -1) {
+			return "";
+		}
+		else {
+			i += 5;
+			if (i < userFile.length()) {
+				String dc = userFile.substring(i-2, i);
+				return dc;
+			}
+			else { return "";}
+		}
+	}
 	private static void set(CallableStatement st, Row r, String cmdty,
 		String userFile, boolean hday, int[] rowCount) throws Exception {
 		//log.info(r.storeN +", "+r.cmdty+", "+r.shipDay);
@@ -218,29 +243,35 @@ public class StoreScheduleDb {
 		st.setString(3, r.city);
 		st.setString(4, r.province);
 		st.setString(5, r.postCode);
-		st.setString(6, r.cmdty);
-		st.setInt(7, r.shipDay);
-		st.setInt(8, r.delDay);
-		st.setTime(9, r.delTimeFrom);
-		st.setTime(10, r.delTimeTo);
+		st.setString(6, getDc(userFile));
+		st.setString(7, r.cmdty);
+		st.setInt(8, r.shipDay);
+		st.setInt(9, r.delDay);
+		st.setTime(10, r.delTimeFrom);
+		st.setTime(11, r.delTimeTo);
+		st.setInt(14, r.polDay);
+		st.setTime(16, r.polTime);
+		st.setInt(17, r.dallasDay);
+		st.setTime(19, r.dallasTime);
+		st.setTime(20, r.shipTime);
 		if (hday) {
-			st.setInt(11, 0);
-			st.setString(12, r.description);
-			st.setInt(13, r.dallasDay);
-			st.setDate(14, r.dallasDate);
-			st.setDate(15, r.shipDate);
-			st.setDate(16, r.delDate);
+			st.setInt(12, 0);
+			st.setString(13, r.description);
+			st.setDate(15, r.polDate);
+			st.setDate(18, r.dallasDate);
+			st.setDate(21, r.shipDate);
+			st.setDate(22, r.delDate);
 		}
 		else {
-			st.setInt(11, r.delWeek);
-			st.setNull(12, Types.VARCHAR);
-			st.setNull(13, Types.INTEGER);
-			st.setNull(14, Types.DATE);
+			st.setInt(12, r.delWeek);
+			st.setNull(13, Types.VARCHAR);
 			st.setNull(15, Types.DATE);
-			st.setNull(16, Types.DATE);
+			st.setNull(18, Types.DATE);
+			st.setNull(21, Types.DATE);
+			st.setNull(22, Types.DATE);
 		}
-		st.setString(17, r.storeStatus);
-		st.setString(18, userFile);
+		st.setString(23, r.storeStatus);
+		st.setString(24, userFile);
 		st.addBatch();
 		rowCount[0]++;
 		if (rowCount[0] == 1000) {
@@ -250,10 +281,10 @@ public class StoreScheduleDb {
 	}
 
 	private static class Row {
-		private int storeN, dallasDay, shipDay, delDay, delWeek;
+		private int storeN, polDay, dallasDay, shipDay, delDay, delWeek;
 		private String cmdty, address, city, province, postCode, description, storeStatus;
-		private Time delTimeFrom, delTimeTo;
-		private Date dallasDate, shipDate, delDate;
+		private Time delTimeFrom, delTimeTo, polTime, dallasTime, shipTime;
+		private Date polDate, dallasDate, shipDate, delDate;
 	}
 	private static class XslExtFilter implements FileFilter {
 

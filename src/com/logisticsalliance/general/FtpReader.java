@@ -36,6 +36,8 @@ public class FtpReader {
 	}
 	private static int read1(FtpManager fm, File dir, EmailSent es, int trials) {
 		FTPClient fc = new FTPClient();
+		//fc.setTrustManager(TrustManagerUtils.getValidateServerCertificateTrustManager());
+		//fc.setTrustManager(TrustManagerUtils.getAcceptAllTrustManager());
 		try {
 			fc.connect(fm.host); checkReply(fc);
 			fc.login(fm.user, fm.password); checkReply(fc);

@@ -85,6 +85,7 @@ CREATE TABLE la.hrn_order (
 CREATE TABLE la.hstore_schedule (
   n BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
   store_n INT NOT NULL,
+  dc CHAR(2) DEFAULT '' NOT NULL,
   cmdty VARCHAR(4) NOT NULL,
   ship_day INT NOT NULL,
   del_day INT NOT NULL,
@@ -92,8 +93,13 @@ CREATE TABLE la.hstore_schedule (
   del_time_to TIME NOT NULL,
   del_week INT NOT NULL,
   description VARCHAR(50),
-  dallas_day INT,
+  pol_day INT NOT NULL,
+  pol_date DATE,
+  pol_time TIME NOT NULL,
+  dallas_day INT NOT NULL,
   dallas_date DATE,
+  dallas_time TIME NOT NULL,
+  ship_time TIME NOT NULL,
   ship_date DATE,
   del_date DATE,
   in_use CHAR(1) DEFAULT '1',
@@ -167,13 +173,15 @@ CREATE TABLE la.huser (
 ) ;
 
 CREATE TABLE la.henvr (
-  time_store_notified TIMESTAMP,time_store_alerted TIMESTAMP,daily_rn_files VARCHAR(1024)
+  time_store_notified TIMESTAMP,time_store_alerted TIMESTAMP,daily_rn_files VARCHAR(8000)
 ) ;
 
 CREATE UNIQUE INDEX la.hship_data_key ON la.hship_data (store_n,cmdty,ship_date,dc,add_key) ;
 CREATE UNIQUE INDEX la.hrn_order_key ON la.hrn_order (ship_n,order_n) ;
 CREATE UNIQUE INDEX la.hstore_schedule_key ON la.hstore_schedule (store_n,cmdty,ship_day,ship_date) ;
 CREATE INDEX la.hstore_schedule_holiday ON la.hstore_schedule (store_n,cmdty,ship_date) ;
+CREATE INDEX la.hstore_schedule_dc_ship_day ON la.hstore_schedule (dc,ship_day,cmdty) ;
+CREATE INDEX la.hstore_schedule_dc_ship_date ON la.hstore_schedule (dc,ship_date,cmdty) ;
 CREATE INDEX la.hstore_schedule_in_use ON la.hstore_schedule (in_use) ;
 CREATE UNIQUE INDEX la.hstore_profile_user_id ON la.hstore_profile (user_id) ;
 CREATE UNIQUE INDEX la.hstore_alert_key ON la.hstore_alert (store_n,comm_n) ;
@@ -217,14 +225,24 @@ alter table la.hstore_profile add column user_pwd VARCHAR(20) DEFAULT '' NOT NUL
 alter table la.hstore_profile add column pwd_time TIMESTAMP;
 alter table la.hstore_profile add column login_failures INT DEFAULT 0 NOT NULL;
 alter table la.henvr add column time_store_alerted TIMESTAMP;
+alter table la.henvr add column daily_rn_files VARCHAR(8000);
 
+alter table la.hstore_schedule add column pol_day INT DEFAULT 0 NOT NULL;
+alter table la.hstore_schedule add column pol_date DATE;
+alter table la.hstore_schedule add column pol_time TIME DEFAULT '00:00:00' NOT NULL;
+alter table la.hstore_schedule add column dallas_time TIME DEFAULT '00:00:00' NOT NULL;
+alter table la.hstore_schedule add column ship_time TIME DEFAULT '00:00:00' NOT NULL;
+alter table la.hstore_schedule add column dc CHAR(2) DEFAULT '' NOT NULL;
+
+alter table la.hstore_schedule drop column ship_time;
 alter table la.hship_data drop column tt_table;
+alter table la.henvr drop column daily_rn_files;
 drop index la.hship_data_key;
 
+REORG TABLE la.hstore_schedule;
 REORG TABLE la.hship_data;
 REORG TABLE la.hstore_profile;
 REORG TABLE la.henvr;
-
 
 update la.hstore_profile set user_id=CAST(n AS VARCHAR(4));
 UPDATE la.hship_data SET unsent_note=NULL;

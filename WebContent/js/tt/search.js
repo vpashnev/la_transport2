@@ -137,6 +137,6 @@ function drop(ev) {
 	d = document.getElementById(id);
 	dx = ev.clientX + dToX;
 	dy = ev.clientY + dToY;
-	d.style.left = dx;
-	d.style.top = dy;
+	d.parentNode.style.left = dx;
+	d.parentNode.style.top = dy;
 }

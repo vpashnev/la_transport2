@@ -106,8 +106,9 @@ position:fixed;top:72px;left:338px;
 <tbody id="table"></tbody>
 </table>
 </div>
-<div id="info" draggable="true" ondragstart="drag(event)" style="visibility:hidden">
-<div style="height:32px;background:red;padding-top:6px;
+<div id="info" style="visibility:hidden">
+<div id="infoTop" ondragstart="drag(event)" draggable="true"
+  style="height:32px;background:red;padding-top:6px;
   border-top-left-radius:5px;border-top-right-radius:5px;">
 <span><button type="button" class="browseBut" onclick="selPriorRow();">Prior</button></span>
 <button type="button" class="browseBut" onclick="selNextRow();">Next</button><span></span>
