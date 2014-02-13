@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Date;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import com.logisticsalliance.general.CommonConstants;
@@ -25,8 +26,8 @@ public class AppModel {
 		fromDate1 = "fromDate", toDate1 = "toDate", delDates1 = "delDates";
 	static final String[] cmdty1 = {
 		CommonConstants.DCB, CommonConstants.DCV, CommonConstants.DCX,
-		CommonConstants.DCF, CommonConstants.RX,
-		CommonConstants.EVT, CommonConstants.EVT2
+		CommonConstants.DCF, CommonConstants.EVT, CommonConstants.EVT2,
+		CommonConstants.RX
 	};
 
 	/**
@@ -52,7 +53,7 @@ public class AppModel {
 		appProps.load(new FileReader(new File(appDir, "app.properties")));
 
 		Properties inputProps = new Properties();
-		appProps.load(new FileReader(new File(appDir, "tp_input.properties")));
+		inputProps.load(new FileReader(new File(appDir, "tp_input.properties")));
 		SearchInput si = getInput(inputProps);
 
 		String dbPwd = null;
@@ -60,26 +61,43 @@ public class AppModel {
 			dbPwd = args[1];
 		}
 		SupportGeneral.makeDataSource1I5(appProps, dbPwd, null);
-		FillGridDB.process(si);
+		for (int i = 0; i <= si.toDay-si.fromDay; i++) {
+			ArrayList<ShipmentRow> al = FillGridDB.process(si, i);
+			SpreadSheet.fill(al);
+		}
 	}
 
 	private static SearchInput getInput(Properties inputProps) throws ParseException {
 		SearchInput si = new SearchInput();
+		String v = inputProps.getProperty(fromDate1);
+		si.fromDate = new Date(SupportTime.dd_MM_yyyy_Format.parse(v).getTime());
+		si.fromDay = SupportTime.getDayOfWeek(si.fromDate);
+		v = inputProps.getProperty(toDate1);
+		si.toDate = new Date(SupportTime.dd_MM_yyyy_Format.parse(v).getTime());
+		si.toDay = SupportTime.getDayOfWeek(si.toDate);
+		if (si.fromDay > si.toDay) {
+			throw new IllegalArgumentException("Illegal date range");
+		}
 		si.dc = inputProps.getProperty(dc1);
 		si.carrier = inputProps.getProperty(carrier1);
 		si.delDates = inputProps.getProperty(delDates1) != null;
-		String v = inputProps.getProperty(fromDate1);
-		si.fromDate = new Date(SupportTime.dd_MM_yyyy_Format.parse(v).getTime());
-		v = inputProps.getProperty(toDate1);
-		si.toDate = new Date(SupportTime.dd_MM_yyyy_Format.parse(v).getTime());
 		si.cmdty = getCmdty(inputProps);
 		return si;
 	}
 	private static boolean[] getCmdty(Properties inputProps) {
 		boolean[] arr = new boolean[cmdty1.length];
+		boolean has = false;
 		for (int i = 0; i != arr.length; i++) {
 			String v = inputProps.getProperty(cmdty1[i]);
-			arr[i] = v != null;
+			arr[i] = v != null && !v.isEmpty();
+			if (!has && arr[i]) {
+				has = true;
+			}
+		}
+		if (!has) {
+			for (int i = 0; i != arr.length; i++) {
+				arr[i] = true;
+			}
 		}
 		return arr;
 	}
