@@ -45,7 +45,7 @@ public class TtTableDb {
 
 		SQL_SEL_DELIVERIES =
 		"SELECT DISTINCT " +
-		"sd.store_n, sd.cmdty, sd.del_date, route_n, stop_n, dc, arrival_time, service_time," +
+		"sd.store_n, sd.cmdty, sd.del_date, route_n, stop_n, sd.dc, arrival_time, service_time," +
 		"order_n, pallets, del_time_from, del_time_to, del_carrier_id, sd.first_user_file," +
 		"sd.next_user_file, rno.first_user_file, rno.next_user_file, sts.first_user_file," +
 		"sts.next_user_file, sts.ship_date " +
@@ -65,7 +65,7 @@ public class TtTableDb {
 		"sd.ship_date=? AND rno.lw NOT IN (" +CommonConstants.RX_LW+") "+
 
 		"ORDER BY " +
-		"sd.store_n,sd.cmdty,dc";
+		"sd.store_n,sd.cmdty,sd.dc";
 
 	private static ConnectFactory connectFactoryI5;
 

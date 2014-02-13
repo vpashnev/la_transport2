@@ -36,7 +36,7 @@ public class NotificationDb extends Notify1 {
 
 	private static String SQL_SEL_DELIVERIES =
 		"SELECT " +
-		"sd.store_n, sd.cmdty, dc, sd.ship_date, sd.del_date, route_n, arrival_time, service_time," +
+		"sd.store_n, sd.cmdty, sd.dc, sd.ship_date, sd.del_date, route_n, arrival_time, service_time," +
 		"add_key, order_n, pallets, del_time_from, del_time_to, province, del_carrier," +
 		"sd.first_user_file, sd.next_user_file, sd.n, rno.first_user_file, rno.next_user_file," +
 		"sts.first_user_file, sts.next_user_file, sts.ship_date " +

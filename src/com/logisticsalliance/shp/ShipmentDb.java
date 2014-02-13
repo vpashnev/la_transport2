@@ -128,7 +128,7 @@ public class ShipmentDb {
 
 		SQL_SEL_SHP =
 		"SELECT " +
-		"sd.store_n, sd.cmdty, sd.del_date, route_n, stop_n, dc," +
+		"sd.store_n, sd.cmdty, sd.del_date, route_n, stop_n, sd.dc," +
 		"dc_depart_time, prev_distance, prev_travel_time, arrival_time, service_time," +
 		"total_service_time, total_travel_time," +
 		"order_n, pallets, units, weight, cube, del_time_from, del_time_to," +
