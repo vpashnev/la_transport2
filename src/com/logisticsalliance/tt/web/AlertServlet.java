@@ -119,9 +119,13 @@ public class AlertServlet extends HServlet {
 			d[0].checkMsg = null;
 		}
 		else if (post) {
+			Alert[] d0 = new Alert[d.length];
+			for (int i = 0; i != d.length; i++) {
+				d0[i] = (Alert)d[i].clone();
+			}
 			setData(d, req);
 			AlertDB.update(a.store, d);
-			TestComm.send(LoginServlet.emailSent, d, a.store);
+			TestComm.send(LoginServlet.emailSent, d0, d, a.store);
 			d[0].checkMsg = check;
 		}
 		else { d[0].checkMsg = null;}

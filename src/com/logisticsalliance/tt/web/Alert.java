@@ -9,6 +9,16 @@ public class Alert implements Serializable {
 	boolean[] cmdty = new boolean[6];
 	String checkMsg;
 
+	public Object clone() {
+		Alert a = new Alert();
+		for (int i = 0; i != comm.length; i++) {
+			a.comm[i] = comm[i];
+		}
+		for (int i = 0; i != cmdty.length; i++) {
+			a.cmdty[i] = cmdty[i];
+		}
+		return a;
+	}
 	public String[] getComm() {
 		return comm;
 	}

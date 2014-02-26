@@ -125,9 +125,8 @@ public class AlertMail {
 			cb.append("\r\nDelivery : ");
 			cb.append(tn.delDate1);
 			cb.append(" - ");
-			cb.append("\r\n\r\n");
 			cb.append(cmdty);
-			cb.append("\r\n");
+			cb.append("\r\n\r\n");
 			cb.append(ai.reason);
 			cb.append(" :\r\n");
 			cb.append(ai.comment);
@@ -136,6 +135,7 @@ public class AlertMail {
 			cb = new StringBuilder(1024);
 			cb.append("<html>\n");
 			cb.append("<body>\n");
+			cb.append("<p>\n");//
 			cb.append("<b>***NOTE: A French version of this message follows the English version below***</b><br>\n");
 			cb.append("<b>***NOTE: Une version français de ce message suit la version anglaise ci-dessous***</b>\n");
 			cb.append("</p>\n");

@@ -61,7 +61,7 @@ public class SupportGeneral {
 		cfI5.setDataSource(dsi);
 		return cfI5;
 	}
-	static String getValue(Properties props, String propName) {
+	public static String getValue(Properties props, String propName) {
 		String v = props.getProperty(propName);
 		if (v != null) {
 			v = v.trim();

@@ -21,7 +21,7 @@ class ScheduleDB {
 	"SELECT del_date,del_time_from,del_time_to,ship_date,del_week,cmdty,description " +
 	"FROM la.hstore_schedule " +
 	"WHERE store_n=?" +
-	"ORDER BY del_date";
+	"ORDER BY del_date DESC";
 
 	static ArrayList<DelSchedule> select(int store, int type) throws Exception {
 		ArrayList<DelSchedule> al = new ArrayList<DelSchedule>();

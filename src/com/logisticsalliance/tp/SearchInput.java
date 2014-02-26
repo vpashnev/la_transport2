@@ -18,7 +18,7 @@ class SearchInput implements Serializable {
 	String dc, carrier;
 	int fromDay, toDay;
 	Date fromDate, toDate;
-	boolean delDates;
+	boolean delDates, holidays;
 	boolean[] cmdty;
 
 	private void addCmdty(StringBuilder b, int i, String c) {

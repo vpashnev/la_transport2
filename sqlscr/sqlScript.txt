@@ -15,6 +15,8 @@ CREATE TABLE la.hstore_profile (
   first_user_file VARCHAR(50) NOT NULL,
   next_user_file VARCHAR(50) NOT NULL,
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT fk_hstore_carrier_id FOREIGN KEY (carrier_id)
+  REFERENCES la.hcarrier (id),
   CONSTRAINT chk_hstore_profile_n CHECK (n>0),
   CONSTRAINT pk_hstore_profile PRIMARY KEY (n)
 ) ;
@@ -165,6 +167,32 @@ CREATE TABLE la.hcarrier_schedule1 (
 ) ;
 CREATE UNIQUE INDEX la.hcarrier_schedule1_key ON la.hcarrier_schedule1 (store_n,del_day,cmdty,del_carrier_id) ;
 
+CREATE TABLE la.hstore_carrier (
+  n BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
+  store_n INT NOT NULL,
+  dc CHAR(2) NOT NULL,
+  group1 VARCHAR(16),
+  cmdty VARCHAR(4) NOT NULL,
+  carrier_id VARCHAR(8),
+  carrier_type VARCHAR(3),
+  aroute_per_group CHAR(1),
+  ship_day INT,
+  holidays INT,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+--  CONSTRAINT fk_hstore_dc_car_store_n FOREIGN KEY (store_n)
+--  REFERENCES la.hstore_profile (n),
+--  CONSTRAINT fk_hstore_dc_car_carrier_id FOREIGN KEY (carrier_id)
+--  REFERENCES la.hcarrier (id),
+  CONSTRAINT pk_hstore_schedule PRIMARY KEY (n)
+) ;
+CREATE INDEX la.hstore_carrier_dcs ON la.hstore_carrier (dc,cmdty,store_n,ship_day) ;
+
+CREATE TABLE la.hholidays (
+  name VARCHAR(30) NOT NULL,
+  week_day INT NOT NULL,
+  CONSTRAINT pk_hholidays PRIMARY KEY (name)
+) ;
+
 CREATE TABLE la.huser (
   id VARCHAR(16) NOT NULL,
   pwd VARCHAR(16) DEFAULT '' NOT NULL,
@@ -190,6 +218,8 @@ drop procedure la.update_shipment_data;
 drop procedure la.update_scheduled_delivery;
 drop procedure la.clean_evt;
 drop procedure la.update_alert;
+drop table la.hholidays;
+drop table la.hstore_carrier;
 drop table la.hstore_schedule;
 drop table la.hstore_alert;
 drop table la.hrn_order;
@@ -216,7 +246,7 @@ db2 DROP DATABASE myDbase
 db2 UPDATE db cfg for mydbase using LOGFILSIZ 20000
 
 db2 BACKUP DATABASE mydbase ON ALL DBPARTITIONNUMS TO c:\db2\backup
-db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20140213094456 INTO mydbase REPLACE EXISTING
+db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20140221085431 INTO mydbase REPLACE EXISTING
 
 alter table la.hship_data add column add_key VARCHAR(4) DEFAULT ' ' NOT NULL;
 alter table la.hship_data add column unsent_note CHAR(1) DEFAULT '1';
@@ -226,6 +256,9 @@ alter table la.hstore_profile add column pwd_time TIMESTAMP;
 alter table la.hstore_profile add column login_failures INT DEFAULT 0 NOT NULL;
 alter table la.henvr add column time_store_alerted TIMESTAMP;
 alter table la.henvr add column daily_rn_files VARCHAR(8000);
+alter table la.hstore_profile alter column post_code SET DEFAULT '';
+alter table la.hstore_profile alter column post_code SET NOT NULL;
+alter table la.hship_data alter column add_key SET DEFAULT '';
 
 alter table la.hstore_schedule add column pol_day INT DEFAULT 0 NOT NULL;
 alter table la.hstore_schedule add column pol_date DATE;
@@ -234,14 +267,17 @@ alter table la.hstore_schedule add column dallas_time TIME DEFAULT '00:00:00' NO
 alter table la.hstore_schedule add column ship_time TIME DEFAULT '00:00:00' NOT NULL;
 alter table la.hstore_schedule add column dc CHAR(2) DEFAULT '' NOT NULL;
 
+alter table la.hship_data alter column add_key SET DEFAULT '';
+
 alter table la.hstore_schedule drop column ship_time;
 alter table la.hship_data drop column tt_table;
 alter table la.henvr drop column daily_rn_files;
 drop index la.hship_data_key;
 
+REORG TABLE la.hcarrier;
 REORG TABLE la.hstore_schedule;
-REORG TABLE la.hship_data;
 REORG TABLE la.hstore_profile;
+REORG TABLE la.hship_data;
 REORG TABLE la.henvr;
 
 update la.hstore_profile set user_id=CAST(n AS VARCHAR(4));

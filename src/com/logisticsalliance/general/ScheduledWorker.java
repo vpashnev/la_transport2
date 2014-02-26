@@ -110,7 +110,7 @@ public class ScheduledWorker implements Runnable {
 		ShipmentDb.setConnectFactoryI5(cfI5);
 		TtTableDb.setConnectFactoryI5(cfI5);
 		SendAlertDb.setConnectFactoryI5(cfI5);
-		UserAuth.process(appDir, ksPassword, 3000, cf);
+		if (!UserAuth.ok) { UserAuth.process(appDir, ksPassword, 3000, cf);}
 		while (!stopped) {
 			System.out.println("Data in process..., starting at "+
 				SupportTime.dd_MM_yyyy_HH_mm_Format.format(new java.util.Date()));

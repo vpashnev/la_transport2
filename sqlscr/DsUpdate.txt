@@ -42,3 +42,12 @@ SELECT dallas_date,store_n,ship_date,cmdty,del_date FROM LA.HSTORE_SCHEDULE WHER
 
 SELECT store_n,ship_day,cmdty,del_day,del_week FROM LA.HSTORE_SCHEDULE WHERE store_n = 2252 AND cmdty = 'DCX' AND ship_date IS NULL;
       2252           5 DCX             4           1
+
+
+SELECT del_date,del_time_from,del_time_to,ship_date,del_week,cmdty,description
+FROM la.hstore_schedule
+WHERE cmdty='RX' and ship_date is not null
+ORDER BY store_n,del_date;
+db2 EXPORT TO c:\\dev\\temp\\results.csv OF DEL MODIFIED BY NOCHARDEL SELECT store_n,del_day+1,del_time_from,del_time_to,ship_day+1,del_week+1,cmdty FROM la.hstore_schedule WHERE cmdty='RX' and ship_date is null ORDER BY store_n,del_day
+
+

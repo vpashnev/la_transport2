@@ -46,6 +46,11 @@ public class DsKey implements Serializable {
 		day = v;
 	}
 
+	public static String toCmdty(String v) {
+		if (v == null) { return null;}
+		return v.equals(CommonConstants.DCB) || v.equals(CommonConstants.DCV) ?
+			CommonConstants.FS : v;
+	}
 	/**
 	 * Returns the hash code of the string representation of this object as
 	 * {@code toString().hashCode()}

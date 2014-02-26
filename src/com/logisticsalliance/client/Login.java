@@ -2,13 +2,7 @@ package com.logisticsalliance.client;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.io.File;
-import java.io.ObjectInputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -16,6 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import com.logisticsalliance.net.SupportNet;
 import com.logisticsalliance.sqla.ConnectFactory;
 import com.logisticsalliance.ui.swg.SupportUI;
 
@@ -23,23 +18,6 @@ public class Login {
 
 	static ConnectFactory connectFactory;
 
-	private static ConnectFactory getConnectFactory(String tsDir,
-		String addr, String[] login) throws Exception {
-		File f = new File(tsDir, "la_truststore");
-		System.setProperty("javax.net.ssl.trustStore", f.getPath());  
-		SSLSocketFactory sf = (SSLSocketFactory)SSLSocketFactory.getDefault();
-		SSLSocket socket = (SSLSocket)sf.createSocket(addr, 3000);
-
-		PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-		out.println(login[0]+' '+login[1]);
-		out.flush();
-
-		ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-		Object v = in.readObject();
-
-		socket.close();
-		return (ConnectFactory)v;
-	}
 	/**
 	 * @param args
 	 */
@@ -50,7 +28,7 @@ public class Login {
 		}
 		SupportUI.setDefaultFontSize(14);
 		showDialog(login);
-		connectFactory = getConnectFactory(args[0], args[1], login);
+		connectFactory = SupportNet.getConnectFactory(args[0], args[1], login);
 		connectFactory.getConnection().close();
 		JOptionPane.showMessageDialog(null, "SSL and database connections successfull !");
 		System.exit(0);

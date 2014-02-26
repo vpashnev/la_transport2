@@ -1,5 +1,7 @@
 package com.logisticsalliance.tt.web;
 
+import java.util.Arrays;
+
 import javax.mail.Session;
 
 import org.apache.log4j.Logger;
@@ -10,15 +12,17 @@ import com.logisticsalliance.general.ScheduledWorker.EmailSent;
 public class TestComm {
 
 	private static Logger log = Logger.getLogger(TestComm.class);
-	private static final String subject = "Shoppers Drug Mart - Store # ", msg = "Congratulations!\r\n" +
+	private static final String subject = "Shoppers Drug Mart - Store # ",
+		msg = "Congratulations!\r\n" +
 		"You have successfully registered to receive alerts via Track and Trace portal.";
 	
-	static void send(final EmailSent es, Alert[] alerts, final int store) {
+	static void send(final EmailSent es, Alert[] oldAlerts, Alert[] newAlerts, final int store) {
 		StringBuilder b = new StringBuilder(200);
-		for (int n = 0; n != alerts.length; n++) {
-			Alert a = alerts[n];
+		for (int n = 0; n != newAlerts.length; n++) {
+			Alert a = newAlerts[n], a0 = oldAlerts[n];
 			for (int i = 0; i != a.comm.length; i++) {
-				if (!a.comm[i].isEmpty()) {
+				if (!a.comm[i].isEmpty() && (!a.comm[i].equals(a0.comm[i]) ||
+					!Arrays.equals(a.cmdty, a0.cmdty))) {
 					b.append(a.comm[i]);
 					b.append(',');
 				}
