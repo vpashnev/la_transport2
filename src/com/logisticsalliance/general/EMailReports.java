@@ -8,8 +8,8 @@ import javax.mail.Session;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
-import com.logisticsalliance.io.SupportFile;
+import com.glossium.io.SupportFile;
+import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 
 /**
  * This class sends e-mails with the application reports.
@@ -46,7 +46,7 @@ public class EMailReports {
 		b.append("<br>Total : "+sz);
 		return b.toString();
 	}
-	String sendRnFileList(EmailSent es) throws Exception {
+	String sendRnFileList(EmailSent1 es) throws Exception {
 		String m = getRnFileListMsg();
 		if (es.emailUnsent == null || es.emailSentOnlyToBbc != null) {
 			int[] trials = {0};
@@ -63,7 +63,7 @@ public class EMailReports {
 		}
 		return m;
 	}
-	void send(EmailSent es) throws Exception {
+	void send(EmailSent1 es) throws Exception {
 		SupportFile.zip(zip, files);
 		if (es.emailUnsent == null || es.emailSentOnlyToBbc != null) {
 			int[] trials = {0};

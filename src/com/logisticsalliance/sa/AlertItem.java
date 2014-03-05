@@ -8,7 +8,7 @@ import com.logisticsalliance.util.SupportTime;
 public class AlertItem implements Serializable, Comparable<AlertItem> {
 	private static final long serialVersionUID = 10L;
 
-	public String status, reasonID, reason, comment;
+	public String status, reasonID, reason, reasonEn, comment;
 	boolean exception;
 	Timestamp ts;
 
@@ -18,7 +18,7 @@ public class AlertItem implements Serializable, Comparable<AlertItem> {
 		b.append(' ');
 		b.append(reasonID);
 		if (descr) {
-			b.append('('); b.append(reason);
+			b.append('('); b.append(reasonEn);
 			b.append(')'); b.append(':');
 		}
 		b.append(' ');

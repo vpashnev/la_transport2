@@ -10,7 +10,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 import org.apache.log4j.Logger;
 
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
+import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 import com.logisticsalliance.general.ScheduledWorker.FtpManager;
 import com.logisticsalliance.util.SupportTime;
 
@@ -24,7 +24,7 @@ public class FtpReader {
 
 	private static Logger log = Logger.getLogger(FtpReader.class);
 
-	public static void read(FtpManager fm, File dir, EmailSent es) throws InterruptedException {
+	public static void read(FtpManager fm, File dir, EmailSent1 es) throws InterruptedException {
 		int trials = read1(fm, dir, es, 0);
 		while (trials > 0 && trials < 20) {
 			Thread.sleep(20000);
@@ -34,7 +34,7 @@ public class FtpReader {
 			EMailEmergency.send(es, "Failed to read FTP road-net files");
 		}
 	}
-	private static int read1(FtpManager fm, File dir, EmailSent es, int trials) {
+	private static int read1(FtpManager fm, File dir, EmailSent1 es, int trials) {
 		FTPClient fc = new FTPClient();
 		//fc.setTrustManager(TrustManagerUtils.getValidateServerCertificateTrustManager());
 		//fc.setTrustManager(TrustManagerUtils.getAcceptAllTrustManager());

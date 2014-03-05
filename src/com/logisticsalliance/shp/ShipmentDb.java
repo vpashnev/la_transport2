@@ -13,13 +13,13 @@ import java.util.Iterator;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.log4j.Logger;
 
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.sqla.ConnectFactory1;
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
 import com.logisticsalliance.general.EMailEmergency;
 import com.logisticsalliance.general.ScheduledWorker;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.sqla.ConnectFactory1;
+import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 import com.logisticsalliance.text.TBuilder;
 import com.logisticsalliance.util.SupportTime;
 
@@ -173,7 +173,7 @@ public class ShipmentDb {
 		return trials;
 	}
 	public static void process(final Date shipDate, final String ftpSrv,
-		EmailSent es) throws InterruptedException {
+		EmailSent1 es) throws InterruptedException {
 		trials++;
 		Thread t = new Thread() {
 			@Override

@@ -4,7 +4,7 @@ import javax.mail.Session;
 
 import org.apache.log4j.Logger;
 
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
+import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 import com.logisticsalliance.util.SupportTime;
 
 /**
@@ -17,10 +17,10 @@ public class EMailEmergency implements Runnable {
 
 	private static Logger log = Logger.getLogger(EMailEmergency.class);
 
-	private EmailSent emailSent;
+	private EmailSent1 emailSent1;
 
-	EMailEmergency(EmailSent es) {
-		emailSent = es;
+	EMailEmergency(EmailSent1 es) {
+		emailSent1 = es;
 	}
 
 	@Override
@@ -28,12 +28,12 @@ public class EMailEmergency implements Runnable {
 		try {
 			long t = SupportTime.HOUR<<1;
 			Thread.sleep(t);
-			send(emailSent, "Application has no progress");
+			send(emailSent1, "Application has no progress");
 		}
 		catch (InterruptedException e) { }
 	}
 
-	public static void send(EmailSent es, String msg) throws InterruptedException {
+	public static void send(EmailSent1 es, String msg) throws InterruptedException {
 		if (es.emailUnsent == null || es.emailSentOnlyToBbc != null) {
 			int[] trials = {0};
 			Session s = EMailSender.send(null, es, es.emergencyTo,

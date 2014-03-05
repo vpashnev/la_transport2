@@ -5,8 +5,8 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.Calendar;
 
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.sqla.ConnectFactory1;
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.sqla.ConnectFactory1;
 import com.logisticsalliance.util.SupportTime;
 
 public class CleanDb {

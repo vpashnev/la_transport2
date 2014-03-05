@@ -5,8 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Hashtable;
 
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.sqla.ConnectFactory1;
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.sqla.ConnectFactory1;
 
 class UserDB {
 

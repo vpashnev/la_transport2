@@ -125,7 +125,7 @@ public class AlertServlet extends HServlet {
 			}
 			setData(d, req);
 			AlertDB.update(a.store, d);
-			TestComm.send(LoginServlet.emailSent, d0, d, a.store);
+			TestComm.send(LoginServlet.emailSent1, d0, d, a.store);
 			d[0].checkMsg = check;
 		}
 		else { d[0].checkMsg = null;}

@@ -13,12 +13,12 @@ import javax.mail.Session;
 
 import org.apache.log4j.Logger;
 
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.sqla.ConnectFactory1;
+import com.glossium.sqla.SqlSupport;
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.ScheduledWorker.EmailSent;
 import com.logisticsalliance.sn.Notify1;
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.sqla.ConnectFactory1;
-import com.logisticsalliance.sqla.SqlSupport;
 import com.logisticsalliance.tt.web.Alert;
 import com.logisticsalliance.tt.web.AlertDB;
 import com.logisticsalliance.util.SupportTime;
@@ -37,12 +37,12 @@ public class SendAlertDb extends Notify1 {
 	private static String
 	SQL_SEL_ALERT =
 	"SELECT dvstore#,dvshpd,dvdlvd,dvdlvt,dvsrvtime,dvdc,dvroute,dvstop#,dvcom," +
-	"dvpallets,dvetato,dvetatc,dvcar,mvnarvd,mvnarvt,mvstsd,mvreexc,tmdsc,mvtext,mvcrtz " +
-	"FROM OS61LYDTA.OSPDLVS, " +
-	"OS61LYDTA.SMPMOVM LEFT JOIN OS61LYDTA.##PTABM ON mvreexc = tment " +
+	"dvpallets,dvetato,dvetatc,dvcar,mvnarvd,mvnarvt,mvstsd,mvreexc,tmdta,mvtext,mvcrtz " +
+	"FROM OS61LXDTA.OSPDLVS, " +
+	"OS61LXDTA.SMPMOVM LEFT JOIN OS61LXDTA.##PTABM ON tmnam='*REASEXC' AND mvreexc = tment " +
 	"WHERE dvstore# = mvstore# AND dvshpd=mvshpd AND dvcom=mvcom AND dvdc=mvdc AND " +
 	"mvcrtz>=? AND mvcrtz<? " +
-//	"DVCHGZ NOT IN (SELECT alts FROM OS61LYDTA.OSPALERTS) " +
+//	"DVCHGZ NOT IN (SELECT alts FROM OS61LXDTA.OSPALERTS) " +
 	"ORDER BY 1, 3 DESC, 11 DESC, 4 DESC";
 
 	private final static String
@@ -57,9 +57,7 @@ public class SendAlertDb extends Notify1 {
 	private static ConnectFactory connectFactoryI5;
 
 	public static void setConnectFactoryI5(ConnectFactory cf) {
-		ConnectFactory cf1 = new ConnectFactory(cf.getDriver(),
-			"jdbc:as400:tmsodev.nulogx.com;prompt=false", cf.getUser(), cf.getPassword());
-		connectFactoryI5 = cf1;
+		connectFactoryI5 = cf;
 	}
 
 	public static void process(final String alertStartingTime, final String alertEndingTime,
@@ -109,12 +107,12 @@ public class SendAlertDb extends Notify1 {
 			}
 			while (true) {
 				t0 = getNextTime(con1, SQL_SEL_ENVR, SQL_INS_ENVR,
-					t0, t1, nextTime, 150000, 0, log);
+					t0, t1, nextTime, 1500000, 0, log);
 				if (t0 == null) {
 					break;
 				}
 				// Select alerts
-				Timestamp t2 = new Timestamp(t0.getTime()-150000);// less 15 minutes
+				Timestamp t2 = new Timestamp(t0.getTime()-1500000);// less 15 minutes
 				s = select(selSt, t2, t0, s, es, alertStoresByPhone);
 				if (alertEndingTime == null) {
 					updateNotifyEndingTime(con1, SQL_UPD_ENVR, t0);
@@ -190,6 +188,8 @@ public class SendAlertDb extends Notify1 {
 		tn.arrivalTime = SupportTime.toHH_mm(rs.getString(4));
 		tn.serviceTime = SupportTime.toHH_mm(rs.getString(5));
 		tn.newDelDate = rs.getDate(14);
+		tn.newDelDate1 = tn.newDelDate == null ? "" :
+			SupportTime.dd_MM_yyyy_Format.format(tn.newDelDate);
 		String nt = rs.getString(15);
 		tn.newArrivalTime = nt == null ? "" : SupportTime.toHH_mm(nt);
 		tn.dc = rs.getString(6).trim();
@@ -238,6 +238,11 @@ public class SendAlertDb extends Notify1 {
 		if (!as.hset.contains(ai)) {
 			as.hset.add(ai);
 			ai.reason = trim(rs, 18);
+			int i = ai.reason.indexOf('/');
+			if (i < 0) {
+				ai.reasonEn = ai.reason;
+			}
+			else { ai.reasonEn = ai.reason.substring(0, i);}
 			ai.ts = rs.getTimestamp(20);
 			Date tsd = rs.getDate(20);
 			if (tsd == null) {

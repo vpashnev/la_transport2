@@ -24,10 +24,10 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.logisticsalliance.io.SupportFile;
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.sqla.ConnectFactory1;
-import com.logisticsalliance.sqla.SqlSupport;
+import com.glossium.io.SupportFile;
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.sqla.ConnectFactory1;
+import com.glossium.sqla.SqlSupport;
 import com.logisticsalliance.util.SupportTime;
 
 /**
@@ -58,13 +58,12 @@ public class ShipmentDataDb {
 	private static void checkLocalDCs(PreparedStatement st,
 		HashMap<Integer,String> localDcMap) throws Exception {
 		if (localDcMap == null) { return;}
-		String open = "OPEN";
 		ResultSet rs = st.executeQuery();
 		int i = 0, count = 0;
 		while (rs.next()) {
 			String s = rs.getString(1);
 			int n = rs.getInt(2);
-			if (!open.equalsIgnoreCase(s) || n > 9000 && n < 10000) {
+			if (!CommonConstants.OPEN.equals(s) || n > 9000 && n < 10000) {
 				continue;
 			}
 			String dc = rs.getString(3);
@@ -311,14 +310,19 @@ public class ShipmentDataDb {
 	private static String getCellValue(String line, String colName, RnColumns rnCols) {
 		RnColumns.ColPosition cp = rnCols.getPosition(colName);
 		int i1 = cp.getStartIndex(), i2 = cp.getEndIndex();
-		String v = line.substring(i1, i2).trim();
-		if (v.charAt(0) == '|') {
-			v = line.substring(i1+1, i2+1).trim();
+		try {
+			String v = line.substring(i1, i2).trim();
+			if (v.charAt(0) == '|') {
+				v = line.substring(i1+1, i2+1).trim();
+			}
+			else if (v.charAt(v.length()-1) == '|') {
+				v = line.substring(i1-1, i2-1).trim();
+			}
+			return v;
 		}
-		else if (v.charAt(v.length()-1) == '|') {
-			v = line.substring(i1-1, i2-1).trim();
+		catch (IndexOutOfBoundsException e) {
+			throw new IndexOutOfBoundsException(colName+": "+e.toString());
 		}
-		return v;
 	}
 	private static double getQty(String line, String colName, RnColumns rnCols) throws ParseException {
 		String v = getCellValue(line, colName, rnCols);

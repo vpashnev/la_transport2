@@ -6,9 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
+import com.glossium.sqla.ConnectFactory;
 import com.logisticsalliance.sa.SendAlertDb;
 import com.logisticsalliance.sa.TrackingNote;
-import com.logisticsalliance.sqla.ConnectFactory;
 import com.logisticsalliance.util.SupportTime;
 
 class SearchDB {
@@ -16,12 +16,12 @@ class SearchDB {
 	private static final String
 	SQL_EXP1 =
 	"SELECT 0,dvshpd,dvdlvd,dvdlvt,dvsrvtime,dvdc,dvroute,dvstop#,dvcom," +
-	"dvpallets,dvetato,dvetatc,dvcar,mvnarvd,mvnarvt,mvstsd,mvreexc,tmdsc,mvtext,mvcrtz " +
+	"dvpallets,dvetato,dvetatc,dvcar,mvnarvd,mvnarvt,mvstsd,mvreexc,tmdta,mvtext,mvcrtz " +
 	"FROM " +
-	"OS61LYDTA.OSPDLVS d " +
-	"LEFT OUTER JOIN OS61LYDTA.SMPMOVM m ON " +
+	"OS61LXDTA.OSPDLVS d " +
+	"LEFT OUTER JOIN OS61LXDTA.SMPMOVM m ON " +
 	"d.dvstore# = m.mvstore# AND d.dvshpd=m.mvshpd AND d.dvcom=m.mvcom AND d.dvdc=m.mvdc " +
-	"LEFT OUTER JOIN OS61LYDTA.##PTABM p ON m.mvreexc=p.tment " +
+	"LEFT OUTER JOIN OS61LXDTA.##PTABM p ON p.tmnam='*REASEXC' AND m.mvreexc=p.tment " +
 	"WHERE dvstore# = ? AND dvdlvd>? AND ",
 	SQL_EXP2 = "ORDER BY 3 DESC, 11 DESC, 4 DESC",
 

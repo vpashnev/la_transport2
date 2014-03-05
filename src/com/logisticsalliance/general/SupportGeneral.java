@@ -1,16 +1,19 @@
 package com.logisticsalliance.general;
 
+import java.io.File;
 import java.util.Properties;
 
+import org.apache.log4j.PropertyConfigurator;
+
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.sqla.ConnectFactory1;
 import com.ibm.as400.access.AS400JDBCConnectionPoolDataSource;
 import com.ibm.db2.jcc.DB2SimpleDataSource;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.sqla.ConnectFactory1;
+import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 
 public class SupportGeneral {
 
-	public static void addEmailAddress(StringBuilder b, EmailSent es, int storeN, String province) {
+	public static void addEmailAddress(StringBuilder b, EmailSent1 es, int storeN, String province) {
 		if (province != null && (province.trim().equalsIgnoreCase("PQ") ||
 			province.trim().equalsIgnoreCase("QC"))) {
 			String sn = String.valueOf(storeN);
@@ -68,5 +71,15 @@ public class SupportGeneral {
 			return v.isEmpty() ? null : v;
 		}
 		return null;
+	}
+	/**
+	 * 
+	 * Configures Log4j output for the property file in the given parent {@code folder}.
+	 * @param folder the folder, where property file is placed.
+	 * @param propFile the property file name
+	 */
+	public static void configureLog4j(File folder, String propFile) {
+		String fp = new File(folder, propFile).getPath();
+		PropertyConfigurator.configure(fp);
 	}
 }

@@ -34,8 +34,9 @@ public class SpreadSheet {
 		addHead(r, sh.createRow(3));
 	}
 	private static void addHead(FileWriter w) throws Exception {
-		w.write(','); w.write(','); w.write(','); w.write(','); w.write(',');
 		w.write(','); w.write(','); w.write(','); w.write(',');
+		w.write("Narc"); w.write(','); w.write(',');
+		w.write(','); w.write(','); w.write(','); w.write(','); w.write(',');
 		w.write("Poll"); w.write(','); w.write(',');
 		w.write("Ship");
 		w.write(','); w.write(','); w.write(','); w.write(',');
@@ -46,6 +47,8 @@ public class SpreadSheet {
 		w.write("Route"); w.write(',');
 		w.write("Stop"); w.write(',');
 		w.write("Store"); w.write(',');
+		w.write("Route"); w.write(',');
+		w.write("Stop"); w.write(',');
 		w.write("Group"); w.write(',');
 		w.write("City"); w.write(',');
 		w.write("Carrier"); w.write(',');
@@ -165,7 +168,7 @@ public class SpreadSheet {
 				if (!first && !r.sameGroup) {
 					w.write('\r'); w.write('\n');
 				}
-				String v = r.getRow();
+				String v = r.getCsvRow();
 				w.write(v);
 				if (first) {
 					first = false;

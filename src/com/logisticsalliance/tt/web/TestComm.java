@@ -7,7 +7,7 @@ import javax.mail.Session;
 import org.apache.log4j.Logger;
 
 import com.logisticsalliance.general.EMailSender;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
+import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 
 public class TestComm {
 
@@ -16,7 +16,7 @@ public class TestComm {
 		msg = "Congratulations!\r\n" +
 		"You have successfully registered to receive alerts via Track and Trace portal.";
 	
-	static void send(final EmailSent es, Alert[] oldAlerts, Alert[] newAlerts, final int store) {
+	static void send(final EmailSent1 es, Alert[] oldAlerts, Alert[] newAlerts, final int store) {
 		StringBuilder b = new StringBuilder(200);
 		for (int n = 0; n != newAlerts.length; n++) {
 			Alert a = newAlerts[n], a0 = oldAlerts[n];

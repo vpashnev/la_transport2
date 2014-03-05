@@ -10,9 +10,9 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-import com.logisticsalliance.net.SupportNet;
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.ui.swg.SupportUI;
+import com.glossium.net.SupportNet;
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.ui.swg.SupportUI;
 
 public class Login {
 

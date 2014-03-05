@@ -15,12 +15,12 @@ import javax.mail.Session;
 
 import org.apache.log4j.Logger;
 
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.sqla.ConnectFactory1;
+import com.glossium.sqla.SqlSupport;
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.sqla.ConnectFactory1;
-import com.logisticsalliance.sqla.SqlSupport;
+import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 import com.logisticsalliance.util.SupportTime;
 
 /**
@@ -76,7 +76,7 @@ public class NotificationDb extends Notify1 {
 		carriersNotFound.clear();
 	}
 	public static void process(String notifyStartingTime, String notifyEndingTime,
-		long timeAhead, EmailSent es, HashSet<Integer> storeSubset,
+		long timeAhead, EmailSent1 es, HashSet<Integer> storeSubset,
 		boolean onlyTestStoresToRpt, boolean sendDelayedNotesOff) throws Exception {
 		long timeAheadInMins = timeAhead/60000;
 		Timestamp t0 = null, t1 = null;
@@ -134,7 +134,7 @@ public class NotificationDb extends Notify1 {
 		return dn;
 	}
 	private static Session select(PreparedStatement st, PreparedStatement updUnsent,
-		Timestamp t0, Timestamp t, Session s, EmailSent es, HashSet<Integer> storeSubset,
+		Timestamp t0, Timestamp t, Session s, EmailSent1 es, HashSet<Integer> storeSubset,
 		boolean onlyTestStoresToRpt, boolean delay) throws Exception {
 		st.setTimestamp(1, t0);
 		st.setTimestamp(2, t);

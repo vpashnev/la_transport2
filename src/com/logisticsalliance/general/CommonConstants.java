@@ -7,6 +7,7 @@ public interface CommonConstants {
 		EVT = "EVT", EVT2 = "EVT2", RX = "RX", FS ="FS",
 		DC10 = "10", DC20 = "20", DC30 = "30", DC50 = "50", DC70 = "70", 
 		CCS = "CCS", DT = "DT", M_O = "M-O", LTL = "LTL",
+		OPEN = "OPEN", ACTIVE = "ACTIVE",
 		EXCE = "EXCE", EXCEPTION = "Exception",
 		N_A = "n/a";
 	int route8000 = 8000, route9600 = 9600,

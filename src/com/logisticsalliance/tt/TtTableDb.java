@@ -12,13 +12,13 @@ import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.sqla.ConnectFactory1;
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
 import com.logisticsalliance.general.EMailEmergency;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
+import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 import com.logisticsalliance.shp.OrderItem;
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.sqla.ConnectFactory1;
 import com.logisticsalliance.util.SupportTime;
 
 /**
@@ -82,7 +82,7 @@ public class TtTableDb {
 	public static int getTrials() {
 		return trials;
 	}
-	public static void process(final Date shipDate, EmailSent es) throws InterruptedException {
+	public static void process(final Date shipDate, EmailSent1 es) throws InterruptedException {
 		trials++;
 		Thread t = new Thread() {
 			@Override
@@ -116,7 +116,7 @@ public class TtTableDb {
 			ArrayList<DeliveryRow> al = new ArrayList<DeliveryRow>(1024);
 			int count = select(rs, al);
 			st.close();
-			/*st = con1.prepareStatement("DELETE FROM OS61LYDTA.OSPDLVS WHERE dvshpd=?");
+			/*st = con1.prepareStatement("DELETE FROM OS61LXDTA.OSPDLVS WHERE dvshpd=?");
 			st.setDate(1, shipDate);
 			int n = st.executeUpdate();
 			st.close();*/

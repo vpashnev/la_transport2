@@ -4,11 +4,19 @@ import java.io.File;
 
 import org.apache.log4j.Logger;
 
-import com.logisticsalliance.net.SupportNet;
+import com.glossium.net.ObjectResponse;
 
 public class UserAuth {
 
 	private static Logger log = Logger.getLogger(UserAuth.class);
+	private static ObjectResponse res = new ObjectResponse() {
+
+		@Override
+		public void log(Exception e) throws Exception {
+			log(e);
+		}
+		
+	};
 	static boolean ok;
 	
 	static void process(final File appDir, final String pwd,
@@ -19,7 +27,7 @@ public class UserAuth {
 			public void run() {
 				try {
 					ok = true;
-					SupportNet.communicate(new File(appDir, "addFiles/la_keystore"),
+					res.communicate(new File(appDir, "addFiles/la_keystore"),
 						pwd, serverPort, response);
 				}
 				catch (Exception e) {

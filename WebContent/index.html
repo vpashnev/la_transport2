@@ -1,56 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Track and Trace</title>
-
-<head>
-<style>
-a:link,a:visited
-{
-display:block;
-width:120px;
-height:20px;
-padding-top:10px;
-padding-bottom:10px;
-font-weight:bold;
-text-align:center;
-text-decoration:none;
-text-transform:uppercase;
-color:white;
-float:left;
+<title>Logistics Alliance</title>
+<style type="text/css">
+body,td,th {
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	color: #727272;
+	font-size: 10px;
 }
-a:hover,a:active
-{
-background-color:DeepSkyBlue;
+a:link {
+	color: DarkSlateGray ;
+	text-decoration: none;
+}
+a:visited {
+	color: DarkSlateGray ;
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+a:active {
+	text-decoration: none;
 }
 </style>
 </head>
 
 <body>
-<div style="background-image:url('http://www.santina.ca/logistics/bgbanner.jpg');
-  padding-left:40px;padding-top:8px;height:10%;min-height:50px;">
-  <img src="http://www.santina.ca/logistics/logo.png" align="middle" />
-</div>
-<div style="background-color:#0B4259;height:8%;min-height:40px;">
-<a href="search" target="content">Search</a>
-<a href="schedule" target="content">Schedule</a>
-<a href="profile" target="content">Profile</a>
-<a href="alert" target="content">Alerts</a>
-<a href="feedback" target="content">Feedback</a>
-<a href="about.html" target="content">About</a>
-<a href="login" target="content">Sign out</a>
-</div>
-<div style="background-color:white">
-<iframe id="f1" src="login" name="content"
-style="width:100%;height:71%;border:0;" seamless="seamless"></iframe>
-</div>
-<div style="width:50%;height:8px;background-color:#0B4259;float:left">
-</div>
-<div style="width:50%;height:8px;background-color:Crimson;float:left">
-</div>
-<div style="padding-left:40px;padding-top:18px;height:4%;min-height:25px;">
-  <img src="http://www.santina.ca/logistics/LOGISTICS_ALLIANCE_b.png" align="middle" />
-</div>
-</body>
+<table style="width:100%;height:80px;" align="left">
+  <tr>
+    <td background="http://www.santina.ca/logistics/bgbanner.jpg" style="padding-left:40px;">
+    <img src="http://www.santina.ca/logistics/logo.png" alt="" width="232" height="42" align="middle" />
+    </td>
+  </tr>
+</table>
+<table width="100%" align="center">
+  <tr align="left">
+    <td colspan="2" bgcolor="#0B4259"><blockquote>
+      <span style="color: #FFFFFF; font-size: 14px;">announcements all stores | announcements store region</span>
+      <span style="color: #FFFFFF; font-size: 14px; float:right;"><a href="login" target="content" style="color: #FFFFFF;">sign out</a></span>
+      </blockquote>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" bgcolor="#EFEFEF">
+      <table width="100%" align="center" cellpadding="0">
+        <tr align="center" bgcolor="#009999">
+          <td width="176" height="15" align="center" bgcolor="#F99D32" style="color: #FFFFFF; font-size: 16px; font-family: Verdana, Geneva, sans-serif;">
+          <p>profile management</p></td>
+          <td width="629" height="390" colspan="2" rowspan="6" align="left" valign="top" bgcolor="#EEF8FD">
 
+<iframe id="f1" src="login" name="content"
+style="width:100%;height:100%;border:0;" seamless="seamless"></iframe>
+
+          </td>
+        </tr>
+        <tr align="left">
+          <td width="176" valign="top" style="font-size: 16px; font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; color: DarkSlateGray ;">
+          <p><span style="color: #F99D32; font-weight: bold;">&#8226;</span> <a href="profile" target="content">Store Attributes</a><br /> 
+            <span style="color: #F99D32; font-weight: bold;">&#8226; </span><a href="alert" target="content">Alert Preferences</a>
+        </tr>
+<!--
+        <tr align="left">
+          <td width="176" align="center" bgcolor="#2EAFA4"><p><span style="color: #FFFFFF; font-size: 16px; font-family: Verdana, Geneva, sans-serif;">store schedule</span></p></td>
+        </tr>
+        <tr align="left">
+          <td width="176" valign="top"><span style="font-size: 16px; font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; color: DarkSlateGray ;">
+            <span style="color: #2EAFA4; font-weight: bold;">&#8226; </span><a href="schedule" target="content">Store Schedule</a><br />
+            <br />
+          </span></td>
+        </tr>
+ -->
+        <tr align="left">
+          <td width="176" height="15" align="center" bgcolor="#3554A6"><p><span style="color: #FFFFFF; font-size: 16px; font-family: Verdana, Geneva, sans-serif;">delivery details</span></p></td>
+        </tr>
+        <tr align="left">
+          <td width="176" valign="top"><span style="font-size: 16px; font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; color: DarkSlateGray ;">
+          <span style="color: #3554A6; font-weight: bold;">&#8226; </span><a href="search" target="content">Store Delivery Status</a><br />
+          <span style="color: #3554A6; font-weight: bold;">&#8226; </span><a href="feedback" target="content">Delivery Feedback</a>
+          </span>
+          </td>
+        </tr>
+        <tr><td height="130">&nbsp;</td></tr>
+        <tr><td align="right" style="font-size:14px" id="title1"></td></tr>
+    </table></td>
+  </tr>
+  <tr>
+    <td width="439" height="10" bgcolor="#FF3333">&nbsp;</td>
+    <td width="465" height="10" bgcolor="#0B4259">&nbsp;</td>
+  </tr>
+  <tr>
+    <td height="40" colspan="2"><blockquote>
+      <p><img src="http://www.santina.ca/logistics/LOGISTICS_ALLIANCE_b.png" alt="" width="80" height="18" /></p>
+    </blockquote></td>
+  </tr>
+</table>
+</body>
 </html>

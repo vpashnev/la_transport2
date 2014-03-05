@@ -18,9 +18,10 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		city, prov, postCode, polTime, shipTime, delTimeFrom, delTimeTo,
 		localDc, carrierType, nextUserFile, relNextUserFile;
 	boolean relDcx, aRoutePerGroup, holidays, sameGroup, sameCar, samePC;
+	ShipmentRow rxRow;
 	ArrayList<String> replacedRows = new ArrayList<String>(2);
 
-	String getRow() {
+	String getCsvRow() {
 		StringBuilder b = new StringBuilder(200);
 		String cmdty = delKey.getCommodity();
 		if (holidays) { b.append('H');}
@@ -39,6 +40,12 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		b.append(route); b.append(',');
 		b.append(stop); b.append(',');
 		b.append(delKey.getStoreN()); b.append(',');
+		if (rxRow != null || cmdty.equals(CommonConstants.RX)) {
+			b.append(route+100); b.append(',');
+			b.append(stop);
+		}
+		else { b.append(',');}
+		b.append(',');
 		if (!sameGroup) { b.append(group);} b.append(',');
 		b.append(city); b.append(',');
 		b.append(carrier); b.append(',');
@@ -70,8 +77,14 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		}
 		b.append(',');
 		if (sz > 0) { b.append(replacedRows);}
+		b.append(','); b.append(carrierType);
 		b.append('\r'); b.append('\n');
 		return b.toString();
+	}
+
+	@Override
+	public String toString() {
+		return delKey.toString()+"\r\n";
 	}
 
 	@Override
@@ -101,6 +114,15 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 			if (group != null && r.group != null) {
 				v = group.compareTo(r.group);
 			}
+			boolean fs = cmdty.equals(CommonConstants.FS);
+			if (fs) {
+				if (v == 0) {
+					v = compare(carrierType, r.carrierType);
+					if (carrierType != null && r.carrierType != null) {
+						v = carrierType.compareTo(r.carrierType);
+					}
+				}
+			}
 			if (v == 0) {
 				v = compare(carrier, r.carrier);
 				if (v == 0) {
@@ -117,13 +139,10 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 								}
 							}
 						}
-						else if (cmdty.equals(CommonConstants.FS)) {
-							v = shipDay - r.shipDay;
+						else if (fs) {
 							if (v == 0) {
-								v = compare(carrierType, r.carrierType);
-								if (carrierType != null && r.carrierType != null) {
-									v = carrierType.compareTo(r.carrierType);
-								}
+								v = rxRow != null && r.rxRow == null ? -1 :
+									(rxRow == null && r.rxRow != null ? 1 : 0);
 								if (v == 0) {
 									v = postCode.compareTo(r.postCode);
 								}

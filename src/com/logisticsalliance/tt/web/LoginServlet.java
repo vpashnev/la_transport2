@@ -15,13 +15,12 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
 
+import com.glossium.sqla.ConnectFactory;
 import com.glossium.ui.html.HFrame;
 import com.glossium.ui.html.HNode;
 import com.glossium.web.HServlet;
 import com.logisticsalliance.general.SupportGeneral;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
-import com.logisticsalliance.io.SupportFile;
-import com.logisticsalliance.sqla.ConnectFactory;
+import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 
 public class LoginServlet extends HServlet {
 	private static final long serialVersionUID = 10L;
@@ -37,10 +36,10 @@ public class LoginServlet extends HServlet {
 
 	private static File appDir;
 	static ConnectFactory connectFactoryI5;
-	static EmailSent emailSent;
+	static EmailSent1 emailSent1;
 
 	static void configureLog4j(File appDir) {
-		SupportFile.configureLog4j(appDir, "log4jTTWeb.properties");
+		SupportGeneral.configureLog4j(appDir, "log4jTTWeb.properties");
 	}
 
 	@Override
@@ -60,8 +59,8 @@ public class LoginServlet extends HServlet {
 			throw new ServletException(e);
 		}
 		ConnectFactory cf = SupportGeneral.makeDataSource1I5(appProps, pwd1, pwdI5);
-		cf = new ConnectFactory(cf.getDriver(),
-			"jdbc:as400:tmsodev.nulogx.com;prompt=false", cf.getUser(), cf.getPassword());
+		//cf = new ConnectFactory(cf.getDriver(),
+		//	"jdbc:as400:tmsodev.nulogx.com;prompt=false", cf.getUser(), cf.getPassword());
 		connectFactoryI5 = cf;
 		try {
 			UserDB.fill();
@@ -69,7 +68,7 @@ public class LoginServlet extends HServlet {
 		catch (Exception e) {
 			throw new ServletException(e);
 		}
-		emailSent = new EmailSent(appProps, emailPwd);
+		emailSent1 = new EmailSent1(appProps, emailPwd);
 		HFrame html = getHtml(getClass().getResourceAsStream("/html/tt/login.html"));
 		setControls(html);
 		setHtml(html);

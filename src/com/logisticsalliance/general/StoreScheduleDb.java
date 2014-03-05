@@ -13,10 +13,10 @@ import java.sql.Types;
 
 import org.apache.log4j.Logger;
 
-import com.logisticsalliance.io.SupportFile;
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.sqla.ConnectFactory1;
-import com.logisticsalliance.sqla.SqlSupport;
+import com.glossium.io.SupportFile;
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.sqla.ConnectFactory1;
+import com.glossium.sqla.SqlSupport;
 import com.logisticsalliance.util.SupportTime;
 
 /**

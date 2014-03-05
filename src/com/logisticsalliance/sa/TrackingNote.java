@@ -15,8 +15,8 @@ public class TrackingNote implements Serializable {
 
 	public int storeN;
 	public Date shipDate, delDate, newDelDate, timestamp;
-	public String delDate1, arrivalTime, newArrivalTime, serviceTime, dc, route, stopN,
-		carrier, delTimeFrom, delTimeTo;
+	public String delDate1, newDelDate1, arrivalTime, newArrivalTime, serviceTime, dc,
+		route, stopN, carrier, delTimeFrom, delTimeTo;
 	public HashMap<String,Alerts> cmdtyAlerts = new HashMap<String,Alerts>(4, .5f);
 	boolean exception;
 
@@ -51,7 +51,7 @@ public class TrackingNote implements Serializable {
 		tb.addProperty20("Shipment date", SupportTime.dd_MM_yyyy_Format.format(shipDate), 10);
 		tb.addProperty20("Delivery date", delDate1, 10);
 		tb.addProperty20(RnColumns.ARRIVAL_TIME, arrivalTime, 5);
-		tb.addProperty20("New date", SupportTime.dd_MM_yyyy_Format.format(newDelDate), 10);
+		tb.addProperty20("New date", newDelDate1, 10);
 		tb.addProperty20("New time", newArrivalTime, 5);
 		tb.addProperty20(RnColumns.SERVICE_TIME, serviceTime, 5);
 		tb.addProperty20(RnColumns.DC, dc, 8);
@@ -60,6 +60,10 @@ public class TrackingNote implements Serializable {
 		tb.addProperty20("Delivery window", delTimeFrom+" - "+delTimeTo, 20);
 		tb.addProperty20("Carrier", carrier, 32);
 		tb.addProperty20("Timestamp", SupportTime.dd_MM_yyyy_Format.format(timestamp), 10);
+		if (!arrivalTime.equals(newArrivalTime)) {
+			tb.add("ETA update");
+			tb.newLine();
+		}
 		if (!delDate.equals(timestamp)) {
 			tb.add("outdated");
 			tb.newLine();

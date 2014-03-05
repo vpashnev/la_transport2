@@ -5,9 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
 
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.sqla.ConnectFactory1;
 import com.logisticsalliance.general.SupportGeneral;
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.sqla.ConnectFactory1;
 
 public class AlertDB {
 
@@ -73,7 +73,7 @@ public class AlertDB {
 		if (rs.next()) {
 			String province = rs.getString(1);
 			StringBuilder b = new StringBuilder(64);
-			SupportGeneral.addEmailAddress(b, LoginServlet.emailSent, store, province);
+			SupportGeneral.addEmailAddress(b, LoginServlet.emailSent1, store, province);
 			String s = b.toString();
 			int i = s.indexOf(',');
 			alerts[0].comm[0] = s.substring(0, i);

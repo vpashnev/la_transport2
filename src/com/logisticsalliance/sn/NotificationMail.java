@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.EMailSender;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
+import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 import com.logisticsalliance.general.SupportGeneral;
 import com.logisticsalliance.util.SupportTime;
 
@@ -25,7 +25,7 @@ public class NotificationMail {
 
 	private static Logger log = Logger.getLogger(NotificationMail.class);
 
-	static Session send(Session s, EmailSent es, HashSet<Integer> storeSubset,
+	static Session send(Session s, EmailSent1 es, HashSet<Integer> storeSubset,
 		ArrayList<DeliveryNote> al, String interval) throws Exception {
 		for (Iterator<DeliveryNote> it = al.iterator(); it.hasNext();) {
 			DeliveryNote dn = it.next();

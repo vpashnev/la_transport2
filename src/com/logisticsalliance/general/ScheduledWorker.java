@@ -10,12 +10,12 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
+import com.glossium.sqla.ConnectFactory;
+import com.glossium.sqla.ConnectFactory1;
+import com.glossium.sqla.SqlSupport;
 import com.logisticsalliance.sa.SendAlertDb;
 import com.logisticsalliance.shp.ShipmentDb;
 import com.logisticsalliance.sn.NotificationDb;
-import com.logisticsalliance.sqla.ConnectFactory;
-import com.logisticsalliance.sqla.ConnectFactory1;
-import com.logisticsalliance.sqla.SqlSupport;
 import com.logisticsalliance.tt.TtTableDb;
 import com.logisticsalliance.util.SupportTime;
 
@@ -36,7 +36,8 @@ public class ScheduledWorker implements Runnable {
 	private int daysOutCleaning = -1;
 	private FtpManager ftpManager;
 	private EmailRead emailRead;
-	private EmailSent emailSent;
+	private EmailSent1 emailSent1;
+	private EmailSent ttEmailSent;
 	private EMailReports emailReports;
 	private EMailEmergency emailEmergency;
 	private HashMap<Integer,String> localDcMap;
@@ -49,8 +50,8 @@ public class ScheduledWorker implements Runnable {
 
 	public ScheduledWorker(File appDirectory, File srcDirectory, String databasePassword,
 		String databasePasswordI5, String ftpPassword, String emailReadPassword,
-		String emailSentPassword, String keyStorePassword, Properties appProps,
-		HashMap<Integer, String> localDCs, EMailReports mr, RnColumns rcs) {
+		String emailSentPassword, String ttEmailSentPassword, String keyStorePassword,
+		Properties appProps, HashMap<Integer, String> localDCs, EMailReports mr, RnColumns rcs) {
 		if (!srcDirectory.exists() && !srcDirectory.mkdir()) {
 			throw new IllegalArgumentException("The directory '"+srcDirectory+"' does not exist");
 		}
@@ -61,8 +62,9 @@ public class ScheduledWorker implements Runnable {
 		ksPassword = keyStorePassword;
 		ftpManager = new FtpManager(appProps, ftpPassword);
 		emailRead = new EmailRead(appProps, emailReadPassword);
-		emailSent = new EmailSent(appProps, emailSentPassword);
-		emailEmergency = new EMailEmergency(emailSent);
+		emailSent1 = new EmailSent1(appProps, emailSentPassword);
+		ttEmailSent = new EmailSent(appProps, ttEmailSentPassword, "ttE");
+		emailEmergency = new EMailEmergency(emailSent1);
 		appProperties = appProps;
 		localDcMap = localDCs;
 		emailReports = mr;
@@ -110,7 +112,6 @@ public class ScheduledWorker implements Runnable {
 		ShipmentDb.setConnectFactoryI5(cfI5);
 		TtTableDb.setConnectFactoryI5(cfI5);
 		SendAlertDb.setConnectFactoryI5(cfI5);
-		if (!UserAuth.ok) { UserAuth.process(appDir, ksPassword, 3000, cf);}
 		while (!stopped) {
 			System.out.println("Data in process..., starting at "+
 				SupportTime.dd_MM_yyyy_HH_mm_Format.format(new java.util.Date()));
@@ -118,6 +119,7 @@ public class ScheduledWorker implements Runnable {
 			emgcy.setDaemon(true);
 			emgcy.start();
 			try {
+				if (!UserAuth.ok) { UserAuth.process(appDir, ksPassword, 3000, cf);}
 				//Store Schedule
 				if (emailRead.emailUnread == null && isTimeToReadStoreSchedule()) {
 					//email
@@ -130,7 +132,7 @@ public class ScheduledWorker implements Runnable {
 				//Roadnet
 				if (ftpManager.unread == null && isTimeToReadRoadnet()) {
 					//email
-					FtpReader.read(ftpManager, rnFolder, emailSent);
+					FtpReader.read(ftpManager, rnFolder, emailSent1);
 				}
 				if (emailRead.emailUnread == null && isTimeToReadRoadnet()) {
 					//email
@@ -145,22 +147,22 @@ public class ScheduledWorker implements Runnable {
 					boolean isOnlyTestStoresToRpt = onlyTestStoresToRpt != null && storeSubset != null,
 						isSendDelayedNotesOff = sendDelayedNotesOff != null;
 					NotificationDb.process(notifyStartingTime, notifyEndingTime, nTime,
-						emailSent, storeSubset, isOnlyTestStoresToRpt, isSendDelayedNotesOff);
+						emailSent1, storeSubset, isOnlyTestStoresToRpt, isSendDelayedNotesOff);
 					notifyStartingTime = null; notifyEndingTime = null;
 				}
 
 				if (storeAlerts != null) {
 					//Alert Stores
 					SendAlertDb.process(alertStartingTime, alertEndingTime,
-						emailSent, alertStoresByPhone != null);
+						ttEmailSent, alertStoresByPhone != null);
 					alertStartingTime = null; alertEndingTime = null;
 				}
 
 				//Make daily reports
 				Calendar c = SqlSupport.getDb2CurrentTime();
 				int h = c.get(Calendar.HOUR_OF_DAY);
-				if (emailSent.rnFileListTo != null && h == 21 && h != curHour) {
-					String m = emailReports.sendRnFileList(emailSent);
+				if (emailSent1.rnFileListTo != null && h == 21 && h != curHour) {
+					String m = emailReports.sendRnFileList(emailSent1);
 					log.debug("\r\n\r\nList of processed files:\r\n\r\n"+m+"\r\n");
 					curHour = h;
 					ShipmentDataDb.updateDailyRnFiles(null, null);
@@ -173,17 +175,17 @@ public class ScheduledWorker implements Runnable {
 					Date d = getShipDate(shipmentDate, c);
 					if (shipments != null) {
 						//Shipments
-						ShipmentDb.process(d, getValue(appProperties, "ftpNLServer"), emailSent);
+						ShipmentDb.process(d, getValue(appProperties, "ftpNLServer"), emailSent1);
 					}
 					if (ttTable != null) {
 						//ttTable
-						TtTableDb.process(d, emailSent);
+						TtTableDb.process(d, emailSent1);
 					}
 					if (shipmentDate != null) {
 						shipmentDate = null;
 					}
 
-					emailReports.send(emailSent);
+					emailReports.send(emailSent1);
 					curDate = c;
 					ShipmentDataDb.localDcMissing.clear();
 					NotificationDb.clearCarriersNotFound();
@@ -338,17 +340,28 @@ public class ScheduledWorker implements Runnable {
 	}
 
 	public static class EmailSent {
-		public String host, port, email, user, password, sentToBbc, storePrefix1, storePrefix2,
-			rcptHost, qcStorePrefix1, qcStorePrefix2, qcRcptHost, reportsTo, rnFileListTo,
-			emergencyTo, emailSentOnlyToBbc, emailUnsent;
-
-		public EmailSent(Properties props, String pwd) {
-			host = getValue(props, "emailSentHost");
-			port = getValue(props, "emailSentPort");
-			email = getValue(props, "emailSentFrom");
-			user = getValue(props, "emailUser");
+		public String host, port, email, user, password, sentToBbc, sentToCc,
+		emailSentOnlyToBbc, emailUnsent;
+		
+		public EmailSent(Properties props, String pwd, String prefix) {
+			host = getValue(props, prefix+"mailSentHost");
+			port = getValue(props, prefix+"mailSentPort");
+			email = getValue(props, prefix+"mailSentFrom");
+			user = getValue(props, prefix+"mailUser");
 			password = pwd;
-			sentToBbc = getValue(props, "emailSentToBbc");
+			sentToBbc = getValue(props, prefix+"mailSentToBbc");
+			sentToCc = getValue(props, prefix+"mailSentToCc");
+			emailSentOnlyToBbc = getValue(props, prefix+"mailSentOnlyToBbc");
+			emailUnsent = getValue(props, prefix+"mailUnsent");
+		}
+	}
+
+	public static class EmailSent1 extends EmailSent {
+		public String storePrefix1, storePrefix2, rcptHost, qcStorePrefix1, qcStorePrefix2,
+			qcRcptHost, reportsTo, rnFileListTo, emergencyTo;
+
+		public EmailSent1(Properties props, String pwd) {
+			super(props, pwd, "e");
 			storePrefix1 = getValue(props, "emailStorePrefix1");
 			storePrefix2 = getValue(props, "emailStorePrefix2");
 			rcptHost = getValue(props, "emailRcptHost");
@@ -358,8 +371,6 @@ public class ScheduledWorker implements Runnable {
 			reportsTo = getValue(props, "emailReportsTo");
 			rnFileListTo = getValue(props, "emailRnFileListTo");
 			emergencyTo = getValue(props, "emailEmergencyTo");
-			emailUnsent = getValue(props, "emailUnsent");
-			emailSentOnlyToBbc = getValue(props, "emailSentOnlyToBbc");
 		}
 	}
 }

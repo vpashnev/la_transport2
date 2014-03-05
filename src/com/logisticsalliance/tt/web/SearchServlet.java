@@ -119,7 +119,7 @@ public class SearchServlet extends HServlet {
 			new HCell(r, ai.comment);
 			HCell c = new HCell(r, null);
 			c.setStyle("display:none;");
-			new HParam(c, ai.reason);
+			new HParam(c, ai.reasonEn);
 			if (first[0]) {
 				addOthers(c, tn);
 				first[0] = false;

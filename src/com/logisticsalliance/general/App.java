@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import com.logisticsalliance.io.SupportFile;
+import com.glossium.io.SupportFile;
 
 /**
  * This class starts the application.
@@ -46,8 +46,8 @@ public class App {
 		appProps.load(new FileReader(new File(appDir, "app.properties")));
 
 		File srcDir = new File(appProps.getProperty("sourceDocsDirectory")); // directory of source documents
-		String dbPwd = null, dbPwdI5 = null, ftpPwd = null,
-			emReadPwd = null, emSentPwd = null, ksPwd = null;
+		String dbPwd = null, dbPwdI5 = null, ftpPwd = null, emReadPwd = null,
+			emSentPwd = null, ttEmSentPwd = null, ksPwd = null;
 		if (args.length > 1) {
 			dbPwd = args[1];
 			if (args.length > 2) {
@@ -59,7 +59,10 @@ public class App {
 						if (args.length > 5) {
 							emSentPwd = args[5];
 							if (args.length > 6) {
-								ksPwd = args[6];
+								ttEmSentPwd = args[6];
+								if (args.length > 7) {
+									ksPwd = args[7];
+								}
 							}
 						}
 					}
@@ -68,8 +71,9 @@ public class App {
 		}
 		EMailReports mr = new EMailReports(appDir);
 		RnColumns rnCols = new RnColumns(appDir);
-		ScheduledWorker sr = new ScheduledWorker(appDir, srcDir, dbPwd, dbPwdI5, ftpPwd,
-			emReadPwd, emSentPwd, ksPwd, appProps, getLocalDC(appDir), mr, rnCols);
+		ScheduledWorker sr = new ScheduledWorker(appDir, srcDir, dbPwd, dbPwdI5,
+			ftpPwd, emReadPwd, emSentPwd, ttEmSentPwd, ksPwd, appProps,
+			getLocalDC(appDir), mr, rnCols);
 		sr.start();
 		BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
 		String s = null;
@@ -120,7 +124,7 @@ public class App {
 	}
 
 	static void configureLog4j(File appDir) {
-		SupportFile.configureLog4j(appDir, "log4j.properties");
+		SupportGeneral.configureLog4j(appDir, "log4j.properties");
 	}
 
 }
