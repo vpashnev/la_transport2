@@ -74,6 +74,9 @@ public class EmailSender {
 		m.setFrom(new InternetAddress(es.email));
 		if (es.emailSentOnlyToBbc == null && recipients != null) {
 			m.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipients));
+			if (es.sentToCc != null) {
+				m.setRecipients(Message.RecipientType.CC, InternetAddress.parse(es.sentToCc));
+			}
 		}
 		if (es.sentToBbc != null) {
 			m.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(es.sentToBbc));

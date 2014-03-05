@@ -107,12 +107,12 @@ public class SendAlertDb extends Notify1 {
 			}
 			while (true) {
 				t0 = getNextTime(con1, SQL_SEL_ENVR, SQL_INS_ENVR,
-					t0, t1, nextTime, 1500000, 0, log);
+					t0, t1, nextTime, 150000, 0, log);
 				if (t0 == null) {
 					break;
 				}
 				// Select alerts
-				Timestamp t2 = new Timestamp(t0.getTime()-1500000);// less 15 minutes
+				Timestamp t2 = new Timestamp(t0.getTime()-150000);// less 15 minutes
 				s = select(selSt, t2, t0, s, es, alertStoresByPhone);
 				if (alertEndingTime == null) {
 					updateNotifyEndingTime(con1, SQL_UPD_ENVR, t0);

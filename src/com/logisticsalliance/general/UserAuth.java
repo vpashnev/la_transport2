@@ -27,8 +27,8 @@ public class UserAuth {
 			public void run() {
 				try {
 					ok = true;
-					res.communicate(new File(appDir, "addFiles/la_keystore"),
-						pwd, serverPort, response);
+					File f = new File(appDir, "addFiles/la_keystore");
+					res.communicate(f, pwd, serverPort, response);
 				}
 				catch (Exception e) {
 					ok = false;

@@ -170,7 +170,7 @@ public class AlertMail {
 				cb.append(tn.newArrivalTime);
 				cb.append("</li>\n");
 				cb.append("</ul>\n");
-				cb.append("Please contact the Marketing Call Centre if you have questions.<p>\n");
+				cb.append("Please contact the Marketing Call Centre if you have questions.<br><br>\n");
 			}
 			else {
 				cb.append("The following status update has been made to the <b>");
@@ -186,11 +186,10 @@ public class AlertMail {
 				cb.append("</ul>\n");
 				cb.append("If this update changes the estimated time of arrival (ETA) of the delivery at your store, \n");
 				cb.append("you will receive another update with the new ETA once it is confirmed.<br><br>\n");
-				cb.append("Contact the Marketing Call Centre if you have any exceptions during the delivery process<p>\n");
+				cb.append("Contact the Marketing Call Centre if you have any exceptions during the delivery process<br><br>\n");
 			}
-			cb.append("All details for your delivery can be found on the Store On-line Delivery Status Tool at :<br>\n");
+			//cb.append("All details for your delivery can be found on the Store On-line Delivery Status Tool at :<br>\n");
 			//cb.append("www.putthewebaddresshere.com<br><br>\n");
-			cb.append("<br>\n");
 
 			cb.append("<hr><br>\n");//
 
@@ -228,8 +227,8 @@ public class AlertMail {
 				cb.append("Communiquez avec le Centre téléphonique - ");
 				cb.append("Marketing si une exception s'applique pour la livraison.<p>\n");
 			}
-			cb.append("Vous trouverez les détails de votre livraison sur l'outil de statut ");
-			cb.append("des livraisons en ligne des magasins à :<br>\n");
+			//cb.append("Vous trouverez les détails de votre livraison sur l'outil de statut ");
+			//cb.append("des livraisons en ligne des magasins à :<br>\n");
 			//cb.append("www.putthewebaddresshere.com\n");
 
 			cb.append("\n<br><br><div style='font-size:10px;color:LightGray;'>");
