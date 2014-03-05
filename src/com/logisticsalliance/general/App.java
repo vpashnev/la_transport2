@@ -69,7 +69,7 @@ public class App {
 				}
 			}
 		}
-		EMailReports mr = new EMailReports(appDir);
+		EmailReports mr = new EmailReports(appDir);
 		RnColumns rnCols = new RnColumns(appDir);
 		ScheduledWorker sr = new ScheduledWorker(appDir, srcDir, dbPwd, dbPwdI5,
 			ftpPwd, emReadPwd, emSentPwd, ttEmSentPwd, ksPwd, appProps,

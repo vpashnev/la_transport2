@@ -19,8 +19,8 @@ import com.glossium.sqla.ConnectFactory;
 import com.glossium.ui.html.HFrame;
 import com.glossium.ui.html.HNode;
 import com.glossium.web.HServlet;
+import com.logisticsalliance.general.EmailSent1;
 import com.logisticsalliance.general.SupportGeneral;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 
 public class LoginServlet extends HServlet {
 	private static final long serialVersionUID = 10L;

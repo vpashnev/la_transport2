@@ -20,7 +20,7 @@ import com.glossium.sqla.ConnectFactory1;
 import com.glossium.sqla.SqlSupport;
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
+import com.logisticsalliance.general.EmailSent1;
 import com.logisticsalliance.util.SupportTime;
 
 /**

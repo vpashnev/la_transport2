@@ -17,9 +17,9 @@ import com.glossium.sqla.ConnectFactory;
 import com.glossium.sqla.ConnectFactory1;
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
-import com.logisticsalliance.general.EMailEmergency;
+import com.logisticsalliance.general.EmailEmergency;
+import com.logisticsalliance.general.EmailSent1;
 import com.logisticsalliance.general.ScheduledWorker;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 import com.logisticsalliance.text.TBuilder;
 import com.logisticsalliance.util.SupportTime;
 
@@ -191,7 +191,7 @@ public class ShipmentDb {
 		if (trials > 0) {
 			log.error("Report incomplete shipments");
 			if (trials > 2) {
-				EMailEmergency.send(es, trials+" trials to process shipments failed");
+				EmailEmergency.send(es, trials+" trials to process shipments failed");
 			}
 		}
 	}

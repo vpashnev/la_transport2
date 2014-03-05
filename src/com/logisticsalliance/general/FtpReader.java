@@ -10,7 +10,6 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 import org.apache.log4j.Logger;
 
-import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 import com.logisticsalliance.general.ScheduledWorker.FtpManager;
 import com.logisticsalliance.util.SupportTime;
 
@@ -31,7 +30,7 @@ public class FtpReader {
 			trials = read1(fm, dir, es, trials);
 		}
 		if (trials >= 20) {
-			EMailEmergency.send(es, "Failed to read FTP road-net files");
+			EmailEmergency.send(es, "Failed to read FTP road-net files");
 		}
 	}
 	private static int read1(FtpManager fm, File dir, EmailSent1 es, int trials) {

@@ -9,7 +9,6 @@ import com.glossium.sqla.ConnectFactory;
 import com.glossium.sqla.ConnectFactory1;
 import com.ibm.as400.access.AS400JDBCConnectionPoolDataSource;
 import com.ibm.db2.jcc.DB2SimpleDataSource;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 
 public class SupportGeneral {
 

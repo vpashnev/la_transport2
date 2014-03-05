@@ -17,7 +17,7 @@ import com.glossium.sqla.ConnectFactory;
 import com.glossium.sqla.ConnectFactory1;
 import com.glossium.sqla.SqlSupport;
 import com.logisticsalliance.general.CommonConstants;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
+import com.logisticsalliance.general.EmailSent;
 import com.logisticsalliance.sn.Notify1;
 import com.logisticsalliance.tt.web.Alert;
 import com.logisticsalliance.tt.web.AlertDB;

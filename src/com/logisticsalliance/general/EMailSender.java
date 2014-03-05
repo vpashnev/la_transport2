@@ -15,7 +15,6 @@ import javax.mail.internet.MimeMultipart;
 
 import org.apache.log4j.Logger;
 
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
 
 /**
  * This class sends email messages.
@@ -23,9 +22,9 @@ import com.logisticsalliance.general.ScheduledWorker.EmailSent;
  * @version %I%,%G%
  * @since 1.0
  */
-public class EMailSender {
+public class EmailSender {
 
-	private static Logger log = Logger.getLogger(EMailSender.class);
+	private static Logger log = Logger.getLogger(EmailSender.class);
 
 	public static Session send(Session s, EmailSent es, String recipients,
 		String subject, String content, File attachment, int[] trials) {

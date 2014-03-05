@@ -9,7 +9,6 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.glossium.io.SupportFile;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
 
 /**
  * This class sends e-mails with the application reports.
@@ -17,16 +16,16 @@ import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
  * @version %I%,%G%
  * @since 1.0
  */
-public class EMailReports {
+public class EmailReports {
 
-	private static Logger log = Logger.getLogger(EMailReports.class);
+	private static Logger log = Logger.getLogger(EmailReports.class);
 
 	private static final String[] logFileNames = { "general.log",
 		"snRpt.log", "saRpt.log", "shpRpt.log", "ttRpt.log"};
 	private File[] files;
 	private File zip;
 	
-	public EMailReports(File dir) {
+	public EmailReports(File dir) {
 		File logDir = new File(dir, "log");
 		zip = new File(logDir, "reports.zip");
 		files = new File[logFileNames.length];
@@ -50,11 +49,11 @@ public class EMailReports {
 		String m = getRnFileListMsg();
 		if (es.emailUnsent == null || es.emailSentOnlyToBbc != null) {
 			int[] trials = {0};
-			Session s = EMailSender.send(null, es, es.rnFileListTo,
+			Session s = EmailSender.send(null, es, es.rnFileListTo,
 				"List of processed files", m, null, trials);
 			while (s == null && trials[0] < 20) {
 				Thread.sleep(20000);
-				s = EMailSender.send(s, es, es.rnFileListTo,
+				s = EmailSender.send(s, es, es.rnFileListTo,
 					"List of processed files", m, null, trials);
 			}
 			if (s == null) {
@@ -67,10 +66,10 @@ public class EMailReports {
 		SupportFile.zip(zip, files);
 		if (es.emailUnsent == null || es.emailSentOnlyToBbc != null) {
 			int[] trials = {0};
-			Session s = EMailSender.send(null, es, es.reportsTo, "Application reports", "", zip, trials);
+			Session s = EmailSender.send(null, es, es.reportsTo, "Application reports", "", zip, trials);
 			while (s == null && trials[0] < 20) {
 				Thread.sleep(20000);
-				s = EMailSender.send(s, es, es.reportsTo, "Application reports", "", zip, trials);
+				s = EmailSender.send(s, es, es.reportsTo, "Application reports", "", zip, trials);
 			}
 			if (s == null) {
 				log.error("Unable to send Application reports");

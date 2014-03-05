@@ -16,8 +16,8 @@ import com.glossium.sqla.ConnectFactory;
 import com.glossium.sqla.ConnectFactory1;
 import com.logisticsalliance.general.CommonConstants;
 import com.logisticsalliance.general.DsKey;
-import com.logisticsalliance.general.EMailEmergency;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
+import com.logisticsalliance.general.EmailEmergency;
+import com.logisticsalliance.general.EmailSent1;
 import com.logisticsalliance.shp.OrderItem;
 import com.logisticsalliance.util.SupportTime;
 
@@ -100,7 +100,7 @@ public class TtTableDb {
 		if (trials > 0) {
 			log.error("Report incomplete truck and trace table");
 			if (trials > 2) {
-				EMailEmergency.send(es, trials+" trials to populate truck and trace table failed");
+				EmailEmergency.send(es, trials+" trials to populate truck and trace table failed");
 			}
 		}
 	}

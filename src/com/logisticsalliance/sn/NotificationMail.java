@@ -9,8 +9,8 @@ import javax.mail.Session;
 import org.apache.log4j.Logger;
 
 import com.logisticsalliance.general.CommonConstants;
-import com.logisticsalliance.general.EMailSender;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
+import com.logisticsalliance.general.EmailSender;
+import com.logisticsalliance.general.EmailSent1;
 import com.logisticsalliance.general.SupportGeneral;
 import com.logisticsalliance.util.SupportTime;
 
@@ -123,10 +123,10 @@ public class NotificationMail {
 			cb.append("</html>");
 			String sbj = "DC Delivery Planning Notification / Notification de Planification Remise C.D.";
 			int[] trials = {0};
-			s = EMailSender.send(s, es, rb.toString(), sbj, cb.toString(), null, trials);
+			s = EmailSender.send(s, es, rb.toString(), sbj, cb.toString(), null, trials);
 			while (s == null && trials[0] < 20) {
 				Thread.sleep(20000);
-				s = EMailSender.send(s, es, rb.toString(), sbj, cb.toString(), null, trials);
+				s = EmailSender.send(s, es, rb.toString(), sbj, cb.toString(), null, trials);
 			}
 			if (s == null) {
 				log.error("Unable to send email for the delivery: "+dn.storeN+", "+

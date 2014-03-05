@@ -19,7 +19,6 @@ import javax.mail.internet.MimeBodyPart;
 
 import org.apache.log4j.Logger;
 
-import com.logisticsalliance.general.ScheduledWorker.EmailRead;
 import com.logisticsalliance.util.SupportTime;
 import com.sun.mail.imap.IMAPFolder;
 
@@ -29,9 +28,9 @@ import com.sun.mail.imap.IMAPFolder;
  * @version %I%,%G%
  * @since 1.0
  */
-public class EMailReader {
+public class EmailReader {
 
-	private static Logger log = Logger.getLogger(EMailReader.class);
+	private static Logger log = Logger.getLogger(EmailReader.class);
 
 	public static void read(Properties sysProps, EmailRead er,
 		String folder, String archiveFolder, File dir) throws InterruptedException {

@@ -11,8 +11,8 @@ import javax.mail.Session;
 import org.apache.log4j.Logger;
 
 import com.logisticsalliance.general.CommonConstants;
-import com.logisticsalliance.general.EMailSender;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent;
+import com.logisticsalliance.general.EmailSender;
+import com.logisticsalliance.general.EmailSent;
 import com.logisticsalliance.tt.web.Alert;
 
 /**
@@ -99,19 +99,19 @@ public class AlertMail {
 						"DC Delivery Status Update / Mise à jour de statut d'une livraison du CD ";
 					if (i == 2) {
 						String msg = getMessage(tn, getCmdtyList(v), ai, null, true, eta, eda);
-						s = EMailSender.send(s, es, rb.toString(), sbj, msg, trials);
+						s = EmailSender.send(s, es, rb.toString(), sbj, msg, trials);
 						while (s == null && trials[0] < 20) {
 							Thread.sleep(20000);
-							s = EMailSender.send(s, es, rb.toString(), sbj, msg, trials);
+							s = EmailSender.send(s, es, rb.toString(), sbj, msg, trials);
 						}
 					}
 					else {
 						String msg = getMessage(tn, getCmdtyList(v), ai,
 							interval, false, eta, eda);
-						s = EMailSender.send(s, es, rb.toString(), sbj, msg, null, trials);
+						s = EmailSender.send(s, es, rb.toString(), sbj, msg, null, trials);
 						while (s == null && trials[0] < 20) {
 							Thread.sleep(20000);
-							s = EMailSender.send(s, es, rb.toString(), sbj, msg, null, trials);
+							s = EmailSender.send(s, es, rb.toString(), sbj, msg, null, trials);
 						}
 					}
 					if (s == null) {

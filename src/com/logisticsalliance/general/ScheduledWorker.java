@@ -38,8 +38,8 @@ public class ScheduledWorker implements Runnable {
 	private EmailRead emailRead;
 	private EmailSent1 emailSent1;
 	private EmailSent ttEmailSent;
-	private EMailReports emailReports;
-	private EMailEmergency emailEmergency;
+	private EmailReports emailReports;
+	private EmailEmergency emailEmergency;
 	private HashMap<Integer,String> localDcMap;
 	private Properties appProperties;
 	private boolean stopped, sleep;
@@ -51,7 +51,7 @@ public class ScheduledWorker implements Runnable {
 	public ScheduledWorker(File appDirectory, File srcDirectory, String databasePassword,
 		String databasePasswordI5, String ftpPassword, String emailReadPassword,
 		String emailSentPassword, String ttEmailSentPassword, String keyStorePassword,
-		Properties appProps, HashMap<Integer, String> localDCs, EMailReports mr, RnColumns rcs) {
+		Properties appProps, HashMap<Integer, String> localDCs, EmailReports mr, RnColumns rcs) {
 		if (!srcDirectory.exists() && !srcDirectory.mkdir()) {
 			throw new IllegalArgumentException("The directory '"+srcDirectory+"' does not exist");
 		}
@@ -64,7 +64,7 @@ public class ScheduledWorker implements Runnable {
 		emailRead = new EmailRead(appProps, emailReadPassword);
 		emailSent1 = new EmailSent1(appProps, emailSentPassword);
 		ttEmailSent = new EmailSent(appProps, ttEmailSentPassword, "ttE");
-		emailEmergency = new EMailEmergency(emailSent1);
+		emailEmergency = new EmailEmergency(emailSent1);
 		appProperties = appProps;
 		localDcMap = localDCs;
 		emailReports = mr;
@@ -123,7 +123,7 @@ public class ScheduledWorker implements Runnable {
 				//Store Schedule
 				if (emailRead.emailUnread == null && isTimeToReadStoreSchedule()) {
 					//email
-					EMailReader.read(sysProps, emailRead, emailRead.dsFolder,
+					EmailReader.read(sysProps, emailRead, emailRead.dsFolder,
 						emailRead.dsArchiveFolder, dsFolder);
 				}
 				//database
@@ -136,7 +136,7 @@ public class ScheduledWorker implements Runnable {
 				}
 				if (emailRead.emailUnread == null && isTimeToReadRoadnet()) {
 					//email
-					EMailReader.read(sysProps, emailRead, emailRead.rnFolder,
+					EmailReader.read(sysProps, emailRead, emailRead.rnFolder,
 						emailRead.rnArchiveFolder, rnFolder);
 				}
 				//database
@@ -306,7 +306,7 @@ public class ScheduledWorker implements Runnable {
 		}
 	}
 
-	private static String getValue(Properties props, String propName) {
+	static String getValue(Properties props, String propName) {
 		return SupportGeneral.getValue(props, propName);
 	}
 	static class FtpManager {
@@ -319,58 +319,6 @@ public class ScheduledWorker implements Runnable {
 			folder = getValue(props, "ftpFolder");
 			archiveFolder = getValue(props, "ftpArchiveFolder");
 			unread = getValue(props, "ftpUnread");
-		}
-	}
-
-	static class EmailRead {
-		String protocol, host, email, password, dsFolder, dsArchiveFolder,
-			rnFolder, rnArchiveFolder, emailUnread;
-
-		private EmailRead(Properties props, String pwd) {
-			protocol = getValue(props, "emailReadProtocol");
-			host = getValue(props, "emailReadHost");
-			email = getValue(props, "emailRead");
-			password = pwd;
-			dsFolder = getValue(props, "emailDsFolder");
-			dsArchiveFolder = getValue(props, "emailDsArchiveFolder");
-			rnFolder = getValue(props, "emailRnFolder");
-			rnArchiveFolder = getValue(props, "emailRnArchiveFolder");
-			emailUnread = getValue(props, "emailUnread");
-		}
-	}
-
-	public static class EmailSent {
-		public String host, port, email, user, password, sentToBbc, sentToCc,
-		emailSentOnlyToBbc, emailUnsent;
-		
-		public EmailSent(Properties props, String pwd, String prefix) {
-			host = getValue(props, prefix+"mailSentHost");
-			port = getValue(props, prefix+"mailSentPort");
-			email = getValue(props, prefix+"mailSentFrom");
-			user = getValue(props, prefix+"mailUser");
-			password = pwd;
-			sentToBbc = getValue(props, prefix+"mailSentToBbc");
-			sentToCc = getValue(props, prefix+"mailSentToCc");
-			emailSentOnlyToBbc = getValue(props, prefix+"mailSentOnlyToBbc");
-			emailUnsent = getValue(props, prefix+"mailUnsent");
-		}
-	}
-
-	public static class EmailSent1 extends EmailSent {
-		public String storePrefix1, storePrefix2, rcptHost, qcStorePrefix1, qcStorePrefix2,
-			qcRcptHost, reportsTo, rnFileListTo, emergencyTo;
-
-		public EmailSent1(Properties props, String pwd) {
-			super(props, pwd, "e");
-			storePrefix1 = getValue(props, "emailStorePrefix1");
-			storePrefix2 = getValue(props, "emailStorePrefix2");
-			rcptHost = getValue(props, "emailRcptHost");
-			qcStorePrefix1 = getValue(props, "emailQcStorePrefix1");
-			qcStorePrefix2 = getValue(props, "emailQcStorePrefix2");
-			qcRcptHost = getValue(props, "emailQcRcptHost");
-			reportsTo = getValue(props, "emailReportsTo");
-			rnFileListTo = getValue(props, "emailRnFileListTo");
-			emergencyTo = getValue(props, "emailEmergencyTo");
 		}
 	}
 }

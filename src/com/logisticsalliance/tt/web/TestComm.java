@@ -6,8 +6,8 @@ import javax.mail.Session;
 
 import org.apache.log4j.Logger;
 
-import com.logisticsalliance.general.EMailSender;
-import com.logisticsalliance.general.ScheduledWorker.EmailSent1;
+import com.logisticsalliance.general.EmailSender;
+import com.logisticsalliance.general.EmailSent1;
 
 public class TestComm {
 
@@ -37,13 +37,13 @@ public class TestComm {
 				@Override
 				public void run() {
 					int[] trials = {0};
-					Session s = EMailSender.send(null, es, to, subject+store, msg, trials);
+					Session s = EmailSender.send(null, es, to, subject+store, msg, trials);
 					while (s == null && trials[0] < 20) {
 						try {
 							Thread.sleep(500);
 						}
 						catch (InterruptedException e) { }
-						s = EMailSender.send(null, es, to, subject+store, msg, trials);
+						s = EmailSender.send(null, es, to, subject+store, msg, trials);
 					}
 					if (s == null) {
 						log.error("Unable to send test message");
