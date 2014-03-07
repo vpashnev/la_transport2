@@ -173,6 +173,13 @@ class FillGridDB {
 			}
 			r.delKey.setCommodity(cmdty);
 			r.delKey.setStoreN(rs.getInt(3));
+			r.nextUserFile = rs.getString(24);
+			r.relNextUserFile = rs.getString(25);
+			ShipmentRow r1 = m1.get(r.delKey);
+			if (r1 != null) {
+				r.replacedRows.add(r1.nextUserFile);
+			}
+			m1.put(r.delKey, r);
 			r.delTimeFrom = SupportTime.HHmm_Format.format(rs.getTime(19));
 			r.delTimeTo = SupportTime.HHmm_Format.format(rs.getTime(20));
 			setRx(r, cmdty, m);
@@ -198,13 +205,6 @@ class FillGridDB {
 			r.localDc = rs.getString(21);
 			r.carrierType = rs.getString(22);
 			r.aRoutePerGroup = rs.getString(23) != null;
-			r.nextUserFile = rs.getString(24);
-			r.relNextUserFile = rs.getString(25);
-			ShipmentRow r1 = m1.get(r.delKey);
-			if (r1 != null) {
-				r.replacedRows.add(r1.nextUserFile);
-			}
-			m1.put(r.delKey, r);
 		}
 	}
 	private static boolean ignore(String dc, String cmdty) {

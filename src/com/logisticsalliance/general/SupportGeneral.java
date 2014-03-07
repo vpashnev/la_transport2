@@ -12,7 +12,8 @@ import com.ibm.db2.jcc.DB2SimpleDataSource;
 
 public class SupportGeneral {
 
-	public static void addEmailAddress(StringBuilder b, EmailSent1 es, int storeN, String province) {
+	public static void addEmailAddress(StringBuilder b,
+		EmailSent1 es, int storeN, String province) {
 		if (province != null && (province.trim().equalsIgnoreCase("PQ") ||
 			province.trim().equalsIgnoreCase("QC"))) {
 			String sn = String.valueOf(storeN);

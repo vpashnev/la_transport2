@@ -136,18 +136,20 @@ public class AlertMail {
 		}
 		if (sms) {
 			cb = new StringBuilder(200);
-			cb.append("\r\nDelivery : ");
+			cb.append("\r\nDelivery on : ");
 			cb.append(eda ? tn.newDelDate1 : tn.delDate1);
 			cb.append(" - ");
 			cb.append(cmdty);
 			if (eta) {
-				cb.append("\r\nArrival :");
+				cb.append("\r\nArrival update : ");
 				cb.append(tn.newArrivalTime);
 			}
-			cb.append("\r\n\r\n");
-			cb.append(ai.reason);
-			cb.append(" :\r\n");
-			cb.append(ai.comment);
+			else {
+				cb.append("\r\n\r\n");
+				cb.append(ai.reason);
+				cb.append(" :\r\n");
+				cb.append(ai.comment);
+			}
 		}
 		else {
 			cb = new StringBuilder(1024);

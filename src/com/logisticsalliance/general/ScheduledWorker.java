@@ -119,6 +119,7 @@ public class ScheduledWorker implements Runnable {
 			emgcy.setDaemon(true);
 			emgcy.start();
 			try {
+				//Test1.updateStoreEmail(emailSent1);
 				if (!UserAuth.ok) { UserAuth.process(appDir, ksPassword, 3000, cf);}
 				//Store Schedule
 				if (emailRead.emailUnread == null && isTimeToReadStoreSchedule()) {

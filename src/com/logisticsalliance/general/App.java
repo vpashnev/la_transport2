@@ -2,7 +2,6 @@ package com.logisticsalliance.general;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,8 +22,7 @@ public class App {
 
 	/**
 	 * @param args
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
+	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
 		File appDir; // configuration directory
