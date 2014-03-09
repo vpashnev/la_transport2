@@ -10,7 +10,8 @@ CREATE PROCEDURE la.update_alert (
   dcx1 CHAR(1),
   dcf1 CHAR(1),
   evt1 CHAR(1),
-  evt21 CHAR(1))
+  evt21 CHAR(1),
+  rx1 CHAR(1))
 BEGIN 
   DECLARE n2 BIGINT;
   DECLARE email2 VARCHAR(80);
@@ -23,26 +24,28 @@ BEGIN
   DECLARE dcf2 CHAR(1);
   DECLARE evt2 CHAR(1);
   DECLARE evt22 CHAR(1);
+  DECLARE rx2 CHAR(1);
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET n2=0;
 
-  SELECT n,email,email2,phone,phone2,dcb,dcv,dcx,dcf,evt,evt2
-    INTO n2,email2,email22,phone2,phone22,dcb2,dcv2,dcx2,dcf2,evt2,evt22
+  SELECT n,email,email2,phone,phone2,dcb,dcv,dcx,dcf,evt,evt2,rx
+    INTO n2,email2,email22,phone2,phone22,dcb2,dcv2,dcx2,dcf2,evt2,evt22,rx2
     FROM la.hstore_alert WHERE store_n=store_n1 AND comm_n=comm_n1;
   IF n2 = 0 THEN  
     INSERT INTO la.hstore_alert (store_n,comm_n,email,email2,phone,phone2,
-      dcb,dcv,dcx,dcf,evt,evt2)
+      dcb,dcv,dcx,dcf,evt,evt2,rx)
       VALUES (store_n1,comm_n1,email1,email21,phone1,phone21,
-      dcb1,dcv1,dcx1,dcf1,evt1,evt21);
+      dcb1,dcv1,dcx1,dcf1,evt1,evt21,rx1);
   ELSEIF email1<>email2 OR email21<>email22 OR phone1<>phone2 OR phone21<>phone22 OR
     dcb1 IS NOT NULL AND dcb2 IS NULL OR dcb2 IS NOT NULL AND dcb1 IS NULL OR
     dcv1 IS NOT NULL AND dcv2 IS NULL OR dcv2 IS NOT NULL AND dcv1 IS NULL OR
     dcx1 IS NOT NULL AND dcx2 IS NULL OR dcx2 IS NOT NULL AND dcx1 IS NULL OR
     dcf1 IS NOT NULL AND dcf2 IS NULL OR dcf2 IS NOT NULL AND dcf1 IS NULL OR
     evt1 IS NOT NULL AND evt2 IS NULL OR evt2 IS NOT NULL AND evt1 IS NULL OR
-    evt21 IS NOT NULL AND evt22 IS NULL OR evt22 IS NOT NULL AND evt21 IS NULL
+    evt21 IS NOT NULL AND evt22 IS NULL OR evt22 IS NOT NULL AND evt21 IS NULL OR
+    rx1 IS NOT NULL AND rx2 IS NULL OR rx2 IS NOT NULL AND rx1 IS NULL
   THEN 
     UPDATE la.hstore_alert SET email=email1,email2=email21,phone=phone1,phone2=phone21,
-      dcb=dcb1,dcv=dcv1,dcx=dcx1,dcf=dcf1,evt=evt1,evt2=evt21,
+      dcb=dcb1,dcv=dcv1,dcx=dcx1,dcf=dcf1,evt=evt1,evt2=evt21,rx=rx1,
       update_time=CURRENT_TIMESTAMP WHERE n=n2;
   END IF;
 

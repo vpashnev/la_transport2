@@ -22,6 +22,7 @@ import com.logisticsalliance.util.SupportTime;
 public class FtpReader {
 
 	private static Logger log = Logger.getLogger(FtpReader.class);
+	private static int trialTimes;
 
 	public static void read(FtpManager fm, File dir, EmailSent1 es) throws InterruptedException {
 		int trials = read1(fm, dir, es, 0);
@@ -30,7 +31,13 @@ public class FtpReader {
 			trials = read1(fm, dir, es, trials);
 		}
 		if (trials >= 20) {
-			EmailEmergency.send(es, "Failed to read FTP road-net files");
+			trialTimes++;
+			if (trialTimes > 10) {
+				EmailEmergency.send(es, "Failed to read FTP road-net files");
+			}
+		}
+		else {
+			trialTimes = 0;
 		}
 	}
 	private static int read1(FtpManager fm, File dir, EmailSent1 es, int trials) {

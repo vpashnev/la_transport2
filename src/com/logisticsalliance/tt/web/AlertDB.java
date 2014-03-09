@@ -13,7 +13,7 @@ public class AlertDB {
 
 	private static final String
 	SQL_SEL =
-	"SELECT comm_n,email,email2,phone,phone2,dcb,dcv,dcx,dcf,evt,evt2 " +
+	"SELECT comm_n,email,email2,phone,phone2,dcb,dcv,dcx,dcf,evt,evt2,rx " +
 	"FROM la.hstore_alert " +
 	"WHERE store_n=? " +
 	"ORDER BY comm_n",
@@ -23,7 +23,7 @@ public class AlertDB {
 	"FROM la.hstore_profile " +
 	"WHERE n=? ",
 
-	SQL_UPD = "{call la.update_alert(?,?,?,?,?,?,?,?,?,?,?,?)}";
+	SQL_UPD = "{call la.update_alert(?,?,?,?,?,?,?,?,?,?,?,?,?)}";
 
 	public static void select(int store, Alert[] alerts,
 		boolean setInitEmail) throws Exception {

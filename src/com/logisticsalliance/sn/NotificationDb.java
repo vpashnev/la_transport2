@@ -64,7 +64,7 @@ public class NotificationDb extends Notify1 {
 		SQL_UPD_ENVR = "UPDATE la.henvr SET time_store_notified=?",
 		SQL_UPD_UNSENT = "UPDATE la.hship_data SET unsent_note=NULL WHERE n=?",
 				
-		CCS = "Canada Cartage Systems", TBD ="TBD";
+		CCS = "Canada Cartage Systems";
 
 	private final static DeliveryNote.Cmdty DCV_CMDTY =
 		new DeliveryNote.Cmdty(CommonConstants.DCV, null, null, null);
@@ -263,7 +263,7 @@ public class NotificationDb extends Notify1 {
 			return;
 		}
 		if (dn.delCarrier == null) {
-			dn.delCarrier = TBD;
+			dn.delCarrier = CommonConstants.TBD;
 		}
 		else { dn.delCarrier = dn.delCarrier.trim();}
 

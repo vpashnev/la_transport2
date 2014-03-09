@@ -34,6 +34,7 @@ CREATE TABLE la.hstore_alert (
   dcf CHAR(1),
   evt CHAR(1),
   evt2 CHAR(1),
+  rx CHAR(1),
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   CONSTRAINT fk_hstore_alert_store_n FOREIGN KEY (store_n)
   REFERENCES la.hstore_profile (n),

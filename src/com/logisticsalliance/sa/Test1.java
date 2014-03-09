@@ -15,8 +15,8 @@ public class Test1 {
 		String sel = "SELECT n,province FROM la.hstore_profile " +
 			"WHERE province IN ('NB','NS','PE','NL')",
 			ins = "INSERT INTO la.hstore_alert " +
-			"(store_n,comm_n,email,email2,dcb,dcv,dcx,dcf,evt,evt2) VALUES " +
-			"(?,0,?,?,'1','1','1','1','1','1')";
+			"(store_n,comm_n,email,email2,dcb,dcv,dcx,dcf,evt,evt2,rx) VALUES " +
+			"(?,0,?,?,'1','1','1','1','1','1','1')";
 		PreparedStatement selSt = con.prepareStatement(sel),
 			insSt = con.prepareStatement(ins);
 		ResultSet rs = selSt.executeQuery();

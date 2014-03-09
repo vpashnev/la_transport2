@@ -24,9 +24,9 @@ public class AlertServlet extends HServlet {
 		"phone231", "phone232", "phone233", "phone234"},
 		},
 		cmdty1 = {
-		{"DCB1", "DCV1", "DCX1", "DCF1", "EVT1", "EVT21"},
-		{"DCB2", "DCV2", "DCX2", "DCF2", "EVT2", "EVT22"},
-		{"DCB3", "DCV3", "DCX3", "DCF3", "EVT3", "EVT23"},
+		{"DCB1", "DCV1", "DCX1", "DCF1", "EVT1", "EVT21", "RX1"},
+		{"DCB2", "DCV2", "DCX2", "DCF2", "EVT2", "EVT22", "RX2"},
+		{"DCB3", "DCV3", "DCX3", "DCF3", "EVT3", "EVT23", "RX3"},
 		};
 	static final String[] select1 = {"select1", "select2", "select3"};
 	private static final String msg1 = "msg",

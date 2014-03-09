@@ -55,6 +55,9 @@ public class AlertMail {
 				case 5:
 					if (b[j] && cmdtyPallets.containsKey(CommonConstants.EVT2)) { has = true;}
 					break;
+				case 6:
+					if (b[j] && cmdtyPallets.containsKey(CommonConstants.RX)) { has = true;}
+					break;
 				}
 				if (has) {
 					for (int i = startIdx; i != count; i++) {

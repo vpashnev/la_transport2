@@ -62,7 +62,7 @@ public class TtTableDb {
 		"sts.store_n=sd.store_n AND sts.cmdty=sd.cmdty AND " +
 		"(sts.ship_date IS NOT NULL AND sts.ship_date=sd.ship_date OR " +
 		"sts.ship_date IS NULL AND sts.ship_day=DAYOFWEEK(sd.ship_date)-1) AND " +
-		"sd.ship_date=? AND rno.lw NOT IN (" +CommonConstants.RX_LW+") "+
+		"sd.ship_date=? "+
 
 		"ORDER BY " +
 		"sd.store_n,sd.cmdty,sd.dc";
@@ -126,7 +126,7 @@ public class TtTableDb {
 				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(shipDate)+
 					"\r\n\r\n"+al+
 					"\r\n\r\nTotal:   "+al.size()+
-					"\r\n\r\nMissing: "+(al.size()-count));
+					"\r\n\r\nMissing carriers: "+(al.size()-count));
 			}
 		}
 		catch (Exception ex) {
@@ -210,6 +210,10 @@ public class TtTableDb {
 				log.error("Carrier not found (" + type + "): "+k);
 			}
 			r.missing = true;
+			if (r.cmdty.equals(CommonConstants.RX)) {
+				r.delCarrier = CommonConstants.COURIER;
+			}
+			else { r.delCarrier = CommonConstants.TBD;}
 		}
 		else { count[0]++;}
 		if (!CommonConstants.CCS.equalsIgnoreCase(r.delCarrier)) {
@@ -236,7 +240,7 @@ public class TtTableDb {
 		ArrayList<DeliveryRow> al, Date shipDate) throws Exception {
 		for (Iterator<DeliveryRow> it = al.iterator(); it.hasNext();) {
 			DeliveryRow r = it.next();
-			if (r.missing) { continue;}
+			//if (r.missing) { continue;}
 			upd.setDate(1, r.delDate);
 			upd.setInt(2, getTime(r.arrivalTime));
 			upd.setInt(3, getTime(r.serviceTime));

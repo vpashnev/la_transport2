@@ -66,6 +66,7 @@ function hasCmdty(sfx) {
 	chk = document.getElementById("DCF"+sfx).checked || chk;
 	chk = document.getElementById("EVT"+sfx).checked || chk;
 	chk = document.getElementById("EVT2"+sfx).checked || chk;
+	chk = document.getElementById("RX"+sfx).checked || chk;
 	return chk;
 }
 function selectAll(box, sfx) {
@@ -76,6 +77,7 @@ function selectAll(box, sfx) {
 	document.getElementById("DCF"+sfx).checked = chk;
 	document.getElementById("EVT"+sfx).checked = chk;
 	document.getElementById("EVT2"+sfx).checked = chk;
+	document.getElementById("RX"+sfx).checked = chk;
 }
 function selectItem(textID, box) {
 	txt = document.getElementById(textID);  

@@ -6,7 +6,7 @@ public class Alert implements Serializable {
 	private static final long serialVersionUID = 10L;
 
 	String[] comm = new String[4];
-	boolean[] cmdty = new boolean[6];
+	boolean[] cmdty = new boolean[7];
 	String checkMsg;
 
 	public Object clone() {
