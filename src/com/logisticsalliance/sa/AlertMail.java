@@ -76,7 +76,7 @@ public class AlertMail {
 		String interval, boolean alertStoresByPhone) throws Exception {
 		for (Iterator<TrackingNote> it = al.iterator(); it.hasNext();) {
 			TrackingNote tn = it.next();
-			if (!tn.exception) {
+			if (tn.statusN == 0) {
 				continue;
 			}
 			boolean eta = !tn.arrivalTime.equals(tn.newArrivalTime),

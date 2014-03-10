@@ -13,12 +13,11 @@ import com.logisticsalliance.util.SupportTime;
 public class TrackingNote implements Serializable {
 	private static final long serialVersionUID = 10L;
 
-	public int storeN;
+	public int storeN, statusN;
 	public Date shipDate, delDate, newDelDate, timestamp;
 	public String delDate1, newDelDate1, arrivalTime, newArrivalTime, serviceTime, dc,
 		route, stopN, carrier, delTimeFrom, delTimeTo;
 	public HashMap<String,Alerts> cmdtyAlerts = new HashMap<String,Alerts>(4, .5f);
-	boolean exception;
 
 	void updateAlerts() {
 		for (Iterator<Alerts> it = cmdtyAlerts.values().iterator(); it.hasNext();) {

@@ -9,7 +9,7 @@ public class AlertItem implements Serializable, Comparable<AlertItem> {
 	private static final long serialVersionUID = 10L;
 
 	public String status, reasonID, reason, reasonEn, comment;
-	boolean exception;
+	int statusN;
 	Timestamp ts;
 
 	private StringBuilder getStringBuilder(boolean descr) {

@@ -228,13 +228,7 @@ public class SendAlertDb extends Notify1 {
 		}
 		ai.reasonID = trim(rs, 17);
 		ai.comment = trim(rs, 19).trim();
-		if (ai.status.equalsIgnoreCase(CommonConstants.EXCE)) {
-			ai.status = CommonConstants.EXCEPTION;
-			ai.exception = true;
-			if (!tn.exception) {
-				tn.exception = true;
-			}
-		}
+		setSatus(tn, ai);
 		if (!as.hset.contains(ai)) {
 			as.hset.add(ai);
 			ai.reason = trim(rs, 18);
@@ -252,6 +246,21 @@ public class SendAlertDb extends Notify1 {
 			else if (!tsd.equals(tn.timestamp)) {
 				tn.timestamp = tsd;
 			}
+		}
+	}
+	private static void setSatus(TrackingNote tn, AlertItem ai) {
+		if (ai.status.equalsIgnoreCase(CommonConstants.EXCE)) {
+			setStatus(tn, ai, CommonConstants.EXCEPTION, CommonConstants.EXCE_N);
+		}
+		else if (ai.status.equalsIgnoreCase(CommonConstants.TRAN)) {
+			setStatus(tn, ai, CommonConstants.TRANSIT, CommonConstants.TRAN_N);
+		}
+	}
+	private static void setStatus(TrackingNote tn, AlertItem ai, String name, int n) {
+		ai.status = name;
+		ai.statusN = n;
+		if (tn.statusN != n) {
+			tn.statusN = n;
 		}
 	}
 	private static String trim(ResultSet rs, int idx) throws Exception {
