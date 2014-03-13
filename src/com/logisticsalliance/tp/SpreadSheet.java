@@ -33,14 +33,17 @@ public class SpreadSheet {
 		r = sh.createRow(2);
 		addHead(r, sh.createRow(3));
 	}
-	private static void addHead(FileWriter w) throws Exception {
+	private static void addHead(FileWriter w, boolean dc50) throws Exception {
 		w.write(','); w.write(','); w.write(','); w.write(',');
 		w.write("Narc"); w.write(','); w.write(',');
 		w.write(','); w.write(','); w.write(','); w.write(','); w.write(',');
 		w.write("Poll"); w.write(','); w.write(',');
-		w.write("Ship");
+		w.write("Ship"); w.write(','); w.write(',');
+		if (dc50) {
+			w.write("Changed");
+			w.write(','); w.write(',');
+		}
 		w.write(','); w.write(','); w.write(','); w.write(',');
-		w.write(','); w.write(',');
 		w.write("Deliver");
 		w.write('\r'); w.write('\n');
 		w.write(',');
@@ -51,7 +54,7 @@ public class SpreadSheet {
 		w.write("Stop"); w.write(',');
 		w.write("Group"); w.write(',');
 		w.write("City"); w.write(',');
-		w.write("Carrier"); w.write(',');
+		w.write("Carriers"); w.write(','); w.write(',');
 		w.write("Prov"); w.write(',');
 		w.write("Post Code"); w.write(',');
 		w.write("Day"); w.write(',');
@@ -68,6 +71,14 @@ public class SpreadSheet {
 		w.write("To"); w.write(',');
 		w.write("DCX"); w.write(',');
 		w.write("Ship Day"); w.write(',');
+		if (dc50) {
+			w.write("LH Car."); w.write(',');
+			w.write("LH Serv."); w.write(',');
+			w.write("Del Car."); w.write(',');
+			w.write("Del Serv."); w.write(',');
+			w.write("Stg.Lane"); w.write(',');
+			w.write("Spec.Instr"); w.write(',');
+		}
 		w.write("File"); w.write(',');
 		w.write("Rel.File"); w.write(',');
 		w.write("Replaced");
@@ -135,7 +146,9 @@ public class SpreadSheet {
 					sameRoute = r0.route == r.route;
 				}
 				if (sameRoute) {
-					stop++;
+					if (r.stop1 == -1) {
+						stop++;
+					}
 				}
 				else { stop = 1;}
 				if (maxStops > 0 && stop > maxStops) {
@@ -144,17 +157,17 @@ public class SpreadSheet {
 					stop = 1;
 					i++;
 				}
-				r.stop = stop;
+				r.stop = r.stop1 == -1 ? stop : r.stop1;
 				r0 = r;
 			}
 		}
 	}
-	static void fill(FileWriter w, SearchInput si, String day,
+	static void fill(FileWriter w, SearchInput si, String day, boolean dc50,
 		HashMap<String,ArrayList<ShipmentRow>> m) throws Exception {
 		w.write("DC"); w.write(si.dc); w.write(',');
 		w.write(day);
-		w.write('\r'); w.write('\n');
-		addHead(w);
+		//w.write('\r'); w.write('\n');
+		addHead(w, dc50);
 		fill(si, day, m);
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it =
 			m.entrySet().iterator(); it.hasNext();) {
@@ -168,7 +181,7 @@ public class SpreadSheet {
 				if (!first && !r.sameGroup) {
 					w.write('\r'); w.write('\n');
 				}
-				String v = r.getCsvRow();
+				String v = r.getCsvRow(dc50);
 				w.write(v);
 				if (first) {
 					first = false;

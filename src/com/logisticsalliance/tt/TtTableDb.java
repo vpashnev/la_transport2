@@ -205,15 +205,17 @@ public class TtTableDb {
 		if (r.delCarrier == null) {
 			int dow = SupportTime.getDayOfWeek(r.delDate);
 			DsKey k = new DsKey(r.storeN, r.cmdty, dow);
-			if (carriersNotFound.add(k)) {
-				String type = r.items.get(0).dsShipDate == null ? "regular" : "holidays";
-				log.error("Carrier not found (" + type + "): "+k);
-			}
-			r.missing = true;
 			if (r.cmdty.equals(CommonConstants.RX)) {
 				r.delCarrier = CommonConstants.COURIER;
 			}
-			else { r.delCarrier = CommonConstants.TBD;}
+			else {
+				if (carriersNotFound.add(k)) {
+					String type = r.items.get(0).dsShipDate == null ? "regular" : "holidays";
+					log.error("Carrier not found (" + type + "): "+k);
+				}
+				r.delCarrier = CommonConstants.TBD;
+				r.missing = true;
+			}
 		}
 		else { count[0]++;}
 		if (!CommonConstants.CCS.equalsIgnoreCase(r.delCarrier)) {

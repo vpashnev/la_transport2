@@ -21,8 +21,10 @@ class FillGridDB {
 	SQL_SEL =
 	"SELECT " +
 	"sc.dc, s.cmdty, s.store_n, sc.group1, sp.city, sc.carrier_id, sp.province,\r\n" +
-	"sp.post_code, s.pol_day, s.pol_time, s.ship_date, s.ship_day, s.ship_time, s1.cmdty,\r\n" +
-	"s1.ship_day, s.del_date, s.del_day, s.del_week, s.del_time_from, s.del_time_to,\r\n" +
+	"sp.post_code, s.pol_day, s.pol_time, s.ship_date, s.ship_day, s.ship_time,\r\n" +
+	"sc.ship_day1, sc.ship_time1, s1.cmdty, s1.ship_day, s.del_date, s.del_day,\r\n" +
+	"s.del_week, s.del_time_from, s.del_time_to, sc.lh_carrier_id, sc.lh_service,\r\n" +
+	"sc.del_carrier_id, sc.del_service, sc.staging_lane, sc.spec_instructs, sc.stop1,\r\n" +
 	"sp.local_dc, sc.carrier_type, sc.aroute_per_group, s.next_user_file,\r\n" +
 	"s1.next_user_file\r\n" +
 
@@ -107,10 +109,9 @@ class FillGridDB {
 		return st.executeQuery();
 	}
 	static HashMap<String,ArrayList<ShipmentRow>> process(SearchInput si,
-		int idx) throws Exception {
+		int idx, boolean dc20) throws Exception {
 		HashMap<String,HashMap<DsKey,ShipmentRow>> m =
 			new HashMap<String,HashMap<DsKey,ShipmentRow>>(8, .5f);
-		boolean dc20 = si.dc.equals(CommonConstants.DC20);
 		Connection con = connectFactory.getConnection();
 		ResultSet rs = getRowSet(con, si, idx, false, dc20); // regular
 		process(si, idx, false, dc20, rs, m);
@@ -153,14 +154,15 @@ class FillGridDB {
 			}
 			ShipmentRow r = new ShipmentRow();
 			r.shipDay = rs.getInt(12);
-			r.delKey.setDay(rs.getInt(17));
+			r.shipDay1 = getInt(rs.getObject(14));
+			r.delKey.setDay(rs.getInt(19));
 			if (holidays) {
 				r.shipDate = rs.getDate(11);
-				r.delDate = rs.getDate(16);
+				r.delDate = rs.getDate(18);
 				r.holidays = true;
 			}
 			else {
-				int delWeek = rs.getInt(18);
+				int delWeek = rs.getInt(20);
 				setDates(si, idx, r, delWeek);
 				if (si.holidays && r.delDate.compareTo(si.toDate) <= 0) {
 					continue;
@@ -173,15 +175,15 @@ class FillGridDB {
 			}
 			r.delKey.setCommodity(cmdty);
 			r.delKey.setStoreN(rs.getInt(3));
-			r.nextUserFile = rs.getString(24);
-			r.relNextUserFile = rs.getString(25);
+			r.nextUserFile = rs.getString(33);
+			r.relNextUserFile = rs.getString(34);
 			ShipmentRow r1 = m1.get(r.delKey);
 			if (r1 != null) {
 				r.replacedRows.add(r1.nextUserFile);
 			}
 			m1.put(r.delKey, r);
-			r.delTimeFrom = SupportTime.HHmm_Format.format(rs.getTime(19));
-			r.delTimeTo = SupportTime.HHmm_Format.format(rs.getTime(20));
+			r.delTimeFrom = SupportTime.HHmm_Format.format(rs.getTime(21));
+			r.delTimeTo = SupportTime.HHmm_Format.format(rs.getTime(22));
 			setRx(r, cmdty, m);
 			r.group = rs.getString(4);
 			r.city = rs.getString(5);
@@ -191,7 +193,8 @@ class FillGridDB {
 			r.polDay = rs.getInt(9);
 			r.polTime = SupportTime.HHmm_Format.format(rs.getTime(10));
 			r.shipTime = SupportTime.HHmm_Format.format(rs.getTime(13));
-			r.relCmdty = DsKey.toCmdty(rs.getString(14));
+			r.shipTime1 = rs.getString(15);
+			r.relCmdty = DsKey.toCmdty(rs.getString(16));
 			if (r.relCmdty != null) {
 				if (CommonConstants.FS.equals(cmdty) &&
 					CommonConstants.DCX.equals(r.relCmdty)) {
@@ -199,12 +202,19 @@ class FillGridDB {
 				}
 				else if (CommonConstants.FS.equals(r.relCmdty) &&
 					CommonConstants.DCX.equals(cmdty)) {
-					r.relCmdtyShipDay = rs.getInt(15);
+					r.relCmdtyShipDay = rs.getInt(17);
 				}
 			}
-			r.localDc = rs.getString(21);
-			r.carrierType = rs.getString(22);
-			r.aRoutePerGroup = rs.getString(23) != null;
+			r.lhCarrier = rs.getString(23);
+			r.lhService = rs.getString(24);
+			r.delCarrier = rs.getString(25);
+			r.delService = rs.getString(26);
+			r.stagingLane = rs.getString(27);
+			r.specInstructs = rs.getString(28);
+			r.stop1 = getInt(rs.getObject(29));
+			r.localDc = rs.getString(30);
+			r.carrierType = rs.getString(31);
+			r.aRoutePerGroup = rs.getString(32) != null;
 		}
 	}
 	private static boolean ignore(String dc, String cmdty) {
@@ -223,6 +233,12 @@ class FillGridDB {
 			}
 		}
 		return false;
+	}
+	private static int getInt(Object v) {
+		if (v == null) {
+			return -1;
+		}
+		else { return (Integer)v;}
 	}
 	private static void setDates(SearchInput si, int idx,
 		ShipmentRow r, int delWeek) {

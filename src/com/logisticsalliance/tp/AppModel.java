@@ -113,16 +113,18 @@ public class AppModel {
 	private static void process(File appDir, SearchInput si) throws Exception {
 		ArrayList<File> al = new ArrayList<File>(8);
 		File dir = new File(appDir, "log");
+		boolean dc20 = si.dc.equals(CommonConstants.DC20),
+			dc50 = si.dc.equals(CommonConstants.DC50);
 		//Workbook wb = new XSSFWorkbook();
 		for (int i = 0; i <= si.toDay-si.fromDay; i++) {
-			HashMap<String,ArrayList<ShipmentRow>> m = FillGridDB.process(si, i);
+			HashMap<String,ArrayList<ShipmentRow>> m = FillGridDB.process(si, i, dc20);
 			int di = si.fromDay+i;
 			String day = SupportTime.getDayOfWeek(di);
 
 			File f = new File(dir, "TP_DC"+si.dc+"_"+day+".csv");
 			FileWriter w = new FileWriter(f);
 			try {
-				SpreadSheet.fill(w, si, day, m);
+				SpreadSheet.fill(w, si, day, dc50, m);
 			}
 			finally {
 				w.close();
