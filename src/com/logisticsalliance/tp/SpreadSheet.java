@@ -35,7 +35,7 @@ public class SpreadSheet {
 	}
 	private static void addHead(FileWriter w, boolean dc50) throws Exception {
 		w.write(','); w.write(','); w.write(','); w.write(',');
-		w.write("Narc"); w.write(','); w.write(',');
+		w.write("Narc"); w.write(','); w.write(','); w.write(',');
 		w.write(','); w.write(','); w.write(','); w.write(','); w.write(',');
 		w.write("Poll"); w.write(','); w.write(',');
 		w.write("Ship"); w.write(','); w.write(',');
@@ -61,6 +61,10 @@ public class SpreadSheet {
 		w.write("Time"); w.write(',');
 		w.write("Day"); w.write(',');
 		w.write("Time"); w.write(',');
+		if (dc50) {
+			w.write("Day"); w.write(',');
+			w.write("Time"); w.write(',');
+		}
 		w.write("Pallets"); w.write(',');
 		w.write("Weight"); w.write(',');
 		w.write("WHSE 60"); w.write(',');
@@ -93,7 +97,7 @@ public class SpreadSheet {
 		default: return 7;
 		}
 	}
-	private static void fill(SearchInput si, String day,
+	private static void fill(SearchInput si, String day, boolean dc50,
 		HashMap<String,ArrayList<ShipmentRow>> m) throws Exception {
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it = m.entrySet().iterator();
 			it.hasNext();) {
@@ -145,19 +149,19 @@ public class SpreadSheet {
 				if (r0 != null) {
 					sameRoute = r0.route == r.route;
 				}
-				if (sameRoute) {
-					if (r.stop1 == -1) {
+				if (!dc50) {
+					if (sameRoute) {
 						stop++;
 					}
+					else { stop = 1;}
 				}
-				else { stop = 1;}
 				if (maxStops > 0 && stop > maxStops) {
 					r.sameGroup = false;
 					r.route++;
 					stop = 1;
 					i++;
 				}
-				r.stop = r.stop1 == -1 ? stop : r.stop1;
+				if (!dc50) { r.stop = stop;}
 				r0 = r;
 			}
 		}
@@ -166,9 +170,9 @@ public class SpreadSheet {
 		HashMap<String,ArrayList<ShipmentRow>> m) throws Exception {
 		w.write("DC"); w.write(si.dc); w.write(',');
 		w.write(day);
-		//w.write('\r'); w.write('\n');
+		w.write('\r'); w.write('\n');
 		addHead(w, dc50);
-		fill(si, day, m);
+		fill(si, day, dc50, m);
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it =
 			m.entrySet().iterator(); it.hasNext();) {
 			Map.Entry<String,ArrayList<ShipmentRow>> e = it.next();

@@ -109,14 +109,14 @@ class FillGridDB {
 		return st.executeQuery();
 	}
 	static HashMap<String,ArrayList<ShipmentRow>> process(SearchInput si,
-		int idx, boolean dc20) throws Exception {
+		int idx, boolean dc20, boolean dc50) throws Exception {
 		HashMap<String,HashMap<DsKey,ShipmentRow>> m =
 			new HashMap<String,HashMap<DsKey,ShipmentRow>>(8, .5f);
 		Connection con = connectFactory.getConnection();
 		ResultSet rs = getRowSet(con, si, idx, false, dc20); // regular
-		process(si, idx, false, dc20, rs, m);
+		process(si, idx, false, dc20, dc50, rs, m);
 		rs = getRowSet(con, si, idx, true, dc20); // holidays
-		process(si, idx, true, dc20, rs, m);
+		process(si, idx, true, dc20, dc50, rs, m);
 		HashMap<String,ArrayList<ShipmentRow>> m1 =
 			new HashMap<String,ArrayList<ShipmentRow>>(8, .5f);
 		for (Iterator<Map.Entry<String,HashMap<DsKey,ShipmentRow>>> it =
@@ -130,7 +130,7 @@ class FillGridDB {
 		return m1;
 	}
 	private static void process(SearchInput si, int idx, boolean holidays,
-		boolean dc20, ResultSet rs, HashMap<String,HashMap<DsKey,ShipmentRow>> m)
+		boolean dc20, boolean dc50, ResultSet rs, HashMap<String,HashMap<DsKey,ShipmentRow>> m)
 		throws Exception {
 		while (rs.next()) {
 			String dc = rs.getString(1);
@@ -211,7 +211,11 @@ class FillGridDB {
 			r.delService = rs.getString(26);
 			r.stagingLane = rs.getString(27);
 			r.specInstructs = rs.getString(28);
-			r.stop1 = getInt(rs.getObject(29));
+			if (dc50) {
+				r.stop1 = getInt(rs.getObject(29));
+				if (r.stop1 == -1) { r.stop1 = 0;}
+				r.stop = r.stop1;
+			}
 			r.localDc = rs.getString(30);
 			r.carrierType = rs.getString(31);
 			r.aRoutePerGroup = rs.getString(32) != null;

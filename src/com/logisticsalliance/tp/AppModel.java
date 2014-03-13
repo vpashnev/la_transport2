@@ -117,7 +117,7 @@ public class AppModel {
 			dc50 = si.dc.equals(CommonConstants.DC50);
 		//Workbook wb = new XSSFWorkbook();
 		for (int i = 0; i <= si.toDay-si.fromDay; i++) {
-			HashMap<String,ArrayList<ShipmentRow>> m = FillGridDB.process(si, i, dc20);
+			HashMap<String,ArrayList<ShipmentRow>> m = FillGridDB.process(si, i, dc20, dc50);
 			int di = si.fromDay+i;
 			String day = SupportTime.getDayOfWeek(di);
 

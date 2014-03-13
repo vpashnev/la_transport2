@@ -12,7 +12,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 	private static final long serialVersionUID = 10L;
 
 	public DsKey delKey = new DsKey();
-	public int polDay, shipDay, shipDay1, relCmdtyShipDay = -1, route, stop, stop1;
+	public int polDay, shipDay, shipDay1, relCmdtyShipDay = -1, route, stop, stop1 = -1;
 	public Date pollDate, shipDate, delDate;
 	public String relCmdty, stopN, group, carrier, carrier1,
 		city, prov, postCode, polTime, shipTime, shipTime1, delTimeFrom, delTimeTo,
@@ -43,9 +43,9 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		b.append(delKey.getStoreN()); b.append(',');
 		if (rxRow != null || cmdty.equals(CommonConstants.RX)) {
 			if (rxRow == null) {
-				b.append(route);
+				b.append(route+100);
 			}
-			else { b.append(route+100);}
+			else { b.append(route);}
 			b.append(',');
 			b.append(stop);
 		}
@@ -54,7 +54,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		if (!sameGroup) { b.append(group);} b.append(',');
 		b.append(city); b.append(',');
 		b.append(carrier); b.append(',');
-		b.append(carrier1); b.append(',');
+		add(b, carrier1);
 		if (samePC) {
 			b.append(',');
 		}
@@ -88,12 +88,12 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		}
 		b.append(',');
 		if (dc50) {
-			b.append(lhCarrier); b.append(',');
-			b.append(lhService); b.append(',');
-			b.append(delCarrier); b.append(',');
-			b.append(delService); b.append(',');
-			b.append(stagingLane); b.append(',');
-			b.append(specInstructs); b.append(',');
+			add(b, lhCarrier);
+			add(b, lhService);
+			add(b, delCarrier);
+			add(b, delService);
+			add(b, stagingLane);
+			add(b, specInstructs);
 		}
 		b.append(nextUserFile); b.append(',');
 		if (b.length() != ln) {
@@ -104,6 +104,12 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		b.append(','); b.append(carrierType);
 		b.append('\r'); b.append('\n');
 		return b.toString();
+	}
+	private static void add(StringBuilder b, String v) {
+		if (v != null) {
+			b.append(v);
+		}
+		b.append(',');
 	}
 
 	@Override
@@ -163,7 +169,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 								}
 							}
 						}
-						else if (fs) {
+						else if (fs && stop1 == -1) {
 							if (v == 0) {
 								v = rxRow != null && r.rxRow == null ? -1 :
 									(rxRow == null && r.rxRow != null ? 1 : 0);
