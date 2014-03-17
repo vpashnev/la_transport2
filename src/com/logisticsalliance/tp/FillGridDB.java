@@ -40,14 +40,13 @@ class FillGridDB {
 	SQL_SEL_REG1 = "sc.holidays IS NULL",
 	SQL_SEL_HOL1 = "(sc.holidays IS NULL OR sc.holidays=h.week_day)",
 
-	SQL_SEL1 = "\r\nLEFT JOIN la.hstore_schedule s1 ON s.store_n=s1.store_n AND " +
-	"s1.ship_date IS NOT NULL AND\r\n" +
+	SQL_SEL1 = "\r\nLEFT JOIN la.hstore_schedule s1 ON s.store_n=s1.store_n AND\r\n" +
 	//"s.cmdty<>s1.cmdty AND s.cmdty<>'DCF' AND s1.cmdty<>'DCF' AND\r\n" +
 	"((s.cmdty='DCB' OR s.cmdty='DCV') AND s1.cmdty='DCX' OR\r\n" +
 	"(s1.cmdty='DCB' OR s1.cmdty='DCV') AND s.cmdty='DCX') AND\r\n",
 
-	SQL_SEL_REG2 = "s.del_day=s1.del_day",
-	SQL_SEL_HOL2 = "s.del_date=s1.del_date",
+	SQL_SEL_REG2 = "s1.ship_date IS NULL AND s.del_day=s1.del_day",
+	SQL_SEL_HOL2 = "s1.ship_date IS NOT NULL AND s.del_date=s1.del_date",
 
 	SQL_SEL2 = " AND s.del_time_from=s1.del_time_from\r\n" +
 	"WHERE\r\n" +

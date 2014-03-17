@@ -90,8 +90,8 @@ public class SearchServlet extends HServlet {
 			HRow r = newRow();
 			HCell c0 = new HCell(r, null);
 			setRowFocus(c0);
-			new HCell(r, tn.delDate1);
-			new HCell(r, tn.arrivalTime);
+			new HCell(r, tn.newDelDate == null ? tn.delDate1 : tn.newDelDate1);
+			new HCell(r, tn.newArrivalTime.length() == 0 ? tn.arrivalTime : tn.newArrivalTime);
 			boolean[] first = {true};
 			for (Iterator<Map.Entry<String,Alerts>> it1 = tn.cmdtyAlerts.entrySet().iterator();
 				it1.hasNext();) {
@@ -154,6 +154,7 @@ public class SearchServlet extends HServlet {
 	private static void addOthers(HCell c, TrackingNote tn) {
 		new HParam(c, tn.serviceTime);
 		new HParam(c, tn.carrier);
+		new HParam(c, tn.stopN).setClass("num");
 	}
 
 	@Override
@@ -169,7 +170,7 @@ public class SearchServlet extends HServlet {
 		}
 		d.store = a.store;
 		if (d.firstTime) {
-			d.date = new Date(System.currentTimeMillis());
+			d.date = new Date(System.currentTimeMillis()+2*SupportTime.DAY);
 			d.firstTime = false;
 		}
 		else {

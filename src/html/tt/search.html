@@ -70,7 +70,7 @@ position:fixed;top:72px;left:338px;
 <body id="body1" ondrop="drop(event)" ondragover="allowDrop(event)" onload="curRowIdx = -1;">
 <div style="width:100%;height:37px;background:lightgray;padding-top:10px;">
 <form action="search" method="post" onsubmit="parentNode.parentNode.setAttribute('style','cursor:wait;')">
-<span><b>Delivery on:</b>
+<span><b>Delivery by:</b>
 </span>
 <select id="month" name="month"></select>
 <span>
@@ -118,8 +118,8 @@ position:fixed;top:72px;left:338px;
 <table>
 <tbody>
 <tr>
-<td>Delivery</td><td><input id="date" size="10" type="text" /> @
- <input id="time" size="5" type="text" /></td>
+<td>Delivery</td><td><input id="date" size="10" type="text" /> &#160; @
+&#160;<input id="time" size="5" type="text" /></td>
 </tr>
 <tr>
 <td>Skids</td><td><input id="skids" size="3" type="text" /></td>
@@ -131,7 +131,8 @@ position:fixed;top:72px;left:338px;
 <td>Carrier</td><td><input id="car" size="50" type="text" /></td>
 </tr>
 <tr>
-<td>Service time</td><td><input id="stime" size="10" type="text" /></td>
+<td>Service time</td><td><input id="stime" size="10" type="text" /> &#160; Stop
+&#160;<input id="stop" size="3" type="text" /></td>
 </tr>
 <tr>
 <td>Status</td><td><input id="status" size="10" type="text" /></td>

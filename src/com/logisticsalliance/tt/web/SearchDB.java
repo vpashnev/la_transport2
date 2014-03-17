@@ -23,7 +23,7 @@ class SearchDB {
 	"d.dvstore# = m.mvstore# AND d.dvshpd=m.mvshpd AND d.dvcom=m.mvcom AND d.dvdc=m.mvdc " +
 	"LEFT OUTER JOIN OS61LXDTA.##PTABM p ON p.tmnam='*REASEXC' AND m.mvreexc=p.tment " +
 	"WHERE dvstore# = ? AND dvdlvd>? AND ",
-	SQL_EXP2 = "ORDER BY 3 DESC, 11 DESC, 4 DESC",
+	SQL_EXP2 = "ORDER BY dvdlvd DESC, dvetato DESC, mvcrtz DESC",
 
 	SQL_EXPD = SQL_EXP1+"dvdlvd<=?"+SQL_EXP2,
 	SQL_EXPC = SQL_EXP1+"dvcom=?"+SQL_EXP2,

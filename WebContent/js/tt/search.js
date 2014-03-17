@@ -96,6 +96,7 @@ function setInfo(table, row) {
 	c = row.cells[7].childNodes;
 	document.getElementById("stime").value = c[3].textContent;
 	document.getElementById("car").value = c[5].textContent;
+	document.getElementById("stop").value = c[7].textContent;
 }
 function focusCurRow() {
 	var i = curRowIdx-1;
