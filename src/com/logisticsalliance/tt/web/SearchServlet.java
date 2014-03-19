@@ -155,6 +155,8 @@ public class SearchServlet extends HServlet {
 		new HParam(c, tn.serviceTime);
 		new HParam(c, tn.carrier);
 		new HParam(c, tn.stopN).setClass("num");
+		new HParam(c, tn.delDate1);
+		new HParam(c, tn.arrivalTime);
 	}
 
 	@Override

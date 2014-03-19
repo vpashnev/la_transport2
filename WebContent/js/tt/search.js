@@ -1,4 +1,4 @@
-var dx = 338, dy = 72, dToX, dToY, curRowIdx;
+var dx = 378, dy = 60, dToX, dToY, curRowIdx;
 
 function unfold(but) {
 	var s = but.innerHTML;
@@ -91,8 +91,16 @@ function setInfo(table, row) {
 		row = table.rows[i];
 		v = row.cells[1].innerHTML;
 	}
-	document.getElementById("date").value = v;
-	document.getElementById("time").value = row.cells[2].innerHTML;
+	document.getElementById("date").value = c[9].textContent;
+	document.getElementById("time").value = c[11].textContent;
+	if (v != c[9].textContent || row.cells[2].innerHTML != c[11].textContent) {
+		document.getElementById("date1").value = v;
+		document.getElementById("time1").value = row.cells[2].innerHTML;
+	}
+	else {
+		document.getElementById("date1").value = null;
+		document.getElementById("time1").value = null;
+	}
 	c = row.cells[7].childNodes;
 	document.getElementById("stime").value = c[3].textContent;
 	document.getElementById("car").value = c[5].textContent;
