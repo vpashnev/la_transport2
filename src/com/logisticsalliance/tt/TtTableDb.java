@@ -82,12 +82,13 @@ public class TtTableDb {
 	public static int getTrials() {
 		return trials;
 	}
-	public static void process(final Date shipDate, EmailSent1 es) throws InterruptedException {
+	public static void process(final Date shipDate, EmailSent1 es,
+		final boolean log1) throws InterruptedException {
 		trials++;
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				process1(shipDate);
+				process1(shipDate, log1);
 				trials = 0;
 			}
 		};
@@ -104,7 +105,7 @@ public class TtTableDb {
 			}
 		}
 	}
-	private static void process1(Date shipDate) {
+	private static void process1(Date shipDate, boolean log1) {
 		Connection con = null, con1 = null;
 		try {
 			con = ConnectFactory1.one().getConnection();
@@ -114,18 +115,20 @@ public class TtTableDb {
 			st.setDate(1, shipDate);
 			ResultSet rs = st.executeQuery();
 			ArrayList<DeliveryRow> al = new ArrayList<DeliveryRow>(1024);
-			int count = select(rs, al);
+			int count = select(rs, al, log1);
 			st.close();
 			/*st = con1.prepareStatement("DELETE FROM OS61LXDTA.OSPDLVS WHERE dvshpd=?");
 			st.setDate(1, shipDate);
 			int n = st.executeUpdate();
 			st.close();*/
-			update(con1.prepareStatement(SQL_INS), con1.prepareStatement(SQL_UPD), al, shipDate);
+			int addedRows = update(con1.prepareStatement(SQL_INS),
+				con1.prepareStatement(SQL_UPD), al, shipDate);
 			con1.commit();
-			if (al.size() != 0) {
+			if (al.size() != 0 && log1) {
 				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(shipDate)+
 					"\r\n\r\n"+al+
 					"\r\n\r\nTotal:   "+al.size()+
+					"\r\n\r\nAdded:   "+addedRows+" (including)"+
 					"\r\n\r\nMissing carriers: "+(al.size()-count));
 			}
 		}
@@ -145,7 +148,8 @@ public class TtTableDb {
 		r.dc = dc;
 		return r;
 	}
-	private static int select(ResultSet rs, ArrayList<DeliveryRow> al) throws Exception {
+	private static int select(ResultSet rs, ArrayList<DeliveryRow> al,
+		boolean log1) throws Exception {
 		HashMap<String,OrderItem> m = new HashMap<String,OrderItem>(64, .5f);
 		if (!rs.next()) {
 			rs.close(); return 0;
@@ -162,7 +166,7 @@ public class TtTableDb {
 				r = newData(storeN, cmdty, dc);
 			}
 			else if (storeN != r.storeN || !cmdty.equals(r.cmdty) || !dc.equals(r.dc)) {
-				addRow(al, r, count);
+				addRow(al, r, count, log1);
 				m.clear();
 				r = newData(storeN, cmdty, dc);
 			}
@@ -194,13 +198,14 @@ public class TtTableDb {
 			}
 			if (!rs.next()) {
 				rs.close();
-				addRow(al, r, count);
+				addRow(al, r, count, log1);
 				break;
 			}
 		}
 		return count[0];
 	}
-	private static void addRow(ArrayList<DeliveryRow> al, DeliveryRow r, int[] count) {
+	private static void addRow(ArrayList<DeliveryRow> al,
+		DeliveryRow r, int[] count, boolean log1) {
 		r.pallets = r.getTotalPallets();
 		if (r.delCarrier == null) {
 			int dow = SupportTime.getDayOfWeek(r.delDate);
@@ -209,7 +214,7 @@ public class TtTableDb {
 				r.delCarrier = CommonConstants.COURIER;
 			}
 			else {
-				if (carriersNotFound.add(k)) {
+				if (log1 && carriersNotFound.add(k)) {
 					String type = r.items.get(0).dsShipDate == null ? "regular" : "holidays";
 					log.error("Carrier not found (" + type + "): "+k);
 				}
@@ -238,11 +243,11 @@ public class TtTableDb {
 		r.items.add(oi);
 		return true;
 	}
-	private static void update(PreparedStatement ins, PreparedStatement upd,
+	private static int update(PreparedStatement ins, PreparedStatement upd,
 		ArrayList<DeliveryRow> al, Date shipDate) throws Exception {
+		int addedRows = 0;
 		for (Iterator<DeliveryRow> it = al.iterator(); it.hasNext();) {
 			DeliveryRow r = it.next();
-			//if (r.missing) { continue;}
 			upd.setDate(1, r.delDate);
 			upd.setInt(2, getTime(r.arrivalTime));
 			upd.setInt(3, getTime(r.serviceTime));
@@ -276,8 +281,11 @@ public class TtTableDb {
 			ins.setInt(12, getTime(r.delTimeTo));
 			ins.setString(13, r.delCarrier);
 			ins.addBatch();
+			r.added = true;
+			addedRows++;
 		}
 		ins.executeBatch();
+		return addedRows;
 	}
 	private static int getTime(Time t) {
 		String v = SupportTime.Hmm_Format.format(t);

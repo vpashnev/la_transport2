@@ -159,9 +159,18 @@ public class ScheduledWorker implements Runnable {
 					alertStartingTime = null; alertEndingTime = null;
 				}
 
-				//Make daily reports
 				Calendar c = SqlSupport.getDb2CurrentTime();
 				int h = c.get(Calendar.HOUR_OF_DAY);
+
+				if (ttTable != null && quickReport == null && h == 11 && h != curHour) {
+					//ttTable
+					curHour = h;
+					TtTableDb.process(new Date(c.getTimeInMillis()+SupportTime.DAY),
+						emailSent1, false);
+				}
+				else if (h != 11) { curHour = h;}
+
+				//Make daily reports
 				if (emailSent1.rnFileListTo != null && h == 21 && h != curHour) {
 					String m = emailReports.sendRnFileList(emailSent1);
 					log.debug("\r\n\r\nList of processed files:\r\n\r\n"+m+"\r\n");
@@ -180,7 +189,7 @@ public class ScheduledWorker implements Runnable {
 					}
 					if (ttTable != null) {
 						//ttTable
-						TtTableDb.process(d, emailSent1);
+						TtTableDb.process(d, emailSent1, true);
 					}
 					if (shipmentDate != null) {
 						shipmentDate = null;

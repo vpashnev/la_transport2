@@ -15,7 +15,7 @@ import com.logisticsalliance.util.SupportTime;
 class DeliveryRow implements Serializable {
 	private static final long serialVersionUID = 10L;
 
-	boolean missing;
+	boolean missing, added;
 	int storeN, pallets;
 	String cmdty, dc, routeN, stopN, delCarrier, firstUserFile, nextUserFile;
 	Time arrivalTime, serviceTime, delTimeFrom, delTimeTo;
@@ -36,8 +36,10 @@ class DeliveryRow implements Serializable {
 		TBuilder tb = new TBuilder();
 		tb.newLine();
 		tb.addProperty20(RnColumns.STORE_N, storeN, 6);
-		if (missing) {
-			tb.addProperty20("Missing", "true", 4);
+		if (missing || added) {
+			if (missing) { tb.add("Missing, ");}
+			if (added) { tb.add("Added");}
+			tb.newLine();
 		}
 		tb.addProperty20(RnColumns.COMMODITY, cmdty, 8);
 		tb.addProperty20("Delivery date", SupportTime.dd_MM_yyyy_Format.format(delDate), 10);
@@ -53,7 +55,7 @@ class DeliveryRow implements Serializable {
 			", modified "+nextUserFile), 80);
 		tb.add('_', 120);
 		tb.newLine();
-		tb.addCell(RnColumns.ORDER_N, 26, false, false);
+		tb.addCell(RnColumns.ORDER_N, 16, false, false);
 		tb.addCell(RnColumns.LW, 4, false, false);
 		tb.addCell(RnColumns.PALLETS, 8, true, false);
 		tb.addCell("User files", 14, false, true);
@@ -62,7 +64,7 @@ class DeliveryRow implements Serializable {
 		tb.newLine();
 		for (Iterator<OrderItem> it = items.iterator(); it.hasNext();) {
 			OrderItem e = it.next();
-			tb.addCell(e.orderN, 20, false, false);
+			tb.addCell(e.orderN, 16, false, false);
 			tb.addCell(e.lw, 4, false, false);
 			tb.addCell(e.pallets, 8, ShipmentDataDb.sizeFormat, false);
 			tb.addCell(e.firstUserFile+(e.nextUserFile == null ? "":

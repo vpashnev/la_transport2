@@ -2,7 +2,6 @@ package com.logisticsalliance.tt.web;
 
 import java.io.PrintWriter;
 import java.sql.Date;
-import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -17,10 +16,10 @@ import com.glossium.ui.html.HCell;
 import com.glossium.ui.html.HDiv;
 import com.glossium.ui.html.HFrame;
 import com.glossium.ui.html.HNode;
-import com.glossium.ui.html.HOption;
 import com.glossium.ui.html.HParam;
 import com.glossium.ui.html.HRow;
 import com.glossium.web.HServlet;
+import com.logisticsalliance.general.SupportGeneral;
 import com.logisticsalliance.sa.AlertItem;
 import com.logisticsalliance.sa.Alerts;
 import com.logisticsalliance.sa.TrackingNote;
@@ -47,31 +46,8 @@ public class SearchServlet extends HServlet {
 		year = ns[2];
 		cmdty = ns[3];
 		table = ns[4];
-		setMonth();
-		setCmdty();
-	}
-	private void setMonth() {
-		new HOption(month, "01", "Jan");
-		new HOption(month, "02", "Feb");
-		new HOption(month, "03", "Mar");
-		new HOption(month, "04", "Apr");
-		new HOption(month, "05", "May");
-		new HOption(month, "06", "Jun");
-		new HOption(month, "07", "Jul");
-		new HOption(month, "08", "Aug");
-		new HOption(month, "09", "Sep");
-		new HOption(month, "10", "Oct");
-		new HOption(month, "11", "Nov");
-		new HOption(month, "12", "Dec");
-	}
-	private void setCmdty() {
-		new HOption(cmdty, "0", "");
-		new HOption(cmdty, "DCB", "DCB");
-		new HOption(cmdty, "DCV", "DCV");
-		new HOption(cmdty, "DCX", "DCX");
-		new HOption(cmdty, "DCF", "DCF");
-		new HOption(cmdty, "EVT", "EVT");
-		new HOption(cmdty, "EVT2", "EVT2");
+		SupportGeneral.setMonth(month);
+		SupportGeneral.setCmdty(cmdty);
 	}
 
 	@Override
@@ -179,26 +155,12 @@ public class SearchServlet extends HServlet {
 			String m = req.getParameter("month"),
 				d1 = req.getParameter("day"),
 				y = req.getParameter("year");
-			d.date = getDate(d, y, m, d1);
+			d.date = SupportTime.getDate(y, m, d1);
 			d.cmdty = req.getParameter("cmdty");
 			if ("0".equals(d.cmdty)) { d.cmdty = null;}
 		}
 		d.list = SearchDB.select(d.store, d.date, d.cmdty);
 		return d;
-	}
-	private static Date getDate(TtSession.SearchData d, String y, String m, String d1) {
-		try {
-			int y1 = Integer.parseInt(y);
-			int m1 = Integer.parseInt(m);
-			int d11 = Integer.parseInt(d1);
-			Calendar c = Calendar.getInstance();
-			c.clear();
-			c.set(y1, m1-1, d11);
-			return new Date(c.getTimeInMillis());
-		}
-		catch (NumberFormatException e) {
-			return null;
-		}
 	}
 
 }

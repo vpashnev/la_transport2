@@ -7,6 +7,8 @@ import org.apache.log4j.PropertyConfigurator;
 
 import com.glossium.sqla.ConnectFactory;
 import com.glossium.sqla.ConnectFactory1;
+import com.glossium.ui.html.HNode;
+import com.glossium.ui.html.HOption;
 import com.ibm.as400.access.AS400JDBCConnectionPoolDataSource;
 import com.ibm.db2.jcc.DB2SimpleDataSource;
 
@@ -81,5 +83,29 @@ public class SupportGeneral {
 	public static void configureLog4j(File folder, String propFile) {
 		String fp = new File(folder, propFile).getPath();
 		PropertyConfigurator.configure(fp);
+	}
+	public static void setMonth(HNode month) {
+		new HOption(month, "01", "Jan");
+		new HOption(month, "02", "Feb");
+		new HOption(month, "03", "Mar");
+		new HOption(month, "04", "Apr");
+		new HOption(month, "05", "May");
+		new HOption(month, "06", "Jun");
+		new HOption(month, "07", "Jul");
+		new HOption(month, "08", "Aug");
+		new HOption(month, "09", "Sep");
+		new HOption(month, "10", "Oct");
+		new HOption(month, "11", "Nov");
+		new HOption(month, "12", "Dec");
+	}
+	public static void setCmdty(HNode cmdty) {
+		new HOption(cmdty, "0", "");
+		new HOption(cmdty, "DCB", "DCB");
+		new HOption(cmdty, "DCV", "DCV");
+		new HOption(cmdty, "DCX", "DCX");
+		new HOption(cmdty, "DCF", "DCF");
+		new HOption(cmdty, "EVT", "EVT");
+		new HOption(cmdty, "EVT2", "EVT2");
+		new HOption(cmdty, "RX", "RX");
 	}
 }

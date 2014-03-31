@@ -7,6 +7,8 @@ CREATE TABLE la.hstore_profile (
   post_code VARCHAR(7),
   local_dc CHAR(2) DEFAULT '  ' NOT NULL,
   status VARCHAR(10) DEFAULT 'OPEN' NOT NULL,
+  market_group  VARCHAR(45),
+  market_group_order INT,
   spec_instructs VARCHAR(50),
   user_id VARCHAR(20) DEFAULT '' NOT NULL,
   user_pwd VARCHAR(20) DEFAULT '' NOT NULL,
@@ -184,11 +186,14 @@ CREATE TABLE la.hstore_carrier (
   ship_time1 VARCHAR(5),
   stop1 INT,
   lh_carrier_id VARCHAR(8),
-  lh_service VARCHAR(4),
+  lh_service VARCHAR(8),
   del_carrier_id VARCHAR(8),
   del_service VARCHAR(4),
-  staging_lane VARCHAR(6),
-  spec_instructs VARCHAR(50),
+  staging_lane VARCHAR(40),
+  distance INT,
+  truck_size VARCHAR(8),
+  max_truck_size VARCHAR(8),
+  spec_instructs VARCHAR(200),
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 --  CONSTRAINT fk_hstore_dc_car_store_n FOREIGN KEY (store_n)
 --  REFERENCES la.hstore_profile (n),
@@ -197,6 +202,17 @@ CREATE TABLE la.hstore_carrier (
   CONSTRAINT pk_hstore_schedule PRIMARY KEY (n)
 ) ;
 CREATE INDEX la.hstore_carrier_dcs ON la.hstore_carrier (dc,cmdty,store_n,ship_day) ;
+
+CREATE TABLE la.hstore_fs_rx (
+  store_n INT NOT NULL,
+  dc CHAR(2) NOT NULL,
+  first_user_file VARCHAR(50) DEFAULT 'unknown' NOT NULL,
+  next_user_file VARCHAR(50) DEFAULT 'unknown' NOT NULL,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT fk_hstore_fs_rx_store_n FOREIGN KEY (store_n)
+  REFERENCES la.hstore_profile (n),
+  CONSTRAINT pk_hstore_fs_rx PRIMARY KEY (store_n)
+) ;
 
 CREATE TABLE la.hholidays (
   name VARCHAR(30) NOT NULL,
@@ -231,6 +247,7 @@ drop procedure la.clean_evt;
 drop procedure la.update_alert;
 drop table la.hholidays;
 drop table la.hstore_carrier;
+drop table la.hstore_fs_rx;
 drop table la.hstore_schedule;
 drop table la.hstore_alert;
 drop table la.hrn_order;
@@ -279,6 +296,9 @@ alter table la.hstore_schedule add column pol_time TIME DEFAULT '00:00:00' NOT N
 alter table la.hstore_schedule add column dallas_time TIME DEFAULT '00:00:00' NOT NULL;
 alter table la.hstore_schedule add column ship_time TIME DEFAULT '00:00:00' NOT NULL;
 alter table la.hstore_schedule add column dc CHAR(2) DEFAULT '' NOT NULL;
+
+alter table la.hstore_profile add column market_group VARCHAR(45);
+alter table la.hstore_profile add market_group_order INT;
 
 alter table la.hship_data alter column add_key SET DEFAULT '';
 

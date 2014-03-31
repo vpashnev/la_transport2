@@ -33,6 +33,31 @@ public class SpreadSheet {
 		r = sh.createRow(2);
 		addHead(r, sh.createRow(3));
 	}
+	private static void addHead1(FileWriter w, boolean dc50) throws Exception {
+		w.write(",,,,,,,,,Narc,,,,,,Polling,, Roadnet Run,,Bomb,,Selection,,RX Polling,," +
+			"RX Roadnet Run,,RX Bomb,,RX Selection,, Shipping Time,,,,,,,,,,,,,,,,,,,,,,,,,,,,," +
+			"Delivery,,,,,,,WHSE # 10,WHSE # 30,WHSE # 40,WHSE # 50,WHSE # 40,WHSE # 50," +
+			"WHSE # 10,WHSE # 30,,,,,,Drive,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,," +
+			",,,,,,,YYYY-MM-DD\r\n");
+		w.write("Route,Stop,Store,Orig.Route,Name,Street #,Address1,City,DB Ship Day," +
+			"Stop,Route,DCF,Carrier,Prov,Post Code,Day,Time,Day,Time,Day,Time,Day,Time," +
+			"Day,Time,Day,Shift,Day,Shift,Day,Shift,Day,Load & Seal,Time,Depart & TRAIN," +
+			"Load Close,RX Totes,Actual Dep,Late,Pallets,Weight kg,Cube,WHSE 10,WHSE 30," +
+			"WHSE 55,WHSE 20,WHSE 25,WHSE 20 cube,WHSE 25 cube,WH20/25 cube,WHSE 60," +
+			"WH 10 Plates,WHS.30 Totes,Event Route,Event Pallets,2 Event Route," +
+			"2 Event Pallets,3 Event Route,3 Event Pallets,Load Ready,Day,Time Window,," +
+			"Gatehouse Time,Truck Size,Max Truck Size,Special Instructions,Stage Lane," +
+			"Stage Lane,Stage Lane,Stage Lane,Bombed,Bombed,Bombed,Bombed,Door #,Trailer #," +
+			"Stage Lane,Verify Trailer #,City or Hwy Cost designation,Last Name,First Name," +
+			"Hours Delayed,Receiving Hours,Comments,Agency Name,Cab Number,LH Carrier," +
+			"Weight,Arrival time,Service Time,Route Start Time,Travel Time,Distance," +
+			"Stop Arrival Date,Pre route Time,Stop Type,Post Route Time,Route Departure Time," +
+			"Route Arrival Time,Route Complete,Route Name,,,,,,,,,,,,,,,,,,,,,,,,,,,,," +
+			"LH Carrier,LH Group ID,Delivery Carrier,Delivery Group ID,Redirect Flag," +
+			"Delivery Service Override,LH Service Override,Dallas BOL,Carrier ProBill," +
+			"Depart Date,Delivery Date,Group");
+		w.write('\r'); w.write('\n');
+	}
 	private static void addHead(FileWriter w, boolean dc50) throws Exception {
 		w.write(','); w.write(','); w.write(','); w.write(',');
 		w.write("Narc"); w.write(','); w.write(','); w.write(',');
@@ -83,6 +108,9 @@ public class SpreadSheet {
 			w.write("Stg.Lane"); w.write(',');
 			w.write("Spec.Instr"); w.write(',');
 		}
+		w.write("Distance"); w.write(',');
+		w.write("Truck Size"); w.write(',');
+		w.write("Max Truck Size"); w.write(',');
 		w.write("File"); w.write(',');
 		w.write("Rel.File"); w.write(',');
 		w.write("Replaced");
@@ -171,7 +199,10 @@ public class SpreadSheet {
 		w.write("DC"); w.write(si.dc); w.write(',');
 		w.write(day);
 		w.write('\r'); w.write('\n');
-		addHead(w, dc50);
+		if (si.test) {
+			addHead(w, dc50);
+		}
+		else { addHead1(w, dc50);}
 		fill(si, day, dc50, m);
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it =
 			m.entrySet().iterator(); it.hasNext();) {
@@ -185,7 +216,7 @@ public class SpreadSheet {
 				if (!first && !r.sameGroup) {
 					w.write('\r'); w.write('\n');
 				}
-				String v = r.getCsvRow(dc50);
+				String v = si.test ? r.getCsvRow(dc50) : r.getCsvRow1();
 				w.write(v);
 				if (first) {
 					first = false;

@@ -112,7 +112,7 @@ public class SendAlertDb extends Notify1 {
 					break;
 				}
 				// Select alerts
-				Timestamp t2 = new Timestamp(t0.getTime()-150000);// less 15 minutes
+				Timestamp t2 = new Timestamp(t0.getTime()-150000);// less 2.5 minutes
 				s = select(selSt, t2, t0, s, es, alertStoresByPhone);
 				if (alertEndingTime == null) {
 					updateNotifyEndingTime(con1, SQL_UPD_ENVR, t0);

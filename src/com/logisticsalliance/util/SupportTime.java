@@ -87,4 +87,18 @@ public class SupportTime {
 		default: return "N/A";
 		}
 	}
+	public static java.sql.Date getDate(String y, String m, String d1) {
+		try {
+			int y1 = Integer.parseInt(y);
+			int m1 = Integer.parseInt(m);
+			int d11 = Integer.parseInt(d1);
+			Calendar c = Calendar.getInstance();
+			c.clear();
+			c.set(y1, m1-1, d11);
+			return new java.sql.Date(c.getTimeInMillis());
+		}
+		catch (NumberFormatException e) {
+			return null;
+		}
+	}
 }

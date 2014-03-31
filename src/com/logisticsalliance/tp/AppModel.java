@@ -24,8 +24,8 @@ import com.logisticsalliance.util.SupportTime;
 public class AppModel {
 
 	static final String dc1 = "dc", carrier1 = "carrier",
-		fromDate1 = "fromDate", toDate1 = "toDate",
-		holidays1 = "holidays";
+		fromDate1 = "fromDate", days1 = "days",
+		holidayWeeks1 = "holidayWeeks", test1 = "test";
 	static final String[] cmdty1 = {
 		CommonConstants.DCB, CommonConstants.DCV, CommonConstants.DCX,
 		CommonConstants.DCF, CommonConstants.EVT, CommonConstants.EVT2,
@@ -160,16 +160,19 @@ public class AppModel {
 		String v = SupportGeneral.getValue(inputProps, fromDate1);
 		si.fromDate = new Date(SupportTime.dd_MM_yyyy_Format.parse(v).getTime());
 		si.fromDay = SupportTime.getDayOfWeek(si.fromDate);
-		v = SupportGeneral.getValue(inputProps, toDate1);
-		si.toDate = new Date(SupportTime.dd_MM_yyyy_Format.parse(v).getTime());
+		v = SupportGeneral.getValue(inputProps, days1);
+		int days = Integer.parseInt(v);
+		si.toDate = new Date(si.fromDate.getTime()+(days-1)*SupportTime.DAY);
 		si.toDay = SupportTime.getDayOfWeek(si.toDate);
 		if (si.fromDay > si.toDay) {
 			throw new IllegalArgumentException("Illegal date range");
 		}
 		si.dc = SupportGeneral.getValue(inputProps, dc1);
 		si.carrier = SupportGeneral.getValue(inputProps, carrier1);
-		v = SupportGeneral.getValue(inputProps, holidays1);
-		si.holidays = v != null;
+		v = SupportGeneral.getValue(inputProps, holidayWeeks1);
+		si.holidayWeeks = v == null || days != 7 || si.fromDay != 0 ? 0 : Integer.parseInt(v);
+		v = SupportGeneral.getValue(inputProps, test1);
+		si.test = v != null;
 		si.cmdty = getCmdty(inputProps);
 		return si;
 	}

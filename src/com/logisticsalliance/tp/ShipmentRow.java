@@ -12,16 +12,78 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 	private static final long serialVersionUID = 10L;
 
 	public DsKey delKey = new DsKey();
-	public int polDay, shipDay, shipDay1, relCmdtyShipDay = -1, route, stop, stop1 = -1;
+	public int polDay, shipDay, shipDay1, relCmdtyShipDay = -1, route,
+		distance, stop, stop1 = -1;
 	public Date pollDate, shipDate, delDate;
 	public String relCmdty, stopN, group, carrier, carrier1,
 		city, prov, postCode, polTime, shipTime, shipTime1, delTimeFrom, delTimeTo,
 		localDc, carrierType, lhCarrier, lhService, delCarrier, delService, stagingLane,
-		specInstructs, nextUserFile, relNextUserFile;
+		specInstructs, truckSize, maxTruckSize, nextUserFile, relNextUserFile;
 	boolean relDcx, aRoutePerGroup, holidays, sameGroup, sameCar, samePC;
 	ShipmentRow rxRow;
 	ArrayList<String> replacedRows = new ArrayList<String>(2);
 
+	String getCsvRow1() {
+		StringBuilder b = new StringBuilder(200);
+		String cmdty = delKey.getCommodity();
+		b.append(route); b.append(',');
+		b.append(stop); b.append(',');
+		b.append(delKey.getStoreN()); b.append(',');
+		b.append(",,,,");
+		b.append(city); b.append(',');
+		b.append(",");
+		if (rxRow != null || cmdty.equals(CommonConstants.RX)) {
+			b.append(stop);
+			b.append(',');
+			if (rxRow == null) {
+				b.append(route+100);
+			}
+			else { b.append(route);}
+		}
+		else { b.append(',');}
+		b.append(',');
+		b.append(",");
+		b.append(carrier); b.append(',');
+		if (samePC) {
+			b.append(',');
+		}
+		else {
+			b.append(prov); b.append(','); b.append(postCode);
+		}
+		b.append(',');
+		b.append(SupportTime.getDayOfWeek(polDay)); b.append(',');
+		b.append(polTime); b.append(',');
+		b.append(",,,,,,,,,,,,,,");
+		b.append(SupportTime.getDayOfWeek(shipDay)); b.append(',');
+		b.append(",");
+		b.append(shipTime); b.append(',');
+		b.append(",,,,,,,,,,,,,,,,,,,,,,,,,,");
+		b.append(SupportTime.getDayOfWeek(delKey.getDay())); b.append(',');
+		b.append(delTimeFrom); b.append(',');
+		b.append(delTimeTo); b.append(',');
+		b.append(",");
+		add(b, truckSize);
+		add(b, maxTruckSize);
+		add(b, specInstructs);
+		b.append(",,,,,,,,,,");
+		add(b, stagingLane);
+		b.append(",,,,,,,,,,,,,,,");
+		if (distance != 0) { b.append(distance);}
+		b.append(',');
+		b.append(",,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,");
+		add(b, lhCarrier);
+		b.append(",");
+		add(b, delCarrier);
+		b.append(",,");
+		add(b, delService);
+		add(b, lhService);
+		b.append(",,,");
+		b.append(SupportTime.yyyy_MM_dd_Format.format(delDate)); b.append(',');
+		if (!sameGroup) { b.append(group);} b.append(',');
+		b.append('\r'); b.append('\n');
+
+		return b.toString();
+	}
 	String getCsvRow(boolean dc50) {
 		StringBuilder b = new StringBuilder(200);
 		String cmdty = delKey.getCommodity();
@@ -95,6 +157,10 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 			add(b, stagingLane);
 			add(b, specInstructs);
 		}
+		if (distance != 0) { b.append(distance);}
+		b.append(',');
+		add(b, truckSize);
+		add(b, maxTruckSize);
 		b.append(nextUserFile); b.append(',');
 		if (b.length() != ln) {
 			b.append(relNextUserFile == null ? "" : relNextUserFile);

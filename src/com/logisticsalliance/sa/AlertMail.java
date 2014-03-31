@@ -130,8 +130,13 @@ public class AlertMail {
 	private static String getMessage(TrackingNote tn, String cmdty, AlertItem ai,
 		String interval, boolean sms, boolean eta, boolean eda) {
 		StringBuilder cb;
-		String re, rf;
-		if (ai.reasonEn.length() == ai.reason.length()) {
+		String re, rf, ce = null, cf = null;
+		if (ai.reason.length() == 0 && tn.statusN == 2) {
+			re = "In transit"; rf = re;
+			ce = "Departed DC on time.";
+			cf = ce;
+		}
+		else if (ai.reasonEn.length() == ai.reason.length()) {
 			re = ai.reason; rf = ai.reason;
 		}
 		else {
@@ -186,7 +191,7 @@ public class AlertMail {
 				cb.append("<li>\n");
 				cb.append(re);
 				cb.append("<br>\n");
-				cb.append(ai.comment);
+				cb.append(ce == null ? ai.comment : ce);
 				cb.append("</li>\n");
 				cb.append("</ul>\n");
 				cb.append("If this update changes the estimated time of arrival (ETA) of the delivery at your store, \n");
@@ -223,7 +228,7 @@ public class AlertMail {
 				cb.append("<li>\n");
 				cb.append(rf);
 				cb.append("<br>\n");
-				cb.append(ai.comment);
+				cb.append(cf == null ? ai.comment : cf);
 				cb.append("</li>\n");
 				cb.append("</ul>\n");
 				cb.append("Si cette mise à jour modifie l'heure d'arrivée prévue de la livraison ");
