@@ -185,7 +185,7 @@ CREATE TABLE la.hstore_carrier (
   ship_day1 INT,
   ship_time1 VARCHAR(5),
   stop1 INT,
-  lh_carrier_id VARCHAR(8),
+  lh_carrier_id VARCHAR(4),
   lh_service VARCHAR(8),
   del_carrier_id VARCHAR(8),
   del_service VARCHAR(4),
@@ -231,9 +231,9 @@ CREATE TABLE la.henvr (
   time_store_notified TIMESTAMP,time_store_alerted TIMESTAMP,daily_rn_files VARCHAR(8000)
 ) ;
 
-CREATE UNIQUE INDEX la.hship_data_key ON la.hship_data (store_n,cmdty,ship_date,dc,add_key) ;
+CREATE UNIQUE INDEX la.hship_data_key ON la.hship_data (store_n,cmdty,ship_date,del_date,add_key) ;
+CREATE UNIQUE INDEX la.hstore_schedule_key ON la.hstore_schedule (store_n,cmdty,ship_day,ship_date,del_day) ;
 CREATE UNIQUE INDEX la.hrn_order_key ON la.hrn_order (ship_n,order_n) ;
-CREATE UNIQUE INDEX la.hstore_schedule_key ON la.hstore_schedule (store_n,cmdty,ship_day,ship_date) ;
 CREATE INDEX la.hstore_schedule_holiday ON la.hstore_schedule (store_n,cmdty,ship_date) ;
 CREATE INDEX la.hstore_schedule_dc_ship_day ON la.hstore_schedule (dc,ship_day,cmdty) ;
 CREATE INDEX la.hstore_schedule_dc_ship_date ON la.hstore_schedule (dc,ship_date,cmdty) ;
@@ -274,9 +274,12 @@ db2 DROP DATABASE myDbase
 db2 UPDATE db cfg for mydbase using LOGFILSIZ 20000
 
 db2 BACKUP DATABASE mydbase ON ALL DBPARTITIONNUMS TO c:\db2\backup
-db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20140221085431 INTO mydbase REPLACE EXISTING
+db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20140331115123 INTO mydbase REPLACE EXISTING
 spool c:/dev/temp/sqlout.txt;
 spool off;
+
+DROP INDEX la.hship_data_key ;
+DROP INDEX la.hstore_schedule_key ;
 
 alter table la.hship_data add column add_key VARCHAR(4) DEFAULT ' ' NOT NULL;
 alter table la.hship_data add column unsent_note CHAR(1) DEFAULT '1';

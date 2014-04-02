@@ -63,12 +63,13 @@ BEGIN
       update_time=CURRENT_TIMESTAMP WHERE n=store_n1;
   END IF;
 
-  SELECT n,dc,del_day,del_time_from,del_time_to,del_week,description,pol_day,pol_date,pol_time,
+  SELECT n,dc,del_time_from,del_time_to,del_week,description,pol_day,pol_date,pol_time,
     dallas_day,dallas_date,dallas_time,ship_time,del_date
-    INTO n2,dc2,del_day2,del_time_from2,del_time_to2,del_week2,description2,pol_day2,pol_date2,pol_time2,
+    INTO n2,dc2,del_time_from2,del_time_to2,del_week2,description2,pol_day2,pol_date2,pol_time2,
     dallas_day2,dallas_date2,dallas_time2,ship_time2,del_date2
     FROM la.hstore_schedule WHERE store_n=store_n1 AND ship_day=ship_day1 AND cmdty=cmdty1 AND
-    (ship_date1 IS NULL AND ship_date IS NULL OR ship_date1 IS NOT NULL AND ship_date=ship_date1);
+    (ship_date1 IS NULL AND ship_date IS NULL OR ship_date1 IS NOT NULL AND
+    ship_date=ship_date1) AND del_day=del_day1;
   IF n2 = 0 THEN
     INSERT INTO la.hstore_schedule (store_n,dc,cmdty,ship_day,del_day,del_time_from,del_time_to,del_week,
       description,pol_day,pol_date,pol_time,dallas_day,dallas_date,
@@ -76,14 +77,14 @@ BEGIN
       VALUES (store_n1,dc1,cmdty1,ship_day1,del_day1,del_time_from1,del_time_to1,del_week1,
       description1,pol_day1,pol_date1,pol_time1,dallas_day1,dallas_date1,
       dallas_time1,ship_time1,ship_date1,del_date1,user_file1,user_file1);
-  ELSEIF dc1<>dc2 OR del_day1<>del_day2 OR del_time_from1<>del_time_from2 OR del_time_to1<>del_time_to2 OR
+  ELSEIF dc1<>dc2 OR del_time_from1<>del_time_from2 OR del_time_to1<>del_time_to2 OR
     del_week1<>del_week2 OR description1<>description2 OR pol_day1<>pol_day2 OR pol_time1<>pol_time2 OR
     dallas_day1<>dallas_day2 OR dallas_time1<>dallas_time2 OR ship_time1<>ship_time2 OR
     pol_date1 IS NULL AND pol_date2 IS NOT NULL OR pol_date1 IS NOT NULL AND pol_date2 IS NULL OR pol_date1<>pol_date2 OR
     dallas_date1 IS NULL AND dallas_date2 IS NOT NULL OR dallas_date1 IS NOT NULL AND dallas_date2 IS NULL OR
     dallas_date1<>dallas_date2 OR
     del_date1 IS NULL AND del_date2 IS NOT NULL OR del_date1 IS NOT NULL AND del_date2 IS NULL OR del_date1<>del_date2 THEN
-    UPDATE la.hstore_schedule SET dc=dc1,del_day=del_day1,del_time_from=del_time_from1,del_time_to=del_time_to1,
+    UPDATE la.hstore_schedule SET dc=dc1,del_time_from=del_time_from1,del_time_to=del_time_to1,
       del_week=del_week1,description=description1,pol_day=pol_day1,pol_date=pol_date1,pol_time=pol_time1,
       dallas_day=dallas_day1,dallas_date=dallas_date1,dallas_time=dallas_time1,ship_time=ship_time1,
       del_date=del_date1,in_use='1',next_user_file=user_file1,update_time=CURRENT_TIMESTAMP WHERE n=n2;

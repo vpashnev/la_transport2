@@ -162,15 +162,17 @@ public class ScheduledWorker implements Runnable {
 				Calendar c = SqlSupport.getDb2CurrentTime();
 				int h = c.get(Calendar.HOUR_OF_DAY);
 
-				if (ttTable != null && quickReport == null && h == 11 && h != curHour) {
+				if (ttTable != null && quickReport == null &&
+					(h == 11 || h == 14 || h == 17) && h != curHour) {
 					//ttTable
-					curHour = h;
 					TtTableDb.process(new Date(c.getTimeInMillis()+SupportTime.DAY),
 						emailSent1, false);
+					curHour = h;
 				}
-				else if (h != 11) { curHour = h;}
+				else if (h != 11 && h != 14 && h != 17) { curHour = h;}
 
 				//Make daily reports
+				h = c.get(Calendar.HOUR_OF_DAY);
 				if (emailSent1.rnFileListTo != null && h == 21 && h != curHour) {
 					String m = emailReports.sendRnFileList(emailSent1);
 					log.debug("\r\n\r\nList of processed files:\r\n\r\n"+m+"\r\n");
@@ -179,8 +181,8 @@ public class ScheduledWorker implements Runnable {
 				}
 				else if (h != 21) { curHour = h;}
 				if (quickReport != null ||
-					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH) ||
-					ShipmentDb.getTrials() > 0 || TtTableDb.getTrials() > 0) {
+					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH)) {
+					quickReport = null;
 
 					Date d = getShipDate(shipmentDate, c);
 					if (shipments != null) {
@@ -195,19 +197,19 @@ public class ScheduledWorker implements Runnable {
 						shipmentDate = null;
 					}
 
-					emailReports.send(emailSent1);
-					curDate = c;
-					ShipmentDataDb.localDcMissing.clear();
-					NotificationDb.clearCarriersNotFound();
-					ShipmentDb.clearCarriersNotFound();
-					TtTableDb.clearCarriersNotFound();
-					quickReport = null;
+					if (ShipmentDb.getTrials() > 0 && TtTableDb.getTrials() > 0) {
+						emailReports.send(emailSent1);
+						curDate = c;
 
-					if (daysOutCleaningDB != null) {
-						if (daysOutCleaning < 0) {
-							daysOutCleaning = Integer.parseInt(daysOutCleaningDB);
+						ShipmentDataDb.localDcMissing.clear();
+						NotificationDb.clearCarriersNotFound();
+
+						if (daysOutCleaningDB != null) {
+							if (daysOutCleaning < 0) {
+								daysOutCleaning = Integer.parseInt(daysOutCleaningDB);
+							}
+							CleanDb.clean(c, daysOutCleaning);
 						}
-						CleanDb.clean(c, daysOutCleaning);
 					}
 				}
 			}

@@ -187,7 +187,7 @@ class FillGridDB {
 			r.delTimeTo = SupportTime.HHmm_Format.format(rs.getTime(23));
 			boolean rxToFs = rs.getString(37) != null;
 			if (rxToFs && r.delKey.getStoreN()==6060) {
-				System.out.println(idx+", "+r.delKey.getStoreN()+", "+r.delKey.getDay()+", "+cmdty);
+				//System.out.println(idx+", "+r.delKey.getStoreN()+", "+r.delKey.getDay()+", "+cmdty);
 			}
 			setRx(r, cmdty, rxToFs, m);
 			r.group = rs.getString(4);
@@ -277,9 +277,6 @@ class FillGridDB {
 				if (r1 != null && (r1.delTimeFrom.equals(r.delTimeFrom) || toFs)) {
 					m1.remove(searchKey);
 					r.rxRow = r1;
-					if (toFs) {
-						System.out.println(r.delKey.getStoreN());
-					}
 				}
 			}
 		}
@@ -292,9 +289,6 @@ class FillGridDB {
 					m1 = m.get(CommonConstants.RX);
 					m1.remove(r.delKey);
 					r1.rxRow = r;
-					if (toFs) {
-						System.out.println(r.delKey.getStoreN());
-					}
 				}
 			}
 		}

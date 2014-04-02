@@ -36,8 +36,8 @@ public class NotificationDb extends Notify1 {
 
 	private static String SQL_SEL_DELIVERIES =
 		"SELECT " +
-		"sd.store_n, sd.cmdty, sd.dc, sd.ship_date, sd.del_date, route_n, arrival_time, service_time," +
-		"add_key, order_n, pallets, del_time_from, del_time_to, province, del_carrier," +
+		"sd.store_n, sd.cmdty, sd.dc, sd.ship_date, sd.del_date, route_n, arrival_time," +
+		"service_time, add_key, order_n, pallets, del_time_from, del_time_to, province, del_carrier," +
 		"sd.first_user_file, sd.next_user_file, sd.n, rno.first_user_file, rno.next_user_file," +
 		"sts.first_user_file, sts.next_user_file, sts.ship_date " +
 		//",TIMESTAMP(sd.del_date,del_time_from) AS del_dateTime " +
@@ -52,6 +52,7 @@ public class NotificationDb extends Notify1 {
 		"sts.store_n=sd.store_n AND sts.cmdty=sd.cmdty AND " +
 		"(sts.ship_date IS NOT NULL AND sts.ship_date=sd.ship_date OR " +
 		"sts.ship_date IS NULL AND sts.ship_day=DAYOFWEEK(sd.ship_date)-1) AND " +
+		"sts.del_day=DAYOFWEEK(sd.del_date)-1 AND " +
 		"TIMESTAMP(sd.del_date,del_time_from)>=? AND TIMESTAMP(sd.del_date,del_time_from)<? AND " +
 		"rno.lw NOT IN (" +CommonConstants.RX_LW+") " +
 

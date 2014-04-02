@@ -3,7 +3,10 @@ CREATE PROCEDURE la.update_shipment_data (
   store_n1 INT,
   cmdty1 VARCHAR(4),
   ship_date1 DATE,
+  del_date1 DATE,
   ship_day1 INT,
+  del_day1 INT,
+  del_week1 INT,
   route_n1 VARCHAR(6),
   stop_n1 VARCHAR(3),
   dc1 CHAR(2),
@@ -27,13 +30,11 @@ CREATE PROCEDURE la.update_shipment_data (
 BEGIN 
   DECLARE n2 BIGINT;
   DECLARE ship_day2 INT;
-  DECLARE del_date1 DATE;
   DECLARE del_date2 DATE;
-  DECLARE del_day2 INT;
-  DECLARE del_week2 INT;
   DECLARE del_days INT;
   DECLARE route_n2 VARCHAR(6);
   DECLARE stop_n2 VARCHAR(3);
+  DECLARE dc2 CHAR(2);
   DECLARE dc_depart_time2 TIME;
   DECLARE prev_distance2 INT;
   DECLARE prev_travel_time2 TIME;
@@ -52,32 +53,14 @@ BEGIN
   DECLARE weight2 FLOAT;
   DECLARE cube2 FLOAT;
   DECLARE err2 VARCHAR(100);
-  DECLARE c01 CURSOR FOR
-    SELECT n FROM la.hstore_profile WHERE n=store_n1 AND local_dc <> '20';
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET n2=0;
 
-  OPEN c01;
-  FETCH FROM c01 INTO n2;
-  IF n2 <> 0 AND dc1 = '20' AND (lw1 = '10' OR lw1 = '30') THEN
-    SET cmdty1 = 'DCX';
-  END IF;
-  CLOSE c01;
-
-  SELECT n,del_date INTO n2,del_date1 FROM la.hstore_schedule
-    WHERE store_n=store_n1 AND ship_date=ship_date1 AND cmdty=cmdty1;
-  IF n2 = 0 THEN
-    SELECT n,del_day,del_week INTO n2,del_day2,del_week2 FROM la.hstore_schedule
-      WHERE store_n=store_n1 AND ship_day=ship_day1 AND cmdty=cmdty1 AND ship_date IS NULL;
-    IF n2 = 0 THEN
-      SET err2 = RAISE_ERROR('70064',
-        'Delivery not found:'||store_n1||','||cmdty1||',truck_day-'||ship_day1||',dc-'||dc1);
-      RETURN 2;
-    END IF;
-    SET del_days = del_day2 - ship_day1;
+  IF del_date1 IS NULL THEN
+    SET del_days = del_day1 - ship_day1;
     IF del_days < 0 THEN
       SET del_days = 7 + del_days;
     END IF;
-    SET del_days = del_days + del_week2*7;
+    SET del_days = del_days + del_week1*7;
     SET del_date1 = ship_date1 + (del_days DAYS);
     SET holiday_flag1 = NULL;
   ELSE
@@ -86,14 +69,14 @@ BEGIN
 
   IF n1 = 0 THEN
     SET n2 = 1;
-    SELECT n,del_date,route_n,stop_n,dc_depart_time,prev_distance,prev_travel_time,
+    SELECT n,route_n,stop_n,dc,dc_depart_time,prev_distance,prev_travel_time,
       arrival_time,service_time,total_service_time,total_travel_time,equip_size,
       holiday_flag
-      INTO n1,del_date2,route_n2,stop_n2,dc_depart_time2,prev_distance2,prev_travel_time2,
+      INTO n1,route_n2,stop_n2,dc2,dc_depart_time2,prev_distance2,prev_travel_time2,
       arrival_time2,service_time2,total_service_time2,total_travel_time2,equip_size2,
       holiday_flag2
       FROM la.hship_data WHERE store_n=store_n1 AND cmdty=cmdty1 AND ship_date=ship_date1 AND
-      dc=dc1 AND add_key=add_key1;
+      del_date=del_date1 AND add_key=add_key1;
     IF n2 = 0 THEN
       SELECT n INTO n1 FROM NEW TABLE (
         INSERT INTO la.hship_data (store_n,cmdty,ship_date,del_date,route_n,stop_n,dc,
@@ -105,14 +88,14 @@ BEGIN
           total_service_time1,total_travel_time1,equip_size1,add_key1,holiday_flag1,
           user_file1,user_file1)
       );
-    ELSEIF del_date1<>del_date2 OR route_n1<>route_n2 OR stop_n1<>stop_n2 OR
+    ELSEIF route_n1<>route_n2 OR stop_n1<>stop_n2 OR dc1<>dc2 OR
       dc_depart_time1<>dc_depart_time2 OR prev_distance1<>prev_distance2 OR
       prev_travel_time1<>prev_travel_time2 OR arrival_time1<>arrival_time2 OR
       service_time1<>service_time2 OR total_service_time1<>total_service_time2 OR
       total_travel_time1<>total_travel_time2 OR equip_size1<>equip_size2 OR
       holiday_flag1 IS NULL AND holiday_flag2 IS NOT NULL OR
       holiday_flag1<>holiday_flag2 THEN 
-      UPDATE la.hship_data SET del_date=del_date1,route_n=route_n1,stop_n=stop_n1,
+      UPDATE la.hship_data SET route_n=route_n1,stop_n=stop_n1,dc=dc1,
         dc_depart_time=dc_depart_time1,prev_distance=prev_distance1,prev_travel_time=prev_travel_time1,
         arrival_time=arrival_time1,service_time=service_time1,total_service_time=total_service_time1,
         total_travel_time=total_travel_time1,equip_size=equip_size1,holiday_flag=holiday_flag1,

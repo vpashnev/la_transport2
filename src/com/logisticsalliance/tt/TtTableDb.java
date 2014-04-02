@@ -62,10 +62,10 @@ public class TtTableDb {
 		"sts.store_n=sd.store_n AND sts.cmdty=sd.cmdty AND " +
 		"(sts.ship_date IS NOT NULL AND sts.ship_date=sd.ship_date OR " +
 		"sts.ship_date IS NULL AND sts.ship_day=DAYOFWEEK(sd.ship_date)-1) AND " +
-		"sd.ship_date=? "+
+		"sts.del_day=DAYOFWEEK(sd.del_date)-1 AND sd.ship_date=? "+
 
 		"ORDER BY " +
-		"sd.store_n,sd.cmdty,sd.dc";
+		"sd.store_n,sd.cmdty,sd.del_date";
 
 	private static ConnectFactory connectFactoryI5;
 
@@ -75,9 +75,6 @@ public class TtTableDb {
 
 	public static void setConnectFactoryI5(ConnectFactory cf) {
 		connectFactoryI5 = cf;
-	}
-	public static void clearCarriersNotFound() {
-		carriersNotFound.clear();
 	}
 	public static int getTrials() {
 		return trials;
@@ -89,23 +86,24 @@ public class TtTableDb {
 			@Override
 			public void run() {
 				process1(shipDate, log1);
-				trials = 0;
 			}
 		};
 		t.setDaemon(true);
 		t.start();
 		int i = 0;
-		while (trials > 0 && i++ != 360) {
-			Thread.sleep(5000);
+		while (trials > 0 && i++ != 180) {
+			Thread.sleep(10000);
 		}
 		if (trials > 0) {
 			log.error("Report incomplete truck and trace table");
 			if (trials > 2) {
 				EmailEmergency.send(es, trials+" trials to populate truck and trace table failed");
+				trials = 0;
 			}
 		}
 	}
 	private static void process1(Date shipDate, boolean log1) {
+		carriersNotFound.clear();
 		Connection con = null, con1 = null;
 		try {
 			con = ConnectFactory1.one().getConnection();
@@ -117,20 +115,19 @@ public class TtTableDb {
 			ArrayList<DeliveryRow> al = new ArrayList<DeliveryRow>(1024);
 			int count = select(rs, al, log1);
 			st.close();
-			/*st = con1.prepareStatement("DELETE FROM OS61LXDTA.OSPDLVS WHERE dvshpd=?");
-			st.setDate(1, shipDate);
-			int n = st.executeUpdate();
-			st.close();*/
 			int addedRows = update(con1.prepareStatement(SQL_INS),
 				con1.prepareStatement(SQL_UPD), al, shipDate);
 			con1.commit();
-			if (al.size() != 0 && log1) {
-				log.debug("\r\n\r\nSHIPMENTS: "+SupportTime.dd_MM_yyyy_Format.format(shipDate)+
-					"\r\n\r\n"+al+
-					"\r\n\r\nTotal:   "+al.size()+
-					"\r\n\r\nAdded:   "+addedRows+" (including)"+
-					"\r\n\r\nMissing carriers: "+(al.size()-count));
+			if (al.size() != 0) {
+				log.debug("\r\n\r\nSHIPMENTS: "+
+					SupportTime.dd_MM_yyyy_Format.format(shipDate));
+				if (log1) {
+					log.debug("\r\n\r\n"+al+"\r\n\r\nTotal:   "+al.size()+
+						"\r\n\r\nMissing carriers: "+(al.size()-count));
+				}
+				log.debug("\r\n\r\nAdded rows:   "+addedRows);
 			}
+			trials = 0;
 		}
 		catch (Exception ex) {
 			ex.printStackTrace();
@@ -141,11 +138,11 @@ public class TtTableDb {
 			ConnectFactory.close(con1);
 		}
 	}
-	private static DeliveryRow newData(int storeN, String cmdty, String dc) {
+	private static DeliveryRow newData(int storeN, String cmdty, Date delDate) {
 		DeliveryRow r = new DeliveryRow();
 		r.storeN = storeN;
 		r.cmdty = cmdty;
-		r.dc = dc;
+		r.delDate = delDate;
 		return r;
 	}
 	private static int select(ResultSet rs, ArrayList<DeliveryRow> al,
@@ -155,29 +152,30 @@ public class TtTableDb {
 			rs.close(); return 0;
 		}
 		int storeN;
-		String cmdty, dc;
+		String cmdty;
+		Date delDate;
 		int[] count = {0};
 		DeliveryRow r = null;
 		while (true) {
 			storeN = rs.getInt(1);
 			cmdty = rs.getString(2);
-			dc = rs.getString(6);
+			delDate = rs.getDate(3);
 			if (r == null) {
-				r = newData(storeN, cmdty, dc);
+				r = newData(storeN, cmdty, delDate);
 			}
-			else if (storeN != r.storeN || !cmdty.equals(r.cmdty) || !dc.equals(r.dc)) {
+			else if (storeN != r.storeN || !cmdty.equals(r.cmdty) || !delDate.equals(r.delDate)) {
 				addRow(al, r, count, log1);
 				m.clear();
-				r = newData(storeN, cmdty, dc);
+				r = newData(storeN, cmdty, delDate);
 			}
 			OrderItem oi = new OrderItem();
 			oi.orderN = rs.getString(9);
 			oi.dsShipDate = rs.getDate(20);
 			if (addItem(m, r, oi)) {
-				if (r.delDate == null) {
-					r.delDate = rs.getDate(3);
+				if (r.dc == null) {
 					r.routeN = rs.getString(4);
 					r.stopN = rs.getString(5);
+					r.dc = rs.getString(6);
 					r.arrivalTime = rs.getTime(7);
 					r.serviceTime = rs.getTime(8);
 					r.delTimeFrom = rs.getTime(11);

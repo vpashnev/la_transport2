@@ -148,6 +148,7 @@ public class ShipmentDb {
 		"sts.store_n=sd.store_n AND sts.cmdty=sd.cmdty AND " +
 		"(sts.ship_date IS NOT NULL AND sts.ship_date=sd.ship_date OR " +
 		"sts.ship_date IS NULL AND sts.ship_day=DAYOFWEEK(sd.ship_date)-1) AND " +
+		"sts.del_day=DAYOFWEEK(sd.del_date)-1 AND " +
 		"sd.ship_date=? AND rno.lw NOT IN (" +CommonConstants.RX_LW+") " +
 		(ScheduledWorker.shipQryCarriers == null ? "" : "AND cs.del_carrier_id IN (" +
 		ScheduledWorker.shipQryCarriers+") ") +
@@ -166,9 +167,6 @@ public class ShipmentDb {
 			"jdbc:as400:tmsodev.nulogx.com;prompt=false", cf.getUser(), cf.getPassword());
 		connectFactoryI5 = cf1;
 	}
-	public static void clearCarriersNotFound() {
-		carriersNotFound.clear();
-	}
 	public static int getTrials() {
 		return trials;
 	}
@@ -179,23 +177,24 @@ public class ShipmentDb {
 			@Override
 			public void run() {
 				process1(shipDate, ftpSrv);
-				trials = 0;
 			}
 		};
 		t.setDaemon(true);
 		t.start();
 		int i = 0;
-		while (trials > 0 && i++ != 480) {
-			Thread.sleep(5000);
+		while (trials > 0 && i++ != 180) {
+			Thread.sleep(10000);
 		}
 		if (trials > 0) {
 			log.error("Report incomplete shipments");
 			if (trials > 2) {
 				EmailEmergency.send(es, trials+" trials to process shipments failed");
+				trials = 0;
 			}
 		}
 	}
 	private static void process1(Date date, String ftpSrv) {
+		carriersNotFound.clear();
 		int shpDate = Functions.toInt(date);
 		ArrayList<ShipmentData> al = new ArrayList<ShipmentData>(1024);
 		Connection con = null, con1 = null;
@@ -255,6 +254,7 @@ public class ShipmentDb {
 				log.debug(f.getReplyString());
 				f.disconnect();
 			}
+			trials = 0;
 		}
 		catch (Exception ex) {
 			ex.printStackTrace();

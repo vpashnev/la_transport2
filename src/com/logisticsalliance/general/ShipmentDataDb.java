@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Types;
 import java.text.DecimalFormat;
@@ -43,11 +42,16 @@ public class ShipmentDataDb {
 	public static final DecimalFormat sizeFormat = new DecimalFormat("#.####");
 
 	private static final String SQL = "{call la.update_shipment_data(?,?,?,?,?,?," +
-		"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}",
+		"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}",
 		SQL_CLEAN_EVT = "{call la.clean_evt(?,?)}",
 		SQL_READ_DAILY_RN_FILES = "SELECT daily_rn_files FROM la.henvr",
 		SQL_UPDATE_DAILY_RN_FILES = "UPDATE la.henvr SET daily_rn_files=?",
-		SQL_LOCAL_STORES = "SELECT status,n,local_dc from la.hstore_profile";
+		SQL_LOCAL_STORES = "SELECT status,n,local_dc from la.hstore_profile",
+		SQL_DEL_DATE = "SELECT del_date FROM la.hstore_schedule " +
+			"WHERE store_n=? AND cmdty=? AND ship_date=?",
+		SQL_DEL_DAY = "SELECT del_day,del_week FROM la.hstore_schedule " +
+			"WHERE store_n=? AND cmdty=? AND ship_day=? AND ship_date IS NULL",
+		SQL_DCX = "SELECT n FROM la.hstore_profile WHERE n=? AND local_dc <> '20'";
 
 	static String[] sqlCommands;
 
@@ -139,17 +143,21 @@ public class ShipmentDataDb {
 				HashMap<Long,String> evtMap = new HashMap<Long,String>(8);
 				con = ConnectFactory1.one().getConnection();
 				checkLocalDCs(con.prepareStatement(SQL_LOCAL_STORES), localDcMap);
+				PreparedStatement stDelDate = con.prepareStatement(SQL_DEL_DATE),
+					stDelDay = con.prepareStatement(SQL_DEL_DAY),
+					stDcx = con.prepareStatement(SQL_DCX);
 				CallableStatement st = con.prepareCall(SQL),
 					st1 = con.prepareCall(SQL_CLEAN_EVT);
 				for (int i = 0; i != fs.length; i++) {
 					File f = fs[i];
-					boolean err = update(f, st, r, rnCols, evtMap);
+					boolean err = update(f, stDelDate, stDelDay, stDcx, st, r, rnCols, evtMap);
 					log.debug("Rows updated for the file "+f);
 					rnFiles.add(r.dc+(err ? " ? " : " - ")+f.getName()+(r.shipDate == null ?
 						"" : " - "+ SupportTime.MMM_dd_Format.format(r.shipDate)));
 				}
 				cleanEvt(st1, evtMap);
 				con.commit();
+				stDelDate.close(); stDelDay.close(); stDcx.close();
 				st.close(); st1.close();
 				ScheduledWorker.move(fs, rnaFolder);
 				if (sqlCommands != null) {
@@ -177,8 +185,51 @@ public class ShipmentDataDb {
 		}
 		st.executeBatch();
 	}
-	private static boolean update(File f, CallableStatement st,
-		Row r, RnColumns rnCols, HashMap<Long,String> evtMap) throws Exception {
+	private static ArrayList<DelDate> getDelDate(PreparedStatement stDelDate,
+		PreparedStatement stDelDay, Row r, HashSet<DsKey> delNotFound) throws Exception {
+		ArrayList<DelDate> al = new ArrayList<DelDate>(2);
+		stDelDate.setInt(1, r.storeN);
+		stDelDate.setString(2, r.cmdty);
+		stDelDate.setDate(3, r.shipDate);
+		ResultSet rs = stDelDate.executeQuery();
+		while (rs.next()) {
+			DelDate d = new DelDate();
+			d.date = rs.getDate(1);
+			al.add(d);
+		}
+		rs.close();
+		if (al.size() == 0) {
+			stDelDay.setInt(1, r.storeN);
+			stDelDay.setString(2, r.cmdty);
+			stDelDay.setInt(3, r.shipDay);
+			rs = stDelDay.executeQuery();
+			while (rs.next()) {
+				DelDate d = new DelDate();
+				d.day = rs.getInt(1);
+				d.week = rs.getInt(2);
+				al.add(d);
+			}
+			if (al.size() == 0) {
+				DsKey k = new DsKey(r.storeN, r.cmdty, r.shipDay);
+				if (delNotFound.add(k)) {
+					log.error("Delivery not found: "+k+", DC"+r.dc+", Route "+r.routeN);
+				}
+			}
+		}
+		return al;
+	}
+	private static void toDcx(PreparedStatement stDcx, Row r) throws Exception {
+		stDcx.setInt(1, r.storeN);
+		ResultSet rs = stDcx.executeQuery();
+		if (rs.next() && r.dc.equals(CommonConstants.DC20) &&
+			(r.lw.equals(CommonConstants.DC10) || r.lw.equals(CommonConstants.DC30))) {
+			r.cmdty = CommonConstants.DCX;
+		}
+	}
+	private static boolean update(File f, PreparedStatement stDelDate,
+		PreparedStatement stDelDay, PreparedStatement stDcx,
+		CallableStatement st, Row r, RnColumns rnCols,
+		HashMap<Long,String> evtMap) throws Exception {
 		int[] i = {1};
 		boolean semicolons = false, err = false;
 		HashSet<DsKey> delNotFound = new HashSet<DsKey>();
@@ -208,25 +259,30 @@ public class ShipmentDataDb {
 						if (!err) { err = true;}
 						continue;
 					}
-					if (r.cmdty.equals("EVT")) {
-						delFound = -1;
-						update(st, r, userFile, delNotFound);
-						if (delFound == 1) {
-							evtMap.put(r.n, r.cmdty);
+					toDcx(stDcx, r);
+					ArrayList<DelDate> delDate = getDelDate(stDelDate, stDelDay, r, delNotFound);
+					for (Iterator<DelDate> it = delDate.iterator(); it.hasNext();) {
+						DelDate d = it.next();
+						if (r.cmdty.equals("EVT")) {
+							delFound = -1;
+							update(st, r, d, userFile);
+							if (delFound == 1) {
+								evtMap.put(r.n, r.cmdty);
+							}
+							else { delFound = 0;}
+							r.n = 0;
+							r.cmdty = "EVT2";
+							update(st, r, d, userFile);
+							if (r.n != 0) {
+								evtMap.put(r.n, r.cmdty);
+							}
 						}
-						else { delFound = 0;}
-						r.n = 0;
-						r.cmdty = "EVT2";
-						update(st, r, userFile, delNotFound);
-						if (r.n != 0) {
-							evtMap.put(r.n, r.cmdty);
+						else {
+							delFound = 0;
+							update(st, r, d, userFile);
 						}
+						if (!err && delFound != 1) { err = true;}
 					}
-					else {
-						delFound = 0;
-						update(st, r, userFile, delNotFound);
-					}
-					if (!err && delFound != 1) { err = true;}
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
@@ -332,55 +388,39 @@ public class ShipmentDataDb {
 		String v = getCellValue(line, colName, rnCols);
 		return SupportTime.parseTimeHH_mm(v);
 	}
-	private static void update(CallableStatement st, Row r, String userFile,
-		HashSet<DsKey> delNotFound) throws Exception {
+	private static void update(CallableStatement st, Row r,
+		DelDate d, String userFile) throws Exception {
 		st.setLong(1, r.n);
 		st.setInt(2, r.storeN);
 		st.setString(3, r.cmdty);
 		st.setDate(4, r.shipDate);
-		st.setInt(5, r.shipDay);
-		st.setString(6, r.routeN);
-		st.setString(7, r.stopN);
-		st.setString(8, r.dc);
-		st.setTime(9, r.dcDepartTime);
-		st.setInt(10, r.prevDistance);
-		st.setTime(11, r.prevTravelTime);
-		st.setTime(12, r.arrivalTime);
-		st.setTime(13, r.serviceTime);
-		st.setTime(14, r.totalServiceTime);
-		st.setTime(15, r.totalTravelTime);
-		st.setString(16, r.equipSize);
-		st.setString(17, r.addKey);
-		st.setString(18, r.orderN);
-		st.setString(19, r.orderType);
-		st.setString(20, r.lw);
-		st.setDouble(21, r.pallets);
-		st.setDouble(22, r.units);
-		st.setDouble(23, r.weight);
-		st.setDouble(24, r.cube);
-		st.setString(25, userFile);
+		st.setDate(5, d.date);
+		st.setInt(6, r.shipDay);
+		st.setInt(7, d.day);
+		st.setInt(8, d.week);
+		st.setString(9, r.routeN);
+		st.setString(10, r.stopN);
+		st.setString(11, r.dc);
+		st.setTime(12, r.dcDepartTime);
+		st.setInt(13, r.prevDistance);
+		st.setTime(14, r.prevTravelTime);
+		st.setTime(15, r.arrivalTime);
+		st.setTime(16, r.serviceTime);
+		st.setTime(17, r.totalServiceTime);
+		st.setTime(18, r.totalTravelTime);
+		st.setString(19, r.equipSize);
+		st.setString(20, r.addKey);
+		st.setString(21, r.orderN);
+		st.setString(22, r.orderType);
+		st.setString(23, r.lw);
+		st.setDouble(24, r.pallets);
+		st.setDouble(25, r.units);
+		st.setDouble(26, r.weight);
+		st.setDouble(27, r.cube);
+		st.setString(28, userFile);
 		st.registerOutParameter(1, Types.BIGINT);
-		try {
-			st.execute();
-			delFound = 1;
-		}
-		catch (SQLException e) {
-			String m = e.getMessage();
-			if (!m.contains("70064")) {
-				throw e;
-			}
-			else if (delFound == 0) {
-				String dcx = "DCX";
-				if (!r.cmdty.equals(dcx) && m.contains(",DCX,")) {
-					r.cmdty = dcx;
-				}
-				DsKey k = new DsKey(r.storeN, r.cmdty, r.shipDay);
-				if (delNotFound.add(k)) {
-					log.error("Delivery not found: "+k+", DC"+r.dc+", Route "+r.routeN);
-				}
-			}
-			return;
-		}
+		st.execute();
+		delFound = 1;
 		r.n = st.getLong(1);
 	}
 	private static String getCommodity(String dc, String lw, String ordType, int routeN) {
@@ -436,6 +476,10 @@ public class ShipmentDataDb {
 			totalServiceTime, totalTravelTime;
 		private String cmdty, routeN, stopN, dc, equipSize, orderN, orderType, lw, addKey;
 		private double pallets, units, weight, cube;
+	}
+	private static class DelDate {
+		private int day = -1, week;
+		private Date date;
 	}
 	private static class UpExtFilter implements FileFilter {
 
