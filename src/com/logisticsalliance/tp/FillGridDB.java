@@ -186,10 +186,14 @@ class FillGridDB {
 			r.delTimeFrom = SupportTime.HHmm_Format.format(rs.getTime(22));
 			r.delTimeTo = SupportTime.HHmm_Format.format(rs.getTime(23));
 			boolean rxToFs = rs.getString(37) != null;
-			if (rxToFs && r.delKey.getStoreN()==6060) {
-				//System.out.println(idx+", "+r.delKey.getStoreN()+", "+r.delKey.getDay()+", "+cmdty);
+			if (r.holidays) {
+				if (rxToFs) {
+					setRx(r, cmdty, true, m);
+				}
 			}
-			setRx(r, cmdty, rxToFs, m);
+			else {
+				setRx(r, cmdty, false, m);
+			}
 			r.group = rs.getString(4);
 			r.city = rs.getString(5);
 			r.carrier = rs.getString(6);
@@ -229,6 +233,9 @@ class FillGridDB {
 			r.carrierType = rs.getString(35);
 			r.aRoutePerGroup = rs.getString(36) != null;
 		}
+		/*if (rxToFs && r.delKey.getStoreN()==6060) {
+			System.out.println(idx+", "+r.delKey.getStoreN()+", "+r.delKey.getDay()+", "+cmdty);
+		}*/
 	}
 	private static boolean ignore(String dc, String cmdty) {
 		switch (dc) {

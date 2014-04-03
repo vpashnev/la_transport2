@@ -1,25 +1,9 @@
 package com.logisticsalliance.tp;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Properties;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import com.glossium.ui.html.HFrame;
-import com.glossium.ui.html.HNode;
-import com.glossium.web.HServlet;
 import com.logisticsalliance.general.CommonConstants;
-import com.logisticsalliance.general.SupportGeneral;
 
-public class PlanServlet extends HServlet {
-	private static final long serialVersionUID = 10L;
+public class PlanServlet /*extends HServlet*/ {
+//	private static final long serialVersionUID = 10L;
 
 	static final String month1 = "month", day1 = "day", year1 = "year",
 		days1 = "store", dc1 = "dc", holidays1 = "holidays",
@@ -27,7 +11,7 @@ public class PlanServlet extends HServlet {
 	static final String[] cmdty1 = {CommonConstants.DCB, CommonConstants.DCV,
 		CommonConstants.DCX, CommonConstants.DCF, CommonConstants.EVT,
 		CommonConstants.EVT2, CommonConstants.RX};
-
+/*
 	private HNode month, day, year, days, dc, holidays;
 	private HNode[] cmdty;
 
@@ -83,5 +67,5 @@ public class PlanServlet extends HServlet {
 	}
 
 	private class Data {
-	}
+	}*/
 }

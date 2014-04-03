@@ -189,7 +189,6 @@ public class ShipmentDb {
 			log.error("Report incomplete shipments");
 			if (trials > 2) {
 				EmailEmergency.send(es, trials+" trials to process shipments failed");
-				trials = 0;
 			}
 		}
 	}

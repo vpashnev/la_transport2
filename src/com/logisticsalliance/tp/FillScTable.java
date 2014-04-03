@@ -62,14 +62,14 @@ class FillScTable {
 				j += stIns1.executeUpdate();
 			}
 
+			System.out.println(arr[0]+","+arr[1]+","+arr[2]);
 			set(stIns, 1, arr[0], true);
 			set(stIns, 2, arr[1].toUpperCase(), false);
 			set(stIns, 3, arr[2], false);
-			set(stIns, 4, arr[3], false);
+			set(stIns, 4, arr[3], true);
 			set(stIns, 5, arr[4], false);
 			set(stIns, 6, arr[5], false);
 			set(stIns, 7, arr[6], false);
-			System.out.println(arr[0]+","+arr[1]+","+arr[2]);
 			set(stIns, 8, arr[7], true);
 			set(stIns, 9, arr[8], true);
 			set(stIns, 10, arr[9], true);

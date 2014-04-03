@@ -49,7 +49,7 @@ public class SupportGeneral {
 		ds.setDatabaseName(getValue(appProps, "database"));
 		ds.setUser(u);
 		ds.setPassword(dbPwd1);
-		cf1.setDataSource(ds);
+		//cf1.setDataSource(ds);
 		cf1.setDriver(getValue(appProps, "driver"));
 		cf1.setUrl(getValue(appProps, "url"));
 		cf1.setUser(u);

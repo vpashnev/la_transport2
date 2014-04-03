@@ -82,9 +82,8 @@ public class ScheduledWorker implements Runnable {
 		dsFolder.mkdir(); rnFolder.mkdir();
 		// period
 		String p = getValue(appProperties, "periodToRead");
-		int periodInMins = p == null ? 5 : Integer.parseInt(p);
 		Calendar curDate = Calendar.getInstance();
-		int curHour = 0;
+		int curHour = 0, curHour1 = 0, periodInMins = p == null ? 5 : Integer.parseInt(p);
 
 		String quickReport = getValue(appProperties, "quickReport"),
 			storeNotifications = getValue(appProperties, "storeNotifications"),
@@ -172,16 +171,16 @@ public class ScheduledWorker implements Runnable {
 				else if (h != 11 && h != 14 && h != 17) { curHour = h;}
 
 				//Make daily reports
-				h = c.get(Calendar.HOUR_OF_DAY);
-				if (emailSent1.rnFileListTo != null && h == 21 && h != curHour) {
+				if (emailSent1.rnFileListTo != null && h == 21 && h != curHour1) {
 					String m = emailReports.sendRnFileList(emailSent1);
 					log.debug("\r\n\r\nList of processed files:\r\n\r\n"+m+"\r\n");
-					curHour = h;
+					curHour1 = h;
 					ShipmentDataDb.updateDailyRnFiles(null, null);
 				}
-				else if (h != 21) { curHour = h;}
+				else if (h != 21) { curHour1 = h;}
 				if (quickReport != null ||
-					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH)) {
+					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH) ||
+					ShipmentDb.getTrials() > 0 || TtTableDb.getTrials() > 0) {
 					quickReport = null;
 
 					Date d = getShipDate(shipmentDate, c);
@@ -197,7 +196,7 @@ public class ScheduledWorker implements Runnable {
 						shipmentDate = null;
 					}
 
-					if (ShipmentDb.getTrials() > 0 && TtTableDb.getTrials() > 0) {
+					if (ShipmentDb.getTrials() == 0 && TtTableDb.getTrials() == 0) {
 						emailReports.send(emailSent1);
 						curDate = c;
 

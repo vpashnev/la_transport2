@@ -98,7 +98,6 @@ public class TtTableDb {
 			log.error("Report incomplete truck and trace table");
 			if (trials > 2) {
 				EmailEmergency.send(es, trials+" trials to populate truck and trace table failed");
-				trials = 0;
 			}
 		}
 	}
