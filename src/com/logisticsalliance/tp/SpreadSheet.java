@@ -140,8 +140,7 @@ public class SpreadSheet {
 			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
 				ShipmentRow r = it1.next();
 				if (r0 != null) {
-					r.sameGroup = r0.group == r.group ||
-						r0.group != null && r0.group.equals(r.group);
+					r.sameGroup = r0.group == r.group;
 					r.sameCar = r0.carrier == r.carrier ||
 						r0.carrier != null && r0.carrier.equals(r.carrier);
 					r.samePC = r0.postCode.equals(r.postCode);

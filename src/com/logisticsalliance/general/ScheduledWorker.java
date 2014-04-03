@@ -179,8 +179,7 @@ public class ScheduledWorker implements Runnable {
 				}
 				else if (h != 21) { curHour1 = h;}
 				if (quickReport != null ||
-					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH) ||
-					ShipmentDb.getTrials() > 0 || TtTableDb.getTrials() > 0) {
+					c.get(Calendar.DAY_OF_MONTH) != curDate.get(Calendar.DAY_OF_MONTH)) {
 					quickReport = null;
 
 					Date d = getShipDate(shipmentDate, c);
@@ -197,8 +196,8 @@ public class ScheduledWorker implements Runnable {
 					}
 
 					if (ShipmentDb.getTrials() == 0 && TtTableDb.getTrials() == 0) {
-						emailReports.send(emailSent1);
 						curDate = c;
+						emailReports.send(emailSent1);
 
 						ShipmentDataDb.localDcMissing.clear();
 						NotificationDb.clearCarriersNotFound();

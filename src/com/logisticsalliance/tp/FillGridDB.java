@@ -194,7 +194,7 @@ class FillGridDB {
 			else {
 				setRx(r, cmdty, false, m);
 			}
-			r.group = rs.getString(4);
+			r.group = rs.getInt(4);
 			r.city = rs.getString(5);
 			r.carrier = rs.getString(6);
 			r.carrier1 = rs.getString(7);

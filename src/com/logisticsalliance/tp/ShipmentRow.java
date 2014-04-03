@@ -12,10 +12,10 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 	private static final long serialVersionUID = 10L;
 
 	public DsKey delKey = new DsKey();
-	public int polDay, shipDay, shipDay1, relCmdtyShipDay = -1, route,
+	public int group, polDay, shipDay, shipDay1, relCmdtyShipDay = -1, route,
 		distance, stop, stop1 = -1;
 	public Date pollDate, shipDate, delDate;
-	public String relCmdty, stopN, group, carrier, carrier1,
+	public String relCmdty, stopN, carrier, carrier1,
 		city, prov, postCode, polTime, shipTime, shipTime1, delTimeFrom, delTimeTo,
 		localDc, carrierType, lhCarrier, lhService, delCarrier, delService, stagingLane,
 		specInstructs, truckSize, maxTruckSize, nextUserFile, relNextUserFile;
@@ -79,7 +79,10 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		add(b, lhService);
 		b.append(",,,");
 		b.append(SupportTime.yyyy_MM_dd_Format.format(delDate)); b.append(',');
-		if (!sameGroup) { b.append(group);} b.append(',');
+		if (!sameGroup && group != 0) {
+			b.append(group);
+		}
+		b.append(',');
 		b.append('\r'); b.append('\n');
 
 		return b.toString();
@@ -205,11 +208,8 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		int v = 0;
 		String cmdty = delKey.getCommodity();
 		v = cmdty.compareTo(r.delKey.getCommodity());
-		v = compare(group, r.group);
+		v = group - r.group;
 		if (v == 0) {
-			if (group != null && r.group != null) {
-				v = group.compareTo(r.group);
-			}
 			boolean fs = cmdty.equals(CommonConstants.FS);
 			if (fs) {
 				if (v == 0) {
