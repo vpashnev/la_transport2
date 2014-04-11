@@ -131,10 +131,13 @@ public class SpreadSheet {
 			it.hasNext();) {
 			Map.Entry<String,ArrayList<ShipmentRow>> e = it.next();
 			String cmdty = e.getKey();
+			if (cmdty.equals(FillGridDB.missing)) {
+				continue;
+			}
 			boolean dcx = cmdty.equals(CommonConstants.DCX),
 				fs = cmdty.equals(CommonConstants.FS);
 			int  i = 0, ltli = 200,
-				maxStops = dcx ? 20 : (fs && si.dc.equals("10") ? 6 : 0);
+				maxStops = dcx ? 20 : (fs && si.dc.equals(CommonConstants.DC10) ? 6 : 0);
 			ArrayList<ShipmentRow> al = e.getValue();
 			ShipmentRow r0 = null;
 			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
@@ -203,25 +206,38 @@ public class SpreadSheet {
 		}
 		else { addHead1(w, dc50);}
 		fill(si, day, dc50, m);
+		ArrayList<ShipmentRow> al0 = null;
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it =
 			m.entrySet().iterator(); it.hasNext();) {
 			Map.Entry<String,ArrayList<ShipmentRow>> e = it.next();
 			String cmdty = e.getKey();
-			w.write(cmdty); w.write('\r'); w.write('\n');
 			ArrayList<ShipmentRow> al = e.getValue();
+			if (cmdty.equals(FillGridDB.missing)) {
+				al0 = al;
+				continue;
+			}
+			w.write(cmdty); w.write('\r'); w.write('\n');
 			boolean first = true;
 			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
 				ShipmentRow r = it1.next();
 				if (!first && !r.sameGroup) {
 					w.write('\r'); w.write('\n');
 				}
-				String v = si.test ? r.getCsvRow(dc50) : r.getCsvRow1();
+				String v = si.test ? r.getCsvRow(dc50) : r.getCsvRow1(dc50);
 				w.write(v);
 				if (first) {
 					first = false;
 				}
 			}
 			w.write('\r'); w.write('\n');
+		}
+		if (al0 != null) {
+			w.write(FillGridDB.missing); w.write('\r'); w.write('\n');
+			for (Iterator<ShipmentRow> it1 = al0.iterator(); it1.hasNext();) {
+				ShipmentRow r = it1.next();
+				String v = si.test ? r.getCsvRow(dc50) : r.getCsvRow1(dc50);
+				w.write(v);
+			}
 		}
 	}
 	private static int getRoute(ShipmentRow r, String cmdty, int i, int ltli) {

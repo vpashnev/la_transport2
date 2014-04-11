@@ -164,6 +164,9 @@ public class ScheduledWorker implements Runnable {
 				if (ttTable != null && quickReport == null &&
 					(h == 11 || h == 14 || h == 17) && h != curHour) {
 					//ttTable
+					if (h == 14) {
+						TtTableDb.process(new Date(c.getTimeInMillis()), emailSent1, false);
+					}
 					TtTableDb.process(new Date(c.getTimeInMillis()+SupportTime.DAY),
 						emailSent1, false);
 					curHour = h;

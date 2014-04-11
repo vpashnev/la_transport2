@@ -6,12 +6,16 @@ import java.io.FileWriter;
 import java.sql.Date;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 import com.glossium.io.SupportFile;
 import com.glossium.sqla.ConnectFactory1;
 import com.logisticsalliance.general.CommonConstants;
+import com.logisticsalliance.general.DsKey;
 import com.logisticsalliance.general.SupportGeneral;
 import com.logisticsalliance.util.SupportTime;
 
@@ -108,20 +112,45 @@ public class AppModel {
 	}
 
 	private static void process(File appDir, SearchInput si) throws Exception {
-		ArrayList<File> al = new ArrayList<File>(8);
-		File dir = new File(appDir, "log");
 		boolean dc20 = si.dc.equals(CommonConstants.DC20),
-			dc50 = si.dc.equals(CommonConstants.DC50);
+			dc50 = si.dc.equals(CommonConstants.DC50),
+			hasHolidayWeeks = si.holidayWeeks > 0;
+		String a = si.dc.toUpperCase().equals(CommonConstants.DC20A) ? "A" : "";
+		si.dc = si.dc.substring(0, 2);
 		//Workbook wb = new XSSFWorkbook();
-		for (int i = 0; i <= si.toDay-si.fromDay; i++) {
-			HashMap<String,ArrayList<ShipmentRow>> m = FillGridDB.process(si, i, dc20, dc50);
-			int di = si.fromDay+i;
+		int count = si.toDay-si.fromDay;
+		HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all =
+			new HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>>(7, .5f);
+		for (int i = 0; i <= count; i++) {
+			HashMap<String,HashMap<DsKey,ShipmentRow>> m =
+				new HashMap<String,HashMap<DsKey,ShipmentRow>>(8, .5f);
+			FillGridDB.process(all, m, si, i, dc20, dc50, hasHolidayWeeks);
+			all.put(i, m);
+		}
+		ArrayList<File> al = new ArrayList<File>(8);
+		String pfx = hasHolidayWeeks ? "TH_DC" : "TR_DC";
+		File dir = new File(appDir, "log");
+		int i = 0;
+		for (Iterator<HashMap<String,HashMap<DsKey,ShipmentRow>>> it =
+			all.values().iterator(); it.hasNext();) {
+			HashMap<String,HashMap<DsKey,ShipmentRow>> m = it.next();
+			HashMap<String,ArrayList<ShipmentRow>> m1 =
+				new HashMap<String,ArrayList<ShipmentRow>>(8, .5f);
+			for (Iterator<Map.Entry<String,HashMap<DsKey,ShipmentRow>>> it1 =
+				m.entrySet().iterator(); it1.hasNext();) {
+				Map.Entry<String,HashMap<DsKey,ShipmentRow>> e = it1.next();
+				HashMap<DsKey,ShipmentRow> v = e.getValue();
+				ArrayList<ShipmentRow> al2 = new ArrayList<ShipmentRow>(v.values());
+				Collections.sort(al2);
+				m1.put(e.getKey(), al2);
+			}
+			int di = si.fromDay+(i++);
 			String day = SupportTime.getDayOfWeek(di);
 
-			File f = new File(dir, "TP_DC"+si.dc+"_"+day+".csv");
+			File f = new File(dir, pfx+si.dc+a+"_"+day+".csv");
 			FileWriter w = new FileWriter(f);
 			try {
-				SpreadSheet.fill(w, si, day, dc50, m);
+				SpreadSheet.fill(w, si, day, dc50, m1);
 			}
 			finally {
 				w.close();
@@ -131,8 +160,9 @@ public class AppModel {
 	        //Sheet sh = wb.createSheet(day);
 			//SpreadSheet.fill(sh, si, day, m);
 		}
+
 		dir = new File(dir, "archive");
-		String fn = "TP_DC"+si.dc+"_"+SupportTime.MMM_dd_yy_Format.format(si.fromDate);
+		String fn = pfx+si.dc+a+"_"+SupportTime.MMM_dd_yy_Format.format(si.fromDate);
 		zip(dir, fn, al);
 		//write(dir, fn, wb);
 	}

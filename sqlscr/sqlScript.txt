@@ -232,8 +232,8 @@ CREATE TABLE la.henvr (
 ) ;
 
 CREATE UNIQUE INDEX la.hship_data_key ON la.hship_data (store_n,cmdty,ship_date,del_date,add_key) ;
-CREATE UNIQUE INDEX la.hstore_schedule_key ON la.hstore_schedule (store_n,cmdty,ship_day,ship_date,del_day) ;
 CREATE UNIQUE INDEX la.hrn_order_key ON la.hrn_order (ship_n,order_n) ;
+CREATE UNIQUE INDEX la.hstore_schedule_key ON la.hstore_schedule (store_n,cmdty,ship_day,ship_date,del_day) ;
 CREATE INDEX la.hstore_schedule_holiday ON la.hstore_schedule (store_n,cmdty,ship_date) ;
 CREATE INDEX la.hstore_schedule_dc_ship_day ON la.hstore_schedule (dc,ship_day,cmdty) ;
 CREATE INDEX la.hstore_schedule_dc_ship_date ON la.hstore_schedule (dc,ship_date,cmdty) ;

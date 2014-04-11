@@ -261,27 +261,32 @@ public class ShipmentDataDb {
 					}
 					toDcx(stDcx, r);
 					ArrayList<DelDate> delDate = getDelDate(stDelDate, stDelDay, r, delNotFound);
-					for (Iterator<DelDate> it = delDate.iterator(); it.hasNext();) {
-						DelDate d = it.next();
-						if (r.cmdty.equals("EVT")) {
-							delFound = -1;
-							update(st, r, d, userFile);
-							if (delFound == 1) {
-								evtMap.put(r.n, r.cmdty);
+					if (delDate.size() == 0) {
+						err = true;
+					}
+					else {
+						for (Iterator<DelDate> it = delDate.iterator(); it.hasNext();) {
+							DelDate d = it.next();
+							if (r.cmdty.equals("EVT")) {
+								delFound = -1;
+								update(st, r, d, userFile);
+								if (delFound == 1) {
+									evtMap.put(r.n, r.cmdty);
+								}
+								else { delFound = 0;}
+								r.n = 0;
+								r.cmdty = "EVT2";
+								update(st, r, d, userFile);
+								if (r.n != 0) {
+									evtMap.put(r.n, r.cmdty);
+								}
 							}
-							else { delFound = 0;}
-							r.n = 0;
-							r.cmdty = "EVT2";
-							update(st, r, d, userFile);
-							if (r.n != 0) {
-								evtMap.put(r.n, r.cmdty);
+							else {
+								delFound = 0;
+								update(st, r, d, userFile);
 							}
+							if (!err && delFound != 1) { err = true;}
 						}
-						else {
-							delFound = 0;
-							update(st, r, d, userFile);
-						}
-						if (!err && delFound != 1) { err = true;}
 					}
 				}
 				catch (Exception ex) {

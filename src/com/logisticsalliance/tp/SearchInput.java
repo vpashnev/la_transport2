@@ -50,4 +50,13 @@ class SearchInput implements Serializable {
 		}
 		return dc;
 	}
+	static String toDc(String dc, String dc1) {
+		if (dc.equals(CommonConstants.DC20) && dc1.equals(CommonConstants.DC30)) {
+			return CommonConstants.DC20;
+		}
+		if (dc.equals(CommonConstants.DC70) && dc1.equals(CommonConstants.DC50)) {
+			return CommonConstants.DC70;
+		}
+		return dc1;
+	}
 }

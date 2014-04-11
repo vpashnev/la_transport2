@@ -39,9 +39,9 @@ public class TtTableDb {
 		"dvcar) VALUES ('10','PLAN','10','PLAN',?,?,?,?,?,?,?,?,?,?,?,?,?)",
 
 		SQL_UPD =
-		"UPDATE OS61LXDTA.OSPDLVS SET dvdlvd=?,dvdlvt=?,dvsrvtime=?,dvroute=?,dvstop#=?," +
+		"UPDATE OS61LXDTA.OSPDLVS SET dvdc=?,dvdlvt=?,dvsrvtime=?,dvroute=?,dvstop#=?," +
 		"dvpallets=?,dvetato=?,dvetatc=?,dvcar=? WHERE dvstore#=? AND dvcom=? AND " +
-		"dvdc=? AND dvshpd=?",
+		"dvshpd=? AND dvdlvd=?",
 
 		SQL_SEL_DELIVERIES =
 		"SELECT DISTINCT " +
@@ -122,7 +122,7 @@ public class TtTableDb {
 					SupportTime.dd_MM_yyyy_Format.format(shipDate));
 				if (log1) {
 					log.debug("\r\n\r\n"+al+"\r\n\r\nTotal:   "+al.size()+
-						"\r\n\r\nMissing carriers: "+(al.size()-count));
+						"\r\n\r\nMissing carrier records: "+(al.size()-count));
 				}
 				log.debug("\r\n\r\nAdded rows:   "+addedRows);
 			}
@@ -245,7 +245,7 @@ public class TtTableDb {
 		int addedRows = 0;
 		for (Iterator<DeliveryRow> it = al.iterator(); it.hasNext();) {
 			DeliveryRow r = it.next();
-			upd.setDate(1, r.delDate);
+			upd.setString(1, r.dc);
 			upd.setInt(2, getTime(r.arrivalTime));
 			upd.setInt(3, getTime(r.serviceTime));
 			upd.setString(4, r.routeN);
@@ -259,8 +259,8 @@ public class TtTableDb {
 			upd.setString(9, r.delCarrier);
 			upd.setInt(10, r.storeN);
 			upd.setString(11, r.cmdty);
-			upd.setString(12, r.dc);
-			upd.setDate(13, shipDate);
+			upd.setDate(12, shipDate);
+			upd.setDate(13, r.delDate);
 			if (upd.executeUpdate() != 0) {
 				continue;
 			}
