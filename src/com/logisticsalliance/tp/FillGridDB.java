@@ -56,9 +56,12 @@ class FillGridDB {
 
 	SQL_SEL3 ="\r\nORDER BY s.cmdty,s.ship_date,sc.group1,sc.carrier_id,sc.holidays",
 	
+	SQL_CHK ="SELECT n FROM la.hstore_carrier WHERE dc=? AND store_n=? AND cmdty='20'",
+
 	missing = "Missing records", BC = "BC", PQ = "PQ";
 
 	static ConnectFactory connectFactory;
+	private static PreparedStatement chk;
 	private static DsKey searchKey = new DsKey();
 
 	private static String getSql(boolean dc20, boolean holidaySQL, String cmdty) {
@@ -85,23 +88,26 @@ class FillGridDB {
 		return b.toString();
 	}
 	private static ResultSet getRowSet(Connection con, SearchInput si,
-		int idx, boolean dc20, boolean holidaySQL) throws Exception {
+		int idx, int dc20, boolean holidaySQL) throws Exception {
 		PreparedStatement st;
-		String cmdty = si.getCmdty();
-		st = con.prepareStatement(getSql(dc20, holidaySQL, cmdty));
+		String cmdty = si.getCmdty(si.dc, dc20 == 1);
+		st = con.prepareStatement(getSql(dc20 != 0, holidaySQL, cmdty));
 		st.setString(1, si.dc);
 		if (holidaySQL) {
 			Date d = new Date(si.fromDate.getTime() + SupportTime.DAY*idx);
 			st.setDate(2, d);
 		}
 		else { st.setInt(2, si.fromDay+idx);}
-		if (!dc20) { st.setString(3, SearchInput.toDc(si.dc));}
+		if (dc20 == 0) { st.setString(3, SearchInput.toDc(si.dc));}
 		return st.executeQuery();
 	}
 	static void process(HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all,
 		HashMap<String,HashMap<DsKey,ShipmentRow>> m, SearchInput si, int idx,
-		boolean dc20, boolean dc50, boolean hasHolidayWeeks) throws Exception {
+		int dc20, boolean dc50, boolean hasHolidayWeeks) throws Exception {
 		Connection con = connectFactory.getConnection();
+		if (chk == null) {
+			chk = con.prepareStatement(SQL_CHK);
+		}
 		ResultSet rs = getRowSet(con, si, idx, dc20, false); // regular
 		process(all, m, si, idx, dc20, dc50, hasHolidayWeeks, false, rs);
 		rs.close();
@@ -109,9 +115,15 @@ class FillGridDB {
 		process(all, m, si, idx, dc20, dc50, hasHolidayWeeks, true, rs);
 		rs.close();
 	}
+	private static boolean ignore(String dc, int storeN) throws Exception {
+		chk.setString(1, dc);
+		chk.setInt(2, storeN);
+		ResultSet rs = chk.executeQuery();
+		return !rs.next();
+	}
 	private static void process(HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all,
 		HashMap<String,HashMap<DsKey,ShipmentRow>> m, SearchInput si, int idx,
-		boolean dc20, boolean dc50, boolean hasHolidayWeeks, boolean holidaySQL,
+		int dc20, boolean dc50, boolean hasHolidayWeeks, boolean holidaySQL,
 		ResultSet rs) throws Exception {
 		Date holidayEnd = hasHolidayWeeks ?
 			new Date(si.fromDate.getTime()+7*si.holidayWeeks*SupportTime.DAY) : null; 
@@ -122,36 +134,27 @@ class FillGridDB {
 			if (ignore(si.dc, cmdty, prov)) {
 				continue;
 			}
+			String cmdty1 = cmdty;
 			cmdty = DsKey.toCmdty(cmdty);
-			/*if ((idx==0)&& rs.getInt(3)==2355 && cmdty.equals("RX")) {
+			/*if (idx==1 && rs.getInt(3)==1349 && cmdty.equals("FS")) {
 				System.out.println(idx+", "+rs.getInt(3)+", "+cmdty);
 			}*/
 			ShipmentRow r = new ShipmentRow();
+			r.delKey.setStoreN(rs.getInt(3));
 			if (dc == null) {
 				// missing record
+				if (dc20 == 0 && (cmdty1.equals(CommonConstants.DCB) ||
+					cmdty1.equals(CommonConstants.DCF)) &&
+					ignore(si.dc, r.delKey.getStoreN())) {
+					continue;
+				}
 				String dc1 = rs.getString(38);
 				dc1 = SearchInput.toDc(si.dc, dc1);
-				if (dc20 && !cmdty.equals(CommonConstants.DCX) ||
-					!dc20 && (cmdty.equals(CommonConstants.DCX) || !si.dc.equals(dc1)) ||
+				if (!si.dc.equals(dc1) ||
 					holidaySQL && !hasHolidayWeeks || !holidaySQL && hasHolidayWeeks) {
 					continue;
 				}
 				r.missing = true;
-			}
-			else {
-				if (dc20) {
-					if (!cmdty.equals(CommonConstants.DCX) || !si.dc.equals(dc)) {
-						continue;
-					}
-				}
-				else {
-					if (cmdty.equals(CommonConstants.DCX)) {
-						continue;
-					}
-					if (!si.dc.equals(CommonConstants.DC10) && !si.dc.equals(dc)) {
-						continue;
-					}
-				}
 			}
 			r.shipDay = rs.getInt(13);
 			r.shipDay1 = getInt(rs.getObject(15));
@@ -169,7 +172,6 @@ class FillGridDB {
 				}
 			}
 			r.delKey.setCommodity(cmdty);
-			r.delKey.setStoreN(rs.getInt(3));
 			r.nextUserFile = rs.getString(39);
 			r.relNextUserFile = rs.getString(40);
 			if (ignore(all, r, idx)) {
@@ -279,22 +281,13 @@ class FillGridDB {
 			if (prov.equals(PQ) && cmdty.equals(CommonConstants.DCF)) {
 				return true;
 			}
-		case CommonConstants.DC50:
-			if (prov.equals(BC) && cmdty.equals(CommonConstants.DCF) &&
-				dc.equals(CommonConstants.DC50)) {
-				return true;
-			}
-		case CommonConstants.DC10:
-			if (cmdty.equals(CommonConstants.DCB)) {
-				return true;
-			}
 			break;
+		case CommonConstants.DC50:
+			if (prov.equals(BC) && cmdty.equals(CommonConstants.DCF)) {
+				return true;
+			}
 		case CommonConstants.DC70:
 			if (!prov.equals(BC)) {
-				return true;
-			}
-		case CommonConstants.DC20:
-			if (cmdty.equals(CommonConstants.DCV) || cmdty.equals(CommonConstants.RX)) {
 				return true;
 			}
 		}

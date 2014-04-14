@@ -112,10 +112,14 @@ public class AppModel {
 	}
 
 	private static void process(File appDir, SearchInput si) throws Exception {
-		boolean dc20 = si.dc.equals(CommonConstants.DC20),
-			dc50 = si.dc.equals(CommonConstants.DC50),
+		int dc20 = 0;
+		if (si.dc.equals(CommonConstants.DC20)) {
+			dc20 = 1;
+		}
+		else if (si.dc.toUpperCase().equals(CommonConstants.DC20F)) { dc20 = 2;}
+		boolean dc50 = si.dc.equals(CommonConstants.DC50),
 			hasHolidayWeeks = si.holidayWeeks > 0;
-		String a = si.dc.toUpperCase().equals(CommonConstants.DC20A) ? "A" : "";
+		String a = dc20 == 2 ? "F" : "";
 		si.dc = si.dc.substring(0, 2);
 		//Workbook wb = new XSSFWorkbook();
 		int count = si.toDay-si.fromDay;
