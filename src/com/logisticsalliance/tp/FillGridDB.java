@@ -22,8 +22,9 @@ class FillGridDB {
 	"s.ship_time, sc.ship_day1, sc.ship_time1, s1.cmdty, s1.ship_day, s.del_date,\r\n" +
 	"s.del_day, s.del_week, s.del_time_from, s.del_time_to, sc.lh_carrier_id,\r\n" +
 	"sc.lh_service, sc.del_carrier_id, sc.del_service, sc.staging_lane, sc.spec_instructs,\r\n" +
-	"sc.distance, sc.max_truck_size, sc.truck_size, sc.stop1, sp.local_dc, sc.carrier_type,\r\n" +
-	"sc.aroute_per_group, sfr.dc, s.dc, s.next_user_file, s1.next_user_file\r\n" +
+	"sc.distance, sc.max_truck_size, sc.truck_size, sc.trailer_n, sc.driver_fname,\r\n" +
+	"sc.arrival_time, sc.stop1, sp.local_dc, sc.carrier_type, sc.aroute_per_group,\r\n" +
+	"sfr.dc, s.dc, s.next_user_file, s1.next_user_file\r\n" +
 
 	"FROM\r\n" +
 	"la.hstore_schedule s\r\n" +
@@ -131,14 +132,14 @@ class FillGridDB {
 			String dc = rs.getString(1),
 				cmdty = rs.getString(2),
 				prov = rs.getString(8);
+			if (idx==3 && rs.getInt(3)==8300 && cmdty.equals("DCX")) {
+				System.out.println(idx+", "+rs.getInt(3)+", "+cmdty);
+			}
 			if (ignore(si.dc, cmdty, prov)) {
 				continue;
 			}
 			String cmdty1 = cmdty;
 			cmdty = DsKey.toCmdty(cmdty);
-			/*if (idx==1 && rs.getInt(3)==1349 && cmdty.equals("FS")) {
-				System.out.println(idx+", "+rs.getInt(3)+", "+cmdty);
-			}*/
 			ShipmentRow r = new ShipmentRow();
 			r.delKey.setStoreN(rs.getInt(3));
 			if (dc == null) {
@@ -148,9 +149,9 @@ class FillGridDB {
 					ignore(si.dc, r.delKey.getStoreN())) {
 					continue;
 				}
-				String dc1 = rs.getString(38);
+				String dc1 = rs.getString(41);
 				dc1 = SearchInput.toDc(si.dc, dc1);
-				if (!si.dc.equals(dc1) ||
+				if (dc20 == 0 && !si.dc.equals(dc1) ||
 					holidaySQL && !hasHolidayWeeks || !holidaySQL && hasHolidayWeeks) {
 					continue;
 				}
@@ -172,8 +173,8 @@ class FillGridDB {
 				}
 			}
 			r.delKey.setCommodity(cmdty);
-			r.nextUserFile = rs.getString(39);
-			r.relNextUserFile = rs.getString(40);
+			r.nextUserFile = rs.getString(42);
+			r.relNextUserFile = rs.getString(43);
 			if (ignore(all, r, idx)) {
 				continue;
 			}
@@ -229,14 +230,17 @@ class FillGridDB {
 			r.distance = rs.getInt(30);
 			r.truckSize = rs.getString(31);
 			r.maxTruckSize = rs.getString(32);
+			r.trailerN = rs.getString(33);
+			r.driverFName = rs.getString(34);
+			r.arrivalTime = rs.getString(35);
 			if (dc50) {
-				r.stop1 = getInt(rs.getObject(33));
+				r.stop1 = getInt(rs.getObject(36));
 				if (r.stop1 == -1) { r.stop1 = 0;}
 				r.stop = r.stop1;
 			}
-			r.localDc = rs.getString(34);
-			r.carrierType = rs.getString(35);
-			r.aRoutePerGroup = rs.getString(36) != null;
+			r.localDc = rs.getString(37);
+			r.carrierType = rs.getString(38);
+			r.aRoutePerGroup = rs.getString(39) != null;
 		}
 	}
 	private static boolean ignore(HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all,

@@ -31,7 +31,7 @@ public class StoreScheduleDb {
 
 	private static final String SQL =
 		"{call la.update_scheduled_delivery(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}",
-		SQL_RESET_IN_USE = "UPDATE la.hstore_schedule SET in_use=NULL",
+		SQL_RESET_IN_USE = "UPDATE la.hstore_schedule SET in_use=NULL WHERE ship_date IS NULL",
 		SQL_DELETE_NOT_IN_USE = "DELETE FROM la.hstore_schedule WHERE in_use IS NULL";
 
 	static String[] sqlCommands;

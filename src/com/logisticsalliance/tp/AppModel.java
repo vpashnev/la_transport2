@@ -154,7 +154,7 @@ public class AppModel {
 			File f = new File(dir, pfx+si.dc+a+"_"+day+".csv");
 			FileWriter w = new FileWriter(f);
 			try {
-				SpreadSheet.fill(w, si, day, dc50, m1);
+				SpreadSheet.fill(w, si, day, dc20, dc50, m1);
 			}
 			finally {
 				w.close();

@@ -24,12 +24,13 @@ public class CleanDb {
 
 	static void clean(Calendar now, int daysOutCleaning) throws Exception {
 		if (daysOutCleaning <= 0) { return;}
-		Date before = new Date(now.getTimeInMillis()-SupportTime.DAY*daysOutCleaning);
+		Date /*before = new Date(now.getTimeInMillis()-SupportTime.DAY*daysOutCleaning),*/
+			before1 = new Date(now.getTimeInMillis()-SupportTime.DAY*16);
 		Connection con = ConnectFactory1.one().getConnection();
 		try {
 			//clean(con, SQL_CLEAN_RN, before);
 			//clean(con, SQL_CLEAN_SHP, before);
-			clean(con, SQL_CLEAN_DS, before);
+			clean(con, SQL_CLEAN_DS, before1);
 			con.commit();
 			cleanStores(con);
 		}

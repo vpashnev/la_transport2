@@ -18,7 +18,8 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 	public String relCmdty, stopN, carrier, carrier1,
 		city, prov, postCode, polTime, shipTime, shipTime1, delTimeFrom, delTimeTo,
 		localDc, carrierType, lhCarrier, lhService, delCarrier, delService, stagingLane,
-		specInstructs, truckSize, maxTruckSize, nextUserFile, relNextUserFile;
+		specInstructs, truckSize, maxTruckSize, trailerN, driverFName, arrivalTime,
+		nextUserFile, relNextUserFile;
 	boolean relDcx, aRoutePerGroup, holidays, sameGroup, sameCar, samePC, missing;
 	ShipmentRow rxRow;
 	ArrayList<String> replacedRows = new ArrayList<String>(2);
@@ -31,7 +32,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		String v2 = dc50 ? v1 : v;
 		return v2 == null ? v : v2;
 	}
-	String getCsvRow1(boolean dc50) {
+	String getCsvRow1(int dc20, boolean dc50) {
 		StringBuilder b = new StringBuilder(200);
 		String cmdty = delKey.getCommodity();
 		b.append(route); b.append(',');
@@ -76,10 +77,19 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		b.append(",");
 		add(b, truckSize);
 		add(b, maxTruckSize);
+		if (dc20 == 1) {
+			b.append(localDc);
+			if (specInstructs != null) { b.append("; ");}
+		}
 		add(b, specInstructs);
-		b.append(",,,,,,,,,,");
+		b.append(",,,,,,,,,");
+		add(b, trailerN);
 		add(b, stagingLane);
-		b.append(",,,,,,,,,,,,,,,");
+		b.append(",,,");
+		add(b, driverFName);
+		b.append(",,,,,,,");
+		add(b, arrivalTime);
+		b.append(",,,");
 		if (distance != 0) { b.append(distance);}
 		b.append(',');
 		b.append(",,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,");
@@ -100,7 +110,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 
 		return b.toString();
 	}
-	String getCsvRow(boolean dc50) {
+	String getCsvRow(int dc20, boolean dc50) {
 		StringBuilder b = new StringBuilder(200);
 		String cmdty = delKey.getCommodity();
 		if (holidays) { b.append('H');}
@@ -171,6 +181,10 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 			add(b, delCarrier);
 			add(b, delService);
 			add(b, stagingLane);
+			if (dc20 == 1) {
+				b.append(localDc);
+				if (specInstructs != null) { b.append("; ");}
+			}
 			add(b, specInstructs);
 		}
 		if (distance != 0) { b.append(distance);}

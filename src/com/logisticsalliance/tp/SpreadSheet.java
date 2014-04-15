@@ -37,7 +37,7 @@ public class SpreadSheet {
 		w.write(",,,,,,,,,Narc,,,,,,Polling,, Roadnet Run,,Bomb,,Selection,,RX Polling,," +
 			"RX Roadnet Run,,RX Bomb,,RX Selection,, Shipping Time,,,,,,,,,,,,,,,,,,,,,,,,,,,,," +
 			"Delivery,,,,,,,WHSE # 10,WHSE # 30,WHSE # 40,WHSE # 50,WHSE # 40,WHSE # 50," +
-			"WHSE # 10,WHSE # 30,,,,,,Drive,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,," +
+			"WHSE # 10,WHSE # 30,,,,,,Driver,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,," +
 			",,,,,,,YYYY-MM-DD\r\n");
 		w.write("Route,Stop,Store,Orig.Route,Name,Street #,Address1,City,DB Ship Day," +
 			"Stop,Route,DCF,Carrier,Prov,Post Code,Day,Time,Day,Time,Day,Time,Day,Time," +
@@ -196,7 +196,7 @@ public class SpreadSheet {
 			}
 		}
 	}
-	static void fill(FileWriter w, SearchInput si, String day, boolean dc50,
+	static void fill(FileWriter w, SearchInput si, String day, int dc20, boolean dc50,
 		HashMap<String,ArrayList<ShipmentRow>> m) throws Exception {
 		w.write("DC"); w.write(si.dc); w.write(',');
 		w.write(day);
@@ -223,7 +223,7 @@ public class SpreadSheet {
 				if (!first && !r.sameGroup) {
 					w.write('\r'); w.write('\n');
 				}
-				String v = si.test ? r.getCsvRow(dc50) : r.getCsvRow1(dc50);
+				String v = si.test ? r.getCsvRow(dc20, dc50) : r.getCsvRow1(dc20, dc50);
 				w.write(v);
 				if (first) {
 					first = false;
@@ -235,7 +235,7 @@ public class SpreadSheet {
 			w.write(FillGridDB.missing); w.write('\r'); w.write('\n');
 			for (Iterator<ShipmentRow> it1 = al0.iterator(); it1.hasNext();) {
 				ShipmentRow r = it1.next();
-				String v = si.test ? r.getCsvRow(dc50) : r.getCsvRow1(dc50);
+				String v = si.test ? r.getCsvRow(dc20, dc50) : r.getCsvRow1(dc20, dc50);
 				w.write(v);
 			}
 		}
