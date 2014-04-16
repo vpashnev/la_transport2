@@ -33,7 +33,7 @@ public class SpreadSheet {
 		r = sh.createRow(2);
 		addHead(r, sh.createRow(3));
 	}
-	private static void addHead1(FileWriter w, boolean dc50) throws Exception {
+	private static void addHead1(FileWriter w) throws Exception {
 		w.write(",,,,,,,,,Narc,,,,,,Polling,, Roadnet Run,,Bomb,,Selection,,RX Polling,," +
 			"RX Roadnet Run,,RX Bomb,,RX Selection,, Shipping Time,,,,,,,,,,,,,,,,,,,,,,,,,,,,," +
 			"Delivery,,,,,,,WHSE # 10,WHSE # 30,WHSE # 40,WHSE # 50,WHSE # 40,WHSE # 50," +
@@ -58,16 +58,14 @@ public class SpreadSheet {
 			"Depart Date,Delivery Date,Group");
 		w.write('\r'); w.write('\n');
 	}
-	private static void addHead(FileWriter w, boolean dc50) throws Exception {
+	private static void addHead(FileWriter w) throws Exception {
 		w.write(','); w.write(','); w.write(','); w.write(',');
 		w.write("Narc"); w.write(','); w.write(','); w.write(',');
 		w.write(','); w.write(','); w.write(','); w.write(','); w.write(',');
 		w.write("Poll"); w.write(','); w.write(',');
 		w.write("Ship"); w.write(','); w.write(',');
-		if (dc50) {
-			w.write("Changed");
-			w.write(','); w.write(',');
-		}
+		w.write("Changed");
+		w.write(','); w.write(',');
 		w.write(','); w.write(','); w.write(','); w.write(',');
 		w.write("Deliver");
 		w.write('\r'); w.write('\n');
@@ -86,10 +84,8 @@ public class SpreadSheet {
 		w.write("Time"); w.write(',');
 		w.write("Day"); w.write(',');
 		w.write("Time"); w.write(',');
-		if (dc50) {
-			w.write("Day"); w.write(',');
-			w.write("Time"); w.write(',');
-		}
+		w.write("Day"); w.write(',');
+		w.write("Time"); w.write(',');
 		w.write("Pallets"); w.write(',');
 		w.write("Weight"); w.write(',');
 		w.write("WHSE 60"); w.write(',');
@@ -100,14 +96,12 @@ public class SpreadSheet {
 		w.write("To"); w.write(',');
 		w.write("DCX"); w.write(',');
 		w.write("Ship Day"); w.write(',');
-		if (dc50) {
-			w.write("LH Car."); w.write(',');
-			w.write("LH Serv."); w.write(',');
-			w.write("Del Car."); w.write(',');
-			w.write("Del Serv."); w.write(',');
-			w.write("Stg.Lane"); w.write(',');
-			w.write("Spec.Instr"); w.write(',');
-		}
+		w.write("LH Car."); w.write(',');
+		w.write("LH Serv."); w.write(',');
+		w.write("Del Car."); w.write(',');
+		w.write("Del Serv."); w.write(',');
+		w.write("Stg.Lane"); w.write(',');
+		w.write("Spec.Instr"); w.write(',');
 		w.write("Distance"); w.write(',');
 		w.write("Truck Size"); w.write(',');
 		w.write("Max Truck Size"); w.write(',');
@@ -125,7 +119,7 @@ public class SpreadSheet {
 		default: return 7;
 		}
 	}
-	private static void fill(SearchInput si, String day, boolean dc50,
+	private static void fill(SearchInput si, String day,
 		HashMap<String,ArrayList<ShipmentRow>> m) throws Exception {
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it = m.entrySet().iterator();
 			it.hasNext();) {
@@ -177,35 +171,37 @@ public class SpreadSheet {
 					r.route += i;
 				}
 				if (r0 != null) {
-					sameRoute = r0.route == r.route;
-				}
-				if (!dc50) {
-					if (sameRoute) {
-						stop++;
+					if (r.route1 != null) {
+						System.out.println(r);
 					}
-					else { stop = 1;}
+					sameRoute = r0.route == r.route ||
+						r0.route1 != null && r0.route1.equals(r.route1);
 				}
+				if (sameRoute) {
+					stop++;
+				}
+				else { stop = 1;}
 				if (maxStops > 0 && stop > maxStops) {
 					r.sameGroup = false;
 					r.route++;
 					stop = 1;
 					i++;
 				}
-				if (!dc50) { r.stop = stop;}
+				r.stop = stop;
 				r0 = r;
 			}
 		}
 	}
-	static void fill(FileWriter w, SearchInput si, String day, int dc20, boolean dc50,
+	static void fill(FileWriter w, SearchInput si, String day, int dc20,
 		HashMap<String,ArrayList<ShipmentRow>> m) throws Exception {
 		w.write("DC"); w.write(si.dc); w.write(',');
 		w.write(day);
 		w.write('\r'); w.write('\n');
 		if (si.test) {
-			addHead(w, dc50);
+			addHead(w);
 		}
-		else { addHead1(w, dc50);}
-		fill(si, day, dc50, m);
+		else { addHead1(w);}
+		fill(si, day, m);
 		ArrayList<ShipmentRow> al0 = null;
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it =
 			m.entrySet().iterator(); it.hasNext();) {
@@ -223,7 +219,7 @@ public class SpreadSheet {
 				if (!first && !r.sameGroup) {
 					w.write('\r'); w.write('\n');
 				}
-				String v = si.test ? r.getCsvRow(dc20, dc50) : r.getCsvRow1(dc20, dc50);
+				String v = si.test ? r.getCsvRow(dc20) : r.getCsvRow1(dc20);
 				w.write(v);
 				if (first) {
 					first = false;
@@ -235,7 +231,7 @@ public class SpreadSheet {
 			w.write(FillGridDB.missing); w.write('\r'); w.write('\n');
 			for (Iterator<ShipmentRow> it1 = al0.iterator(); it1.hasNext();) {
 				ShipmentRow r = it1.next();
-				String v = si.test ? r.getCsvRow(dc20, dc50) : r.getCsvRow1(dc20, dc50);
+				String v = si.test ? r.getCsvRow(dc20) : r.getCsvRow1(dc20);
 				w.write(v);
 			}
 		}

@@ -117,8 +117,7 @@ public class AppModel {
 			dc20 = 1;
 		}
 		else if (si.dc.toUpperCase().equals(CommonConstants.DC20F)) { dc20 = 2;}
-		boolean dc50 = si.dc.equals(CommonConstants.DC50),
-			hasHolidayWeeks = si.holidayWeeks > 0;
+		boolean hasHolidayWeeks = si.holidayWeeks > 0;
 		String a = dc20 == 2 ? "F" : "";
 		si.dc = si.dc.substring(0, 2);
 		//Workbook wb = new XSSFWorkbook();
@@ -128,7 +127,7 @@ public class AppModel {
 		for (int i = 0; i <= count; i++) {
 			HashMap<String,HashMap<DsKey,ShipmentRow>> m =
 				new HashMap<String,HashMap<DsKey,ShipmentRow>>(8, .5f);
-			FillGridDB.process(all, m, si, i, dc20, dc50, hasHolidayWeeks);
+			FillGridDB.process(all, m, si, i, dc20, hasHolidayWeeks);
 			all.put(i, m);
 		}
 		ArrayList<File> al = new ArrayList<File>(8);
@@ -154,7 +153,7 @@ public class AppModel {
 			File f = new File(dir, pfx+si.dc+a+"_"+day+".csv");
 			FileWriter w = new FileWriter(f);
 			try {
-				SpreadSheet.fill(w, si, day, dc20, dc50, m1);
+				SpreadSheet.fill(w, si, day, dc20, m1);
 			}
 			finally {
 				w.close();

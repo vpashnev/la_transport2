@@ -184,6 +184,7 @@ CREATE TABLE la.hstore_carrier (
   ship_day INT,
   ship_day1 INT,
   ship_time1 VARCHAR(5),
+  route1 VARCHAR(20),
   stop1 INT,
   lh_carrier_id VARCHAR(8),
   lh_service VARCHAR(4),
@@ -193,6 +194,9 @@ CREATE TABLE la.hstore_carrier (
   distance INT,
   truck_size VARCHAR(8),
   max_truck_size VARCHAR(8),
+  trailer_n VARCHAR(25),
+  driver_fname VARCHAR(25),
+  arrival_time VARCHAR(10),
   spec_instructs VARCHAR(200),
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 --  CONSTRAINT fk_hstore_dc_car_store_n FOREIGN KEY (store_n)

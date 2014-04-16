@@ -23,8 +23,8 @@ class FillGridDB {
 	"s.del_day, s.del_week, s.del_time_from, s.del_time_to, sc.lh_carrier_id,\r\n" +
 	"sc.lh_service, sc.del_carrier_id, sc.del_service, sc.staging_lane, sc.spec_instructs,\r\n" +
 	"sc.distance, sc.max_truck_size, sc.truck_size, sc.trailer_n, sc.driver_fname,\r\n" +
-	"sc.arrival_time, sc.stop1, sp.local_dc, sc.carrier_type, sc.aroute_per_group,\r\n" +
-	"sfr.dc, s.dc, s.next_user_file, s1.next_user_file\r\n" +
+	"sc.arrival_time, sc.route1, sc.stop1, sp.local_dc, sc.carrier_type,\r\n" +
+	"sc.aroute_per_group, sfr.dc, s.dc, s.next_user_file, s1.next_user_file\r\n" +
 
 	"FROM\r\n" +
 	"la.hstore_schedule s\r\n" +
@@ -104,16 +104,16 @@ class FillGridDB {
 	}
 	static void process(HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all,
 		HashMap<String,HashMap<DsKey,ShipmentRow>> m, SearchInput si, int idx,
-		int dc20, boolean dc50, boolean hasHolidayWeeks) throws Exception {
+		int dc20, boolean hasHolidayWeeks) throws Exception {
 		Connection con = connectFactory.getConnection();
 		if (chk == null) {
 			chk = con.prepareStatement(SQL_CHK);
 		}
 		ResultSet rs = getRowSet(con, si, idx, dc20, false); // regular
-		process(all, m, si, idx, dc20, dc50, hasHolidayWeeks, false, rs);
+		process(all, m, si, idx, dc20, hasHolidayWeeks, false, rs);
 		rs.close();
 		rs = getRowSet(con, si, idx, dc20, true); // holidays
-		process(all, m, si, idx, dc20, dc50, hasHolidayWeeks, true, rs);
+		process(all, m, si, idx, dc20, hasHolidayWeeks, true, rs);
 		rs.close();
 	}
 	private static boolean ignore(String dc, int storeN) throws Exception {
@@ -124,7 +124,7 @@ class FillGridDB {
 	}
 	private static void process(HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all,
 		HashMap<String,HashMap<DsKey,ShipmentRow>> m, SearchInput si, int idx,
-		int dc20, boolean dc50, boolean hasHolidayWeeks, boolean holidaySQL,
+		int dc20, boolean hasHolidayWeeks, boolean holidaySQL,
 		ResultSet rs) throws Exception {
 		Date holidayEnd = hasHolidayWeeks ?
 			new Date(si.fromDate.getTime()+7*si.holidayWeeks*SupportTime.DAY) : null; 
@@ -132,9 +132,6 @@ class FillGridDB {
 			String dc = rs.getString(1),
 				cmdty = rs.getString(2),
 				prov = rs.getString(8);
-			if (idx==3 && rs.getInt(3)==8300 && cmdty.equals("DCX")) {
-				System.out.println(idx+", "+rs.getInt(3)+", "+cmdty);
-			}
 			if (ignore(si.dc, cmdty, prov)) {
 				continue;
 			}
@@ -142,6 +139,9 @@ class FillGridDB {
 			cmdty = DsKey.toCmdty(cmdty);
 			ShipmentRow r = new ShipmentRow();
 			r.delKey.setStoreN(rs.getInt(3));
+			if (idx==1 && rs.getInt(3)==968 && cmdty.equals("FS")) {
+				System.out.println(idx+", "+rs.getInt(3)+", "+cmdty);
+			}
 			if (dc == null) {
 				// missing record
 				if (dc20 == 0 && (cmdty1.equals(CommonConstants.DCB) ||
@@ -149,7 +149,7 @@ class FillGridDB {
 					ignore(si.dc, r.delKey.getStoreN())) {
 					continue;
 				}
-				String dc1 = rs.getString(41);
+				String dc1 = rs.getString(42);
 				dc1 = SearchInput.toDc(si.dc, dc1);
 				if (dc20 == 0 && !si.dc.equals(dc1) ||
 					holidaySQL && !hasHolidayWeeks || !holidaySQL && hasHolidayWeeks) {
@@ -173,8 +173,8 @@ class FillGridDB {
 				}
 			}
 			r.delKey.setCommodity(cmdty);
-			r.nextUserFile = rs.getString(42);
-			r.relNextUserFile = rs.getString(43);
+			r.nextUserFile = rs.getString(43);
+			r.relNextUserFile = rs.getString(44);
 			if (ignore(all, r, idx)) {
 				continue;
 			}
@@ -191,7 +191,7 @@ class FillGridDB {
 			m1.put(r.delKey, r);
 			r.delTimeFrom = SupportTime.HHmm_Format.format(rs.getTime(22));
 			r.delTimeTo = SupportTime.HHmm_Format.format(rs.getTime(23));
-			boolean rxToFs = rs.getString(37) != null;
+			boolean rxToFs = rs.getString(41) != null;
 			if (r.holidays) {
 				if (rxToFs) {
 					setRx(m, r, cmdty);
@@ -233,14 +233,11 @@ class FillGridDB {
 			r.trailerN = rs.getString(33);
 			r.driverFName = rs.getString(34);
 			r.arrivalTime = rs.getString(35);
-			if (dc50) {
-				r.stop1 = getInt(rs.getObject(36));
-				if (r.stop1 == -1) { r.stop1 = 0;}
-				r.stop = r.stop1;
-			}
-			r.localDc = rs.getString(37);
-			r.carrierType = rs.getString(38);
-			r.aRoutePerGroup = rs.getString(39) != null;
+			r.route1 = rs.getString(36);
+			r.stop1 = getInt(rs.getObject(37));
+			r.localDc = rs.getString(38);
+			r.carrierType = rs.getString(39);
+			r.aRoutePerGroup = rs.getString(40) != null;
 		}
 	}
 	private static boolean ignore(HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all,

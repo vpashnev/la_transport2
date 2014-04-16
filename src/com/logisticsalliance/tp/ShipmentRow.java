@@ -13,30 +13,29 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 
 	public DsKey delKey = new DsKey();
 	public int group, polDay, shipDay, shipDay1, relCmdtyShipDay = -1, route,
-		distance, stop, stop1 = -1;
+		distance, stop, stop1;
 	public Date pollDate, shipDate, delDate;
 	public String relCmdty, stopN, carrier, carrier1,
 		city, prov, postCode, polTime, shipTime, shipTime1, delTimeFrom, delTimeTo,
 		localDc, carrierType, lhCarrier, lhService, delCarrier, delService, stagingLane,
 		specInstructs, truckSize, maxTruckSize, trailerN, driverFName, arrivalTime,
-		nextUserFile, relNextUserFile;
+		route1, nextUserFile, relNextUserFile;
 	boolean relDcx, aRoutePerGroup, holidays, sameGroup, sameCar, samePC, missing;
 	ShipmentRow rxRow;
 	ArrayList<String> replacedRows = new ArrayList<String>(2);
 
-	private static int toValue(int v, int v1, boolean dc50) {
-		int v2 = dc50 ? v1 : v;
-		return v2 == -1 ? v : v2;
+	private static int toValue(int v, int v1) {
+		return v1 == -1 ? v : v1;
 	}
-	private static String toValue(String v, String v1, boolean dc50) {
-		String v2 = dc50 ? v1 : v;
-		return v2 == null ? v : v2;
+	private static String toValue(String v, String v1) {
+		return v1 == null ? v : v1;
 	}
-	String getCsvRow1(int dc20, boolean dc50) {
-		StringBuilder b = new StringBuilder(200);
+	String getCsvRow1(int dc20) {
+		StringBuilder b = new StringBuilder(512);
 		String cmdty = delKey.getCommodity();
-		b.append(route); b.append(',');
-		int vi = toValue(stop, stop1, dc50);
+		String vs = toValue(String.valueOf(route), route1);
+		b.append(vs); b.append(',');
+		int vi = toValue(stop, stop1);
 		b.append(vi); b.append(',');
 		b.append(delKey.getStoreN()); b.append(',');
 		b.append(",,,,");
@@ -46,14 +45,16 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 			b.append(vi);
 			b.append(',');
 			if (rxRow == null) {
-				b.append(route+100);
+				b.append(route1 == null ? route+100 : vs);
 			}
-			else { b.append(route);}
+			else {
+				b.append(vs);
+			}
 		}
 		else { b.append(',');}
 		b.append(',');
 		b.append(",");
-		String vs = toValue(carrier, carrier1, dc50);
+		vs = toValue(carrier, carrier1);
 		b.append(vs); b.append(',');
 		if (samePC) {
 			b.append(',');
@@ -65,10 +66,10 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		b.append(SupportTime.getDayOfWeek(polDay)); b.append(',');
 		b.append(polTime); b.append(',');
 		b.append(",,,,,,,,,,,,,,");
-		vi = toValue(shipDay, shipDay1, dc50);
+		vi = toValue(shipDay, shipDay1);
 		b.append(SupportTime.getDayOfWeek(vi)); b.append(',');
 		b.append(",");
-		vs = toValue(shipTime, shipTime1, dc50);
+		vs = toValue(shipTime, shipTime1);
 		b.append(vs); b.append(',');
 		b.append(",,,,,,,,,,,,,,,,,,,,,,,,,,");
 		b.append(SupportTime.getDayOfWeek(delKey.getDay())); b.append(',');
@@ -110,8 +111,8 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 
 		return b.toString();
 	}
-	String getCsvRow(int dc20, boolean dc50) {
-		StringBuilder b = new StringBuilder(200);
+	String getCsvRow(int dc20) {
+		StringBuilder b = new StringBuilder(256);
 		String cmdty = delKey.getCommodity();
 		if (holidays) { b.append('H');}
 		int sz = replacedRows.size();
@@ -154,16 +155,14 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		b.append(polTime); b.append(',');
 		b.append(SupportTime.getDayOfWeek(shipDay)); b.append(',');
 		b.append(shipTime); b.append(',');
-		if (dc50) {
-			if (shipDay1 != -1) {
-				b.append(SupportTime.getDayOfWeek(shipDay1));
-			}
-			b.append(',');
-			if (shipTime1 != null) {
-				b.append(shipTime1);
-			}
-			b.append(',');
+		if (shipDay1 != -1) {
+			b.append(SupportTime.getDayOfWeek(shipDay1));
 		}
+		b.append(',');
+		if (shipTime1 != null) {
+			b.append(shipTime1);
+		}
+		b.append(',');
 		b.append(','); b.append(','); b.append(','); b.append(',');
 		b.append(SupportTime.yyyy_MM_dd_Format.format(delDate)); b.append(',');
 		b.append(SupportTime.getDayOfWeek(delKey.getDay())); b.append(',');
@@ -175,18 +174,16 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 			b.append(SupportTime.getDayOfWeek(relCmdtyShipDay));
 		}
 		b.append(',');
-		if (dc50) {
-			add(b, lhCarrier);
-			add(b, lhService);
-			add(b, delCarrier);
-			add(b, delService);
-			add(b, stagingLane);
-			if (dc20 == 1) {
-				b.append(localDc);
-				if (specInstructs != null) { b.append("; ");}
-			}
-			add(b, specInstructs);
+		add(b, lhCarrier);
+		add(b, lhService);
+		add(b, delCarrier);
+		add(b, delService);
+		add(b, stagingLane);
+		if (dc20 == 1) {
+			b.append(localDc);
+			if (specInstructs != null) { b.append("; ");}
 		}
+		add(b, specInstructs);
 		if (distance != 0) { b.append(distance);}
 		b.append(',');
 		add(b, truckSize);
