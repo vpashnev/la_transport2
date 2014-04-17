@@ -33,7 +33,7 @@ public class SpreadSheet {
 		r = sh.createRow(2);
 		addHead(r, sh.createRow(3));
 	}
-	private static void addHead1(FileWriter w) throws Exception {
+	private static void addHead1(FileWriter w, boolean dc50) throws Exception {
 		w.write(",,,,,,,,,Narc,,,,,,Polling,, Roadnet Run,,Bomb,,Selection,,RX Polling,," +
 			"RX Roadnet Run,,RX Bomb,,RX Selection,, Shipping Time,,,,,,,,,,,,,,,,,,,,,,,,,,,,," +
 			"Delivery,,,,,,,WHSE # 10,WHSE # 30,WHSE # 40,WHSE # 50,WHSE # 40,WHSE # 50," +
@@ -44,7 +44,8 @@ public class SpreadSheet {
 			"Day,Time,Day,Shift,Day,Shift,Day,Shift,Day,Load & Seal,Time,Depart & TRAIN," +
 			"Load Close,RX Totes,Actual Dep,Late,Pallets,Weight kg,Cube,WHSE 10,WHSE 30," +
 			"WHSE 55,WHSE 20,WHSE 25,WHSE 20 cube,WHSE 25 cube,WH20/25 cube,WHSE 60," +
-			"WH 10 Plates,WHS.30 Totes,Event Route,Event Pallets,2 Event Route," +
+			(dc50 ? "WHS 15" : "WHS 10")+
+			",WHS.30 Totes,Event Route,Event Pallets,2 Event Route," +
 			"2 Event Pallets,3 Event Route,3 Event Pallets,Load Ready,Day,Time Window,," +
 			"Gatehouse Time,Truck Size,Max Truck Size,Special Instructions,Stage Lane," +
 			"Stage Lane,Stage Lane,Stage Lane,Bombed,Bombed,Bombed,Bombed,Door #,Trailer #," +
@@ -130,7 +131,7 @@ public class SpreadSheet {
 			}
 			boolean dcx = cmdty.equals(CommonConstants.DCX),
 				fs = cmdty.equals(CommonConstants.FS);
-			int  i = 0, ltli = 200,
+			int  i = 0, ltli = 100,
 				maxStops = dcx ? 20 : (fs && si.dc.equals(CommonConstants.DC10) ? 6 : 0);
 			ArrayList<ShipmentRow> al = e.getValue();
 			ShipmentRow r0 = null;
@@ -171,9 +172,6 @@ public class SpreadSheet {
 					r.route += i;
 				}
 				if (r0 != null) {
-					if (r.route1 != null) {
-						System.out.println(r);
-					}
 					sameRoute = r0.route == r.route ||
 						r0.route1 != null && r0.route1.equals(r.route1);
 				}
@@ -193,14 +191,15 @@ public class SpreadSheet {
 		}
 	}
 	static void fill(FileWriter w, SearchInput si, String day, int dc20,
-		HashMap<String,ArrayList<ShipmentRow>> m) throws Exception {
+		boolean dc50, boolean dc70, HashMap<String,ArrayList<ShipmentRow>> m)
+		throws Exception {
 		w.write("DC"); w.write(si.dc); w.write(',');
 		w.write(day);
 		w.write('\r'); w.write('\n');
 		if (si.test) {
 			addHead(w);
 		}
-		else { addHead1(w);}
+		else { addHead1(w, dc50);}
 		fill(si, day, m);
 		ArrayList<ShipmentRow> al0 = null;
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it =
@@ -219,7 +218,7 @@ public class SpreadSheet {
 				if (!first && !r.sameGroup) {
 					w.write('\r'); w.write('\n');
 				}
-				String v = si.test ? r.getCsvRow(dc20) : r.getCsvRow1(dc20);
+				String v = si.test ? r.getCsvRow(dc20) : r.getCsvRow1(dc20, dc50, dc70);
 				w.write(v);
 				if (first) {
 					first = false;
@@ -231,7 +230,7 @@ public class SpreadSheet {
 			w.write(FillGridDB.missing); w.write('\r'); w.write('\n');
 			for (Iterator<ShipmentRow> it1 = al0.iterator(); it1.hasNext();) {
 				ShipmentRow r = it1.next();
-				String v = si.test ? r.getCsvRow(dc20) : r.getCsvRow1(dc20);
+				String v = si.test ? r.getCsvRow(dc20) : r.getCsvRow1(dc20, dc50, dc70);
 				w.write(v);
 			}
 		}
@@ -253,7 +252,7 @@ public class SpreadSheet {
 			n = sdn*100;
 			break;
 		case CommonConstants.RX:
-			n = sdn*1000+300;
+			n = sdn*1000+200;
 			break;
 		}
 		n += i;

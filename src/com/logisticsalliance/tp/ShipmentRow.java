@@ -13,7 +13,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 
 	public DsKey delKey = new DsKey();
 	public int group, polDay, shipDay, shipDay1, relCmdtyShipDay = -1, route,
-		distance, stop, stop1;
+		distance, stop, stop1, carrierN;
 	public Date pollDate, shipDate, delDate;
 	public String relCmdty, stopN, carrier, carrier1,
 		city, prov, postCode, polTime, shipTime, shipTime1, delTimeFrom, delTimeTo,
@@ -30,7 +30,13 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 	private static String toValue(String v, String v1) {
 		return v1 == null ? v : v1;
 	}
-	String getCsvRow1(int dc20) {
+	private static int getTime(String vs, int dif) {
+		int v = Integer.parseInt(vs);
+		v -= dif;
+		if (v < 0) { v += 2400;}
+		return v;
+	}
+	String getCsvRow1(int dc20, boolean dc50, boolean dc70) {
 		StringBuilder b = new StringBuilder(512);
 		String cmdty = delKey.getCommodity();
 		String vs = toValue(String.valueOf(route), route1);
@@ -68,8 +74,15 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		b.append(",,,,,,,,,,,,,,");
 		vi = toValue(shipDay, shipDay1);
 		b.append(SupportTime.getDayOfWeek(vi)); b.append(',');
-		b.append(",");
 		vs = toValue(shipTime, shipTime1);
+		vi = Integer.parseInt(vs);
+		if (dc50 || dc70) {
+			b.append(getTime(vs, 200));
+		}
+		else {
+			b.append(getTime(vs, 100));
+		}
+		b.append(",");
 		b.append(vs); b.append(',');
 		b.append(",,,,,,,,,,,,,,,,,,,,,,,,,,");
 		b.append(SupportTime.getDayOfWeek(delKey.getDay())); b.append(',');
@@ -83,10 +96,11 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 			if (specInstructs != null) { b.append("; ");}
 		}
 		add(b, specInstructs);
-		b.append(",,,,,,,,,");
-		add(b, trailerN);
+		b.append(",,");
 		add(b, stagingLane);
-		b.append(",,,");
+		b.append(",,,,,,");
+		add(b, trailerN);
+		b.append(",,,,");
 		add(b, driverFName);
 		b.append(",,,,,,,");
 		add(b, arrivalTime);
@@ -233,6 +247,10 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		String cmdty = delKey.getCommodity();
 		v = cmdty.compareTo(r.delKey.getCommodity());
 		if (missing) {
+			return v;
+		}
+		v = carrierN - r.carrierN;
+		if (v != 0) {
 			return v;
 		}
 		v = group - r.group;
