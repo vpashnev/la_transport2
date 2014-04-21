@@ -41,15 +41,14 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		String cmdty = delKey.getCommodity();
 		String vs = toValue(String.valueOf(route), route1);
 		b.append(vs); b.append(',');
-		int vi = toValue(stop, stop1);
-		b.append(vi); b.append(',');
+		b.append(stop); b.append(',');
 		b.append(delKey.getStoreN()); b.append(',');
 		b.append(",,,,");
 		b.append(city); b.append(',');
 		b.append(SupportTime.getDayOfWeek(shipDay)); b.append(",");
-		if (rxRow != null || cmdty.equals(CommonConstants.RX)) {
-			b.append(vi);
-			b.append(',');
+		boolean rx = cmdty.equals(CommonConstants.RX);
+		if (rxRow != null || rx) {
+			b.append(stop); b.append(',');
 			if (rxRow == null) {
 				b.append(route1 == null ? route+100 : vs);
 			}
@@ -69,10 +68,16 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 			b.append(prov); b.append(','); b.append(postCode);
 		}
 		b.append(',');
-		b.append(SupportTime.getDayOfWeek(polDay)); b.append(',');
+		String polDay2 = SupportTime.getDayOfWeek(polDay);
+		b.append(polDay2); b.append(',');
 		b.append(polTime); b.append(',');
-		b.append(",,,,,,,,,,,,,,");
-		vi = toValue(shipDay, shipDay1);
+		b.append(",,,,,,");
+		if (rx) {
+			b.append(polDay2); b.append(',');
+			b.append(polTime); b.append(',');
+		}
+		b.append(",,,,,,");
+		int vi = toValue(shipDay, shipDay1);
 		b.append(SupportTime.getDayOfWeek(vi)); b.append(',');
 		vs = toValue(shipTime, shipTime1);
 		vi = Integer.parseInt(vs);
@@ -271,7 +276,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 						v = carrier.compareTo(r.carrier);
 					}
 					if (v == 0) {
-						if (cmdty.equals(CommonConstants.DCX)) {
+						/*if (cmdty.equals(CommonConstants.DCX)) {
 							v = relCmdtyShipDay - r.relCmdtyShipDay;
 							if (v == 0) {
 								v = localDc.compareTo(r.localDc);
@@ -289,9 +294,9 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 								}
 							}
 						}
-						else {
-							v = route - r.route;
-						}
+						else {*/
+						v = route - r.route;
+						//}
 						if (v == 0) {
 							v = stop - r.stop;
 						}

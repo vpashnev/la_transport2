@@ -198,6 +198,7 @@ CREATE TABLE la.hstore_carrier (
   driver_fname VARCHAR(25),
   arrival_time VARCHAR(10),
   spec_instructs VARCHAR(200),
+  carrier_n INT,
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 --  CONSTRAINT fk_hstore_dc_car_store_n FOREIGN KEY (store_n)
 --  REFERENCES la.hstore_profile (n),
@@ -296,6 +297,7 @@ alter table la.henvr add column daily_rn_files VARCHAR(8000);
 alter table la.hstore_profile alter column post_code SET DEFAULT '';
 alter table la.hstore_profile alter column post_code SET NOT NULL;
 alter table la.hship_data alter column add_key SET DEFAULT '';
+alter table la.hstore_carrier add column carrier_n INT;
 
 alter table la.hstore_schedule add column pol_day INT DEFAULT 0 NOT NULL;
 alter table la.hstore_schedule add column pol_date DATE;

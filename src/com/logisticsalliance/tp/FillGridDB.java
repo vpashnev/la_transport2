@@ -145,7 +145,7 @@ class FillGridDB {
 			cmdty = DsKey.toCmdty(cmdty);
 			ShipmentRow r = new ShipmentRow();
 			r.delKey.setStoreN(rs.getInt(3));
-			if (idx==0 && rs.getInt(3)==1210 && cmdty.equals("DCF")) {
+			if (idx==3 && rs.getInt(3)==201 && cmdty.equals("DCX")) {
 				//System.out.println(idx+", "+rs.getInt(3)+", "+cmdty);
 			}
 			if (dc == null) {
@@ -165,8 +165,7 @@ class FillGridDB {
 				}
 				String dc1 = rs.getString(43);
 				dc1 = SearchInput.toDc(si.dc, dc1);
-				if (dc20 == 0 && !si.dc.equals(dc1) ||
-					holidaySQL && !hasHolidayWeeks || !holidaySQL && hasHolidayWeeks) {
+				if (dc20 == 0 && !si.dc.equals(dc1) || holidaySQL && !hasHolidayWeeks) {
 					continue;
 				}
 				r.missing = true;

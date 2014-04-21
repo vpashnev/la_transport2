@@ -130,7 +130,8 @@ public class SpreadSheet {
 				continue;
 			}
 			boolean dcx = cmdty.equals(CommonConstants.DCX),
-				fs = cmdty.equals(CommonConstants.FS);
+				fs = cmdty.equals(CommonConstants.FS),
+				rx = cmdty.equals(CommonConstants.RX);
 			int  i = 0, ltli = 100,
 				maxStops = dcx ? 20 : (fs && si.dc.equals(CommonConstants.DC10) ? 6 : 0);
 			ArrayList<ShipmentRow> al = e.getValue();
@@ -150,14 +151,14 @@ public class SpreadSheet {
 						if (ltlFs) {
 							ltli++;
 						}
-						else { i++;}
+						else { i += (rx ? 5 : 1);}
 					}
 				}
 				else {
 					if (ltlFs) {
 						ltli++;
 					}
-					else { i++;}
+					else { i += (rx ? 5 : 1);}
 				}
 				r.route = getRoute(r, cmdty, i, ltli);
 				r0 = r;
@@ -181,13 +182,14 @@ public class SpreadSheet {
 				else { stop = 1;}
 				if (maxStops > 0 && stop > maxStops) {
 					r.sameGroup = false;
-					r.route++;
+					r.route += (rx ? 5 : 1);
+					i += (rx ? 5 : 1);
 					stop = 1;
-					i++;
 				}
-				r.stop = stop;
+				r.stop = r.stop1 == -1 ? stop : r.stop1;
 				r0 = r;
 			}
+			Collections.sort(al);
 		}
 	}
 	static void fill(FileWriter w, SearchInput si, String day, int dc20,

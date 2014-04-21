@@ -18,8 +18,8 @@ class FillScTable {
 		"INSERT INTO la.hstore_carrier (store_n,carrier_id,dc,group1,cmdty,aroute_per_group," +
 		"carrier_type,holidays,ship_day,ship_day1,ship_time1,spec_instructs,lh_carrier_id," +
 		"lh_service,del_carrier_id,del_service,stop1,staging_lane,carrier1,distance," +
-		"truck_size,max_truck_size,trailer_n,driver_fname,arrival_time,route1) "+
-		"VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		"truck_size,max_truck_size,trailer_n,driver_fname,arrival_time,route1,carrier_n) "+
+		"VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 		SQL_INS1 =
 		"INSERT INTO LA.HCARRIER (id) VALUES (?)",
 		SQL_DEL = "DELETE FROM la.hstore_carrier",
@@ -89,6 +89,7 @@ class FillScTable {
 			set(stIns, 24, arr[23], false);
 			set(stIns, 25, arr[24], false);
 			set(stIns, 26, arr[25], false);
+			set(stIns, 27, arr[26], false);
 			try {
 				i += stIns.executeUpdate();
 			}
