@@ -131,7 +131,8 @@ public class SpreadSheet {
 			}
 			boolean dcx = cmdty.equals(CommonConstants.DCX),
 				fs = cmdty.equals(CommonConstants.FS),
-				rx = cmdty.equals(CommonConstants.RX);
+				rx = cmdty.equals(CommonConstants.RX),
+				sameGroup = false, sameCar = false;
 			int  i = 0, ltli = 100,
 				maxStops = dcx ? 20 : (fs && si.dc.equals(CommonConstants.DC10) ? 6 : 0);
 			ArrayList<ShipmentRow> al = e.getValue();
@@ -139,15 +140,14 @@ public class SpreadSheet {
 			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
 				ShipmentRow r = it1.next();
 				if (r0 != null) {
-					r.sameGroup = r0.group == r.group;
-					r.sameCar = r0.carrier == r.carrier ||
+					sameGroup = r0.group == r.group;
+					sameCar = r0.carrier == r.carrier ||
 						r0.carrier != null && r0.carrier.equals(r.carrier);
-					r.samePC = r0.postCode.equals(r.postCode);
 				}
 				boolean ltlFs = CommonConstants.LTL.equals(r.carrierType) &&
 					CommonConstants.FS.equals(cmdty);
 				if (r.aRoutePerGroup) {
-					if (!r.sameGroup || !r.sameCar) {
+					if (!sameGroup || !sameCar) {
 						if (ltlFs) {
 							ltli++;
 						}
@@ -161,9 +161,22 @@ public class SpreadSheet {
 					else { i += (rx ? 5 : 1);}
 				}
 				r.route = getRoute(r, cmdty, i, ltli);
+				if (r.stop1 != -1) {
+					r.stop = r.stop1;
+				}
 				r0 = r;
 			}
 			Collections.sort(al);
+			r0 = null;
+			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
+				ShipmentRow r = it1.next();
+				if (r0 != null) {
+					r.sameGroup = r0.group == r.group;
+					r.sameCar = r0.carrier == r.carrier ||
+						r0.carrier != null && r0.carrier.equals(r.carrier);
+				}
+				r0 = r;
+			}
 			int stop = 0; i = 0;
 			boolean sameRoute = false;
 			r0 = null;
@@ -180,16 +193,17 @@ public class SpreadSheet {
 					stop++;
 				}
 				else { stop = 1;}
-				if (maxStops > 0 && stop > maxStops) {
+				if (maxStops > 0 && stop > maxStops || stop > 49) {
 					r.sameGroup = false;
 					r.route += (rx ? 5 : 1);
 					i += (rx ? 5 : 1);
 					stop = 1;
 				}
-				r.stop = r.stop1 == -1 ? stop : r.stop1;
+				if (r.stop1 == -1) {
+					r.stop = stop;
+				}
 				r0 = r;
 			}
-			Collections.sort(al);
 		}
 	}
 	static void fill(FileWriter w, SearchInput si, String day, int dc20,
@@ -220,11 +234,9 @@ public class SpreadSheet {
 				if (!first && !r.sameGroup) {
 					w.write('\r'); w.write('\n');
 				}
+				if (first) { first = false;}
 				String v = si.test ? r.getCsvRow(dc20) : r.getCsvRow1(dc20, dc50, dc70);
 				w.write(v);
-				if (first) {
-					first = false;
-				}
 			}
 			w.write('\r'); w.write('\n');
 		}

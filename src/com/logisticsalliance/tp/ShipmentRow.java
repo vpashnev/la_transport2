@@ -20,7 +20,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		localDc, carrierType, lhCarrier, lhService, delCarrier, delService, stagingLane,
 		specInstructs, truckSize, maxTruckSize, trailerN, driverFName, arrivalTime,
 		route1, nextUserFile, relNextUserFile;
-	boolean relDcx, aRoutePerGroup, holidays, sameGroup, sameCar, samePC, missing;
+	boolean relDcx, aRoutePerGroup, holidays, sameGroup, sameCar, missing;
 	ShipmentRow rxRow;
 	ArrayList<String> replacedRows = new ArrayList<String>(2);
 
@@ -61,21 +61,21 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		b.append(",");
 		vs = toValue(carrier, carrier1);
 		b.append(vs); b.append(',');
-		if (samePC) {
-			b.append(',');
-		}
-		else {
-			b.append(prov); b.append(','); b.append(postCode);
-		}
-		b.append(',');
+		b.append(prov); b.append(',');
+		b.append(postCode); b.append(',');
 		String polDay2 = SupportTime.getDayOfWeek(polDay);
 		b.append(polDay2); b.append(',');
 		b.append(polTime); b.append(',');
 		b.append(",,,,,,");
-		if (rx) {
-			b.append(polDay2); b.append(',');
-			b.append(polTime); b.append(',');
+		if (dc20 == 1) {
+			b.append(SupportTime.getDayOfWeek(relCmdtyShipDay)); b.append(',');
 		}
+		else if (rx) {
+			b.append(polDay2); b.append(',');
+			b.append(polTime); 
+		}
+		else { b.append(',');}
+		b.append(',');
 		b.append(",,,,,,");
 		int vi = toValue(shipDay, shipDay1);
 		b.append(SupportTime.getDayOfWeek(vi)); b.append(',');
@@ -126,6 +126,11 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 			b.append(group);
 		}
 		b.append(',');
+		if (holidays) { b.append('H');}
+		b.append(',');
+		add(b, carrierType);
+		if (aRoutePerGroup) { b.append('1');}
+		b.append(',');
 		b.append('\r'); b.append('\n');
 
 		return b.toString();
@@ -162,14 +167,9 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		if (!sameGroup) { b.append(group);} b.append(',');
 		b.append(city); b.append(',');
 		b.append(carrier); b.append(',');
-		add(b, carrier1);
-		if (samePC) {
-			b.append(',');
-		}
-		else {
-			b.append(prov); b.append(','); b.append(postCode);
-		}
-		b.append(',');
+		add(b, carrier1); b.append(',');
+		b.append(prov); b.append(',');
+		b.append(postCode); b.append(',');
 		b.append(SupportTime.getDayOfWeek(polDay)); b.append(',');
 		b.append(polTime); b.append(',');
 		b.append(SupportTime.getDayOfWeek(shipDay)); b.append(',');
@@ -258,48 +258,24 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		if (v != 0) {
 			return v;
 		}
-		v = group - r.group;
-		if (v == 0) {
-			boolean fs = cmdty.equals(CommonConstants.FS);
-			if (fs) {
-				if (v == 0) {
-					v = compare(carrierType, r.carrierType);
-					if (carrierType != null && r.carrierType != null) {
-						v = carrierType.compareTo(r.carrierType);
-					}
-				}
+		boolean fs = cmdty.equals(CommonConstants.FS);
+		if (fs) {
+			v = compare(carrierType, r.carrierType);
+			if (v == 0 && carrierType != null && r.carrierType != null) {
+				v = carrierType.compareTo(r.carrierType);
 			}
+		}
+		if (v == 0) {
+			v = group - r.group;
 			if (v == 0) {
 				v = compare(carrier, r.carrier);
+				if (v == 0 && carrier != null && r.carrier != null) {
+					v = carrier.compareTo(r.carrier);
+				}
 				if (v == 0) {
-					if (carrier != null && r.carrier != null) {
-						v = carrier.compareTo(r.carrier);
-					}
+					v = route - r.route;
 					if (v == 0) {
-						/*if (cmdty.equals(CommonConstants.DCX)) {
-							v = relCmdtyShipDay - r.relCmdtyShipDay;
-							if (v == 0) {
-								v = localDc.compareTo(r.localDc);
-								if (v == 0) {
-									v = postCode.compareTo(r.postCode);
-								}
-							}
-						}
-						else if (fs && stop1 == -1) {
-							if (v == 0) {
-								v = rxRow != null && r.rxRow == null ? -1 :
-									(rxRow == null && r.rxRow != null ? 1 : 0);
-								if (v == 0) {
-									v = postCode.compareTo(r.postCode);
-								}
-							}
-						}
-						else {*/
-						v = route - r.route;
-						//}
-						if (v == 0) {
-							v = stop - r.stop;
-						}
+						v = stop - r.stop;
 					}
 				}
 			}
