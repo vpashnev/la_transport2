@@ -12,14 +12,15 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 	private static final long serialVersionUID = 10L;
 
 	public DsKey delKey = new DsKey();
-	public int group, polDay, shipDay, shipDay1, relCmdtyShipDay = -1, route,
+	public double group = 0;
+	public int polDay, shipDay, shipDay1, relCmdtyShipDay = -1, route,
 		distance, stop, stop1, carrierN;
 	public Date pollDate, shipDate, delDate;
 	public String relCmdty, stopN, carrier, carrier1,
 		city, prov, postCode, polTime, shipTime, shipTime1, delTimeFrom, delTimeTo,
 		localDc, carrierType, lhCarrier, lhService, delCarrier, delService, stagingLane,
 		specInstructs, truckSize, maxTruckSize, trailerN, driverFName, arrivalTime,
-		route1, nextUserFile, relNextUserFile;
+		route1, evtFlag, nextUserFile, relNextUserFile;
 	boolean relDcx, aRoutePerGroup, holidays, sameGroup, sameCar, missing;
 	ShipmentRow rxRow;
 	ArrayList<String> replacedRows = new ArrayList<String>(2);
@@ -107,7 +108,9 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		add(b, trailerN);
 		b.append(",,,,");
 		add(b, driverFName);
-		b.append(",,,,,,,");
+		b.append(",,");
+		add(b, evtFlag);
+		b.append(",,,,");
 		add(b, arrivalTime);
 		b.append(",,,");
 		if (distance != 0) { b.append(distance);}
@@ -164,7 +167,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		}
 		else { b.append(',');}
 		b.append(',');
-		if (!sameGroup) { b.append(group);} b.append(',');
+		if (!sameGroup && group != 0) { b.append(group);} b.append(',');
 		b.append(city); b.append(',');
 		b.append(carrier); b.append(',');
 		add(b, carrier1); b.append(',');
@@ -266,8 +269,8 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 			}
 		}
 		if (v == 0) {
-			v = group - r.group;
-			if (v == 0) {
+			double v1 = group - r.group;
+			if (v1 == 0) {
 				v = compare(carrier, r.carrier);
 				if (v == 0 && carrier != null && r.carrier != null) {
 					v = carrier.compareTo(r.carrier);
@@ -275,9 +278,17 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 				if (v == 0) {
 					v = route - r.route;
 					if (v == 0) {
-						v = stop - r.stop;
+						if (stop1 == -1) {
+							v = stop - r.stop;
+						}
+						else {
+							v = stop1 - r.stop1;
+						}
 					}
 				}
+			}
+			else {
+				return v1 > 0 ? 1 : -1;
 			}
 		}
 		return v;

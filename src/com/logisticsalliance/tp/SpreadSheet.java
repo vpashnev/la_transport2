@@ -133,7 +133,7 @@ public class SpreadSheet {
 				fs = cmdty.equals(CommonConstants.FS),
 				rx = cmdty.equals(CommonConstants.RX),
 				sameGroup = false, sameCar = false;
-			int  i = 0, ltli = 100,
+			int i = 0, ltli = 100,
 				maxStops = dcx ? 20 : (fs && si.dc.equals(CommonConstants.DC10) ? 6 : 0);
 			ArrayList<ShipmentRow> al = e.getValue();
 			ShipmentRow r0 = null;
@@ -182,12 +182,9 @@ public class SpreadSheet {
 			r0 = null;
 			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
 				ShipmentRow r = it1.next();
-				if (maxStops > 0) {
-					r.route += i;
-				}
+				r.route += i;
 				if (r0 != null) {
-					sameRoute = r0.route == r.route ||
-						r0.route1 != null && r0.route1.equals(r.route1);
+					sameRoute = r0.route == r.route;
 				}
 				if (sameRoute) {
 					stop++;
@@ -228,15 +225,20 @@ public class SpreadSheet {
 				continue;
 			}
 			w.write(cmdty); w.write('\r'); w.write('\n');
-			boolean first = true;
+			ShipmentRow r0 = null;
+			int stops = 0;
 			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
 				ShipmentRow r = it1.next();
-				if (!first && !r.sameGroup) {
-					w.write('\r'); w.write('\n');
+				if (r0 != null && r.route != r0.route) {
+					if (stops > 1 || !r.sameCar) {
+						w.write('\r'); w.write('\n');
+					}
+					stops = 0;
 				}
-				if (first) { first = false;}
 				String v = si.test ? r.getCsvRow(dc20) : r.getCsvRow1(dc20, dc50, dc70);
 				w.write(v);
+				r0 = r;
+				stops++;
 			}
 			w.write('\r'); w.write('\n');
 		}

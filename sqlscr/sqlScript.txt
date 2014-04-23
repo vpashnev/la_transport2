@@ -174,7 +174,7 @@ CREATE TABLE la.hstore_carrier (
   n BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
   store_n INT NOT NULL,
   dc CHAR(2) NOT NULL,
-  group1 INT,
+  group1 FLOAT,
   cmdty VARCHAR(4) NOT NULL,
   carrier_id VARCHAR(8),
   carrier1 VARCHAR(50),
@@ -198,6 +198,7 @@ CREATE TABLE la.hstore_carrier (
   driver_fname VARCHAR(25),
   arrival_time VARCHAR(10),
   spec_instructs VARCHAR(200),
+  evt_flag VARCHAR(25),
   carrier_n INT,
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 --  CONSTRAINT fk_hstore_dc_car_store_n FOREIGN KEY (store_n)
