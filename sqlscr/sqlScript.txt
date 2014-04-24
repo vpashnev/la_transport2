@@ -220,6 +220,16 @@ CREATE TABLE la.hstore_fs_rx (
   CONSTRAINT pk_hstore_fs_rx PRIMARY KEY (store_n)
 ) ;
 
+CREATE TABLE la.hstore_dcx_mo_tu (
+  store_n INT NOT NULL,
+  first_user_file VARCHAR(50) DEFAULT 'unknown' NOT NULL,
+  next_user_file VARCHAR(50) DEFAULT 'unknown' NOT NULL,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT fk_hstore_dcx_mo_tu_store_n FOREIGN KEY (store_n)
+  REFERENCES la.hstore_profile (n),
+  CONSTRAINT pk_hstore_dcx_mo_tu PRIMARY KEY (store_n)
+) ;
+
 CREATE TABLE la.hholidays (
   name VARCHAR(30) NOT NULL,
   week_day INT NOT NULL,

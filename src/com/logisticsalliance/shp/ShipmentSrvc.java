@@ -69,7 +69,7 @@ public class ShipmentSrvc {
 				return "SGL";
 			}
 			if (CommonConstants.M_O.equals(sd.delCarrier)) {
-				return "DDCT";
+				return CommonConstants.DDCT;
 			}
 			if (sd.cmdty.equals(CommonConstants.DCF)) {
 				v = "FFS";
@@ -82,8 +82,8 @@ public class ShipmentSrvc {
 		if (sd.delCarrier.equals(CommonConstants.CCS)) {
 			sd.hub = "";
 		}
-		else if (sd.delCarrier.equals("SONAR")) {
-			if ("DDCT".equals(sd.delService)) {
+		else if (sd.delCarrier.equals(CommonConstants.SONAR)) {
+			if (CommonConstants.DDCT.equals(sd.delService)) {
 				sd.hub = "DC20";
 			}
 			else if ("LTL".equals(sd.delService)) {

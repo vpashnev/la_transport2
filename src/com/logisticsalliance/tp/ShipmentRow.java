@@ -16,7 +16,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 	public int polDay, shipDay, shipDay1, relCmdtyShipDay = -1, route,
 		distance, stop, stop1, carrierN;
 	public Date pollDate, shipDate, delDate;
-	public String relCmdty, stopN, carrier, carrier1,
+	public String relCmdty, relCmdty1, stopN, carrier, carrier1,
 		city, prov, postCode, polTime, shipTime, shipTime1, delTimeFrom, delTimeTo,
 		localDc, carrierType, lhCarrier, lhService, delCarrier, delService, stagingLane,
 		specInstructs, truckSize, maxTruckSize, trailerN, driverFName, arrivalTime,
@@ -192,10 +192,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		b.append(delTimeTo); b.append(',');
 		int ln = b.length();
 		if (relDcx) { b.append('Y');} b.append(',');
-		if (relCmdtyShipDay != -1) {
-			b.append(SupportTime.getDayOfWeek(relCmdtyShipDay));
-		}
-		b.append(',');
+		b.append(SupportTime.getDayOfWeek(relCmdtyShipDay)); b.append(',');
 		add(b, lhCarrier);
 		add(b, lhService);
 		add(b, delCarrier);

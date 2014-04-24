@@ -24,7 +24,8 @@ class FillGridDB {
 	"sc.lh_service, sc.del_carrier_id, sc.del_service, sc.staging_lane, sc.spec_instructs,\r\n" +
 	"sc.distance, sc.max_truck_size, sc.truck_size, sc.trailer_n, sc.driver_fname,\r\n" +
 	"sc.arrival_time, sc.evt_flag, sc.route1, sc.stop1, sp.local_dc, sc.carrier_type,\r\n" +
-	"carrier_n, sc.aroute_per_group, sfr.dc, s.dc, s.next_user_file, s1.next_user_file\r\n" +
+	"carrier_n, sc.aroute_per_group, sfr.dc, sdmt.store_n, s.dc, s.next_user_file,\r\n" +
+	"s1.next_user_file\r\n" +
 
 	"FROM\r\n" +
 	"la.hstore_schedule s\r\n" +
@@ -40,6 +41,7 @@ class FillGridDB {
 
 	SQL_SEL1 = " AND sc.dc=?\r\n" +
 	"LEFT JOIN la.hstore_fs_rx sfr ON s.store_n=sfr.store_n\r\n" +
+	"LEFT JOIN la.hstore_dcx_mo_tu sdmt ON s.store_n=sdmt.store_n\r\n" +
 	"LEFT JOIN la.hstore_schedule s1 ON s.store_n=s1.store_n AND\r\n" +
 	//"s.cmdty<>s1.cmdty AND s.cmdty<>'DCF' AND s1.cmdty<>'DCF' AND\r\n" +
 	"((s.cmdty='DCB' OR s.cmdty='DCV') AND s1.cmdty='DCX' OR\r\n" +
@@ -128,6 +130,25 @@ class FillGridDB {
 		ResultSet rs = st.executeQuery();
 		return rs.next();
 	}
+	private static boolean ignore(ShipmentRow r, boolean dcxMoTu) {
+		if (dcxMoTu) {
+			int delDay = r.delKey.getDay();
+			if (delDay != 1 && delDay != 2) {
+				return true;
+			}
+		}
+		return false;
+	}
+	private static boolean ignore(HashMap<DsKey,ShipmentRow> m1, ShipmentRow r) {
+		if (r.relCmdty1 != null) {
+			ShipmentRow r1 = m1.get(r.delKey);
+			if (r1 != null && r1.relCmdty1.equals(CommonConstants.DCB) &&
+				r.relCmdty1.equals(CommonConstants.DCV)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	private static void process(HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all,
 		HashMap<String,HashMap<DsKey,ShipmentRow>> m, SearchInput si, int idx,
 		int dc20, boolean hasHolidayWeeks, boolean holidaySQL,
@@ -145,7 +166,7 @@ class FillGridDB {
 			cmdty = DsKey.toCmdty(cmdty);
 			ShipmentRow r = new ShipmentRow();
 			r.delKey.setStoreN(rs.getInt(3));
-			if (idx==3 && rs.getInt(3)==201 && cmdty.equals("DCX")) {
+			if (idx==2 && rs.getInt(3)==1245 && cmdty.equals("FS")) {
 				//System.out.println(idx+", "+rs.getInt(3)+", "+cmdty);
 			}
 			if (dc == null) {
@@ -163,7 +184,7 @@ class FillGridDB {
 						}
 					}
 				}
-				String dc1 = rs.getString(44);
+				String dc1 = rs.getString(45);
 				dc1 = SearchInput.toDc(si.dc, dc1);
 				if (dc20 == 0 && !si.dc.equals(dc1) || holidaySQL && !hasHolidayWeeks) {
 					continue;
@@ -186,8 +207,11 @@ class FillGridDB {
 				}
 			}
 			r.delKey.setCommodity(cmdty);
-			r.nextUserFile = rs.getString(45);
-			r.relNextUserFile = rs.getString(46);
+			if (dc20 == 1 && ignore(r, rs.getString(44) != null)) {
+				continue;
+			}
+			r.nextUserFile = rs.getString(46);
+			r.relNextUserFile = rs.getString(47);
 			if (ignore(all, r, idx)) {
 				continue;
 			}
@@ -200,6 +224,10 @@ class FillGridDB {
 			ShipmentRow r1 = m1.get(r.delKey);
 			if (r1 != null) {
 				r.replacedRows.add(r1.nextUserFile);
+			}
+			r.relCmdty1 = rs.getString(17);
+			if (dc20 == 1 && ignore(m1, r)) {
+				continue;
 			}
 			m1.put(r.delKey, r);
 			r.delTimeFrom = SupportTime.HHmm_Format.format(rs.getTime(22));
@@ -223,7 +251,7 @@ class FillGridDB {
 			r.polTime = SupportTime.HHmm_Format.format(rs.getTime(11));
 			r.shipTime = SupportTime.HHmm_Format.format(rs.getTime(14));
 			r.shipTime1 = rs.getString(16);
-			r.relCmdty = DsKey.toCmdty(rs.getString(17));
+			r.relCmdty = DsKey.toCmdty(r.relCmdty1);
 			if (r.relCmdty != null) {
 				if (CommonConstants.FS.equals(cmdty) &&
 					CommonConstants.DCX.equals(r.relCmdty)) {

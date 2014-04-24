@@ -226,6 +226,7 @@ public class SpreadSheet {
 			}
 			w.write(cmdty); w.write('\r'); w.write('\n');
 			ShipmentRow r0 = null;
+			boolean[] sonarDdctLtl = {false, false};
 			int stops = 0;
 			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
 				ShipmentRow r = it1.next();
@@ -235,6 +236,7 @@ public class SpreadSheet {
 					}
 					stops = 0;
 				}
+				addHeader(w, r, sonarDdctLtl);
 				String v = si.test ? r.getCsvRow(dc20) : r.getCsvRow1(dc20, dc50, dc70);
 				w.write(v);
 				r0 = r;
@@ -248,6 +250,19 @@ public class SpreadSheet {
 				ShipmentRow r = it1.next();
 				String v = si.test ? r.getCsvRow(dc20) : r.getCsvRow1(dc20, dc50, dc70);
 				w.write(v);
+			}
+		}
+	}
+	private static void addHeader(FileWriter w, ShipmentRow r,
+		boolean[] sonarDdctLtl) throws Exception {
+		if (CommonConstants.SONAR.equals(r.delCarrier)) {
+			if (!sonarDdctLtl[0] && CommonConstants.DDCT.equals(r.delService)) {
+				w.write("SONAR DDCT:\r\n");
+				sonarDdctLtl[0] = true;
+			}
+			if (!sonarDdctLtl[1] && CommonConstants.LTL.equals(r.delService)) {
+				w.write("SONAR LTL:\r\n");
+				sonarDdctLtl[1] = true;
 			}
 		}
 	}
