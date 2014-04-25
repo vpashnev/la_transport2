@@ -19,8 +19,8 @@ class FillScTable {
 		"carrier_type,holidays,ship_day,ship_day1,ship_time1,spec_instructs,lh_carrier_id," +
 		"lh_service,del_carrier_id,del_service,stop1,staging_lane,carrier1,distance," +
 		"truck_size,max_truck_size,trailer_n,driver_fname,arrival_time,route1,carrier_n," +
-		"evt_flag) "+
-		"VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		"evt_flag,fs_rx_flag) "+
+		"VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 		SQL_INS1 =
 		"INSERT INTO LA.HCARRIER (id) VALUES (?)",
 		SQL_DEL = "DELETE FROM la.hstore_carrier",
@@ -38,8 +38,6 @@ class FillScTable {
 		String dbPwd = args[1];
 		SupportGeneral.makeDataSource1I5(appProps, dbPwd, null);
 
-		//Test1.updateStoreEmail(null);
-		
 		Connection con = ConnectFactory1.one().getConnection();
 		PreparedStatement stIns = con.prepareStatement(SQL_INS),
 			stIns1 = con.prepareStatement(SQL_INS1),
@@ -92,6 +90,7 @@ class FillScTable {
 			set(stIns, 26, arr[25], false);
 			set(stIns, 27, arr[26], false);
 			set(stIns, 28, arr[27], false);
+			set(stIns, 29, arr[28], false);
 			try {
 				i += stIns.executeUpdate();
 			}

@@ -199,6 +199,7 @@ CREATE TABLE la.hstore_carrier (
   arrival_time VARCHAR(10),
   spec_instructs VARCHAR(200),
   evt_flag VARCHAR(25),
+  fs_rx_flag CHAR(1),
   carrier_n INT,
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 --  CONSTRAINT fk_hstore_dc_car_store_n FOREIGN KEY (store_n)

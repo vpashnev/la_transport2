@@ -24,8 +24,8 @@ class FillGridDB {
 	"sc.lh_service, sc.del_carrier_id, sc.del_service, sc.staging_lane, sc.spec_instructs,\r\n" +
 	"sc.distance, sc.max_truck_size, sc.truck_size, sc.trailer_n, sc.driver_fname,\r\n" +
 	"sc.arrival_time, sc.evt_flag, sc.route1, sc.stop1, sp.local_dc, sc.carrier_type,\r\n" +
-	"carrier_n, sc.aroute_per_group, sfr.dc, sdmt.store_n, s.dc, s.next_user_file,\r\n" +
-	"s1.next_user_file\r\n" +
+	"carrier_n, sc.aroute_per_group, sfr.dc, sc.fs_rx_flag, sdmt.store_n, s.dc,\r\n" +
+	"s.next_user_file, s1.next_user_file\r\n" +
 
 	"FROM\r\n" +
 	"la.hstore_schedule s\r\n" +
@@ -166,7 +166,7 @@ class FillGridDB {
 			cmdty = DsKey.toCmdty(cmdty);
 			ShipmentRow r = new ShipmentRow();
 			r.delKey.setStoreN(rs.getInt(3));
-			if (idx==2 && rs.getInt(3)==1245 && cmdty.equals("FS")) {
+			if (idx==5 && rs.getInt(3)==305 && cmdty.equals("RX")) {
 				//System.out.println(idx+", "+rs.getInt(3)+", "+cmdty);
 			}
 			if (dc == null) {
@@ -184,7 +184,7 @@ class FillGridDB {
 						}
 					}
 				}
-				String dc1 = rs.getString(45);
+				String dc1 = rs.getString(46);
 				dc1 = SearchInput.toDc(si.dc, dc1);
 				if (dc20 == 0 && !si.dc.equals(dc1) || holidaySQL && !hasHolidayWeeks) {
 					continue;
@@ -207,11 +207,11 @@ class FillGridDB {
 				}
 			}
 			r.delKey.setCommodity(cmdty);
-			if (dc20 == 1 && ignore(r, rs.getString(44) != null)) {
+			if (dc20 == 1 && ignore(r, rs.getString(45) != null)) {
 				continue;
 			}
-			r.nextUserFile = rs.getString(46);
-			r.relNextUserFile = rs.getString(47);
+			r.nextUserFile = rs.getString(47);
+			r.relNextUserFile = rs.getString(48);
 			if (ignore(all, r, idx)) {
 				continue;
 			}
@@ -230,16 +230,15 @@ class FillGridDB {
 				continue;
 			}
 			m1.put(r.delKey, r);
-			r.delTimeFrom = SupportTime.HHmm_Format.format(rs.getTime(22));
-			r.delTimeTo = SupportTime.HHmm_Format.format(rs.getTime(23));
-			boolean rxToFs = rs.getString(43) != null;
 			if (r.holidays && si.dc.equals(CommonConstants.DC30)) {
-				if (rxToFs) {
+				if (rs.getString(43) != null) { //rxToFs
 					setRx(m, r, cmdty);
 				}
 			}
 			else {
-				setRx(m, r, cmdty);
+				if (rs.getString(44) != null) { //rxToFs
+					setRx(m, r, cmdty);
+				}
 			}
 			r.group = rs.getDouble(4);
 			r.city = rs.getString(5);
@@ -262,6 +261,8 @@ class FillGridDB {
 					r.relCmdtyShipDay = rs.getInt(18);
 				}
 			}
+			r.delTimeFrom = SupportTime.HHmm_Format.format(rs.getTime(22));
+			r.delTimeTo = SupportTime.HHmm_Format.format(rs.getTime(23));
 			r.lhCarrier = rs.getString(24);
 			r.lhService = rs.getString(25);
 			r.delCarrier = rs.getString(26);
@@ -366,7 +367,7 @@ class FillGridDB {
 			HashMap<DsKey,ShipmentRow> m1 = m.get(CommonConstants.RX);
 			if (m1 != null) {
 				ShipmentRow r1 = m1.get(searchKey);
-				if (r1 != null && (r1.delTimeFrom.equals(r.delTimeFrom) || r.holidays)) {
+				if (r1 != null) {
 					m1.remove(searchKey);
 					r.rxRow = r1;
 				}
@@ -377,7 +378,7 @@ class FillGridDB {
 			HashMap<DsKey,ShipmentRow> m1 = m.get(CommonConstants.FS);
 			if (m1 != null) {
 				ShipmentRow r1 = m1.get(searchKey);
-				if (r1 != null && (r1.delTimeFrom.equals(r.delTimeFrom) || r.holidays)) {
+				if (r1 != null) {
 					m1 = m.get(CommonConstants.RX);
 					m1.remove(r.delKey);
 					r1.rxRow = r;
