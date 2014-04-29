@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Types;
@@ -32,10 +34,45 @@ public class StoreScheduleDb {
 	private static final String SQL =
 		"{call la.update_scheduled_delivery(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}",
 		SQL_RESET_IN_USE = "UPDATE la.hstore_schedule SET in_use=NULL WHERE ship_date IS NULL",
-		SQL_DELETE_NOT_IN_USE = "DELETE FROM la.hstore_schedule WHERE in_use IS NULL";
+		SQL_DELETE_NOT_IN_USE = "DELETE FROM la.hstore_schedule WHERE in_use IS NULL",
+		SQL_STORES = "SELECT DISTINCT sp.n, sts.dc, local_dc from la.hstore_profile sp," +
+			"la.hstore_schedule sts WHERE sp.n=sts.store_n AND (UPPER(status)='OPEN' OR " +
+			"UPPER(status)='ACTIVE') AND sp.n < 9000",
+		SQL_DCB = "SELECT dc FROM la.hstore_schedule WHERE store_n=? AND cmdty='DCB'",
+		SQL_UPD_LDC = "UPDATE la.hstore_profile SET local_dc=? WHERE n=?";
 
 	static String[] sqlCommands;
 
+	private static void updateLocalDc(Connection con) throws Exception {
+		PreparedStatement st = con.prepareStatement(SQL_STORES),
+			dcbSt = con.prepareStatement(SQL_DCB),
+			updSt = con.prepareStatement(SQL_UPD_LDC);
+		ResultSet rs = st.executeQuery();
+		while (rs.next()) {
+			int n = rs.getInt(1);
+			String dc = rs.getString(2), ldc = rs.getString(3);
+			dcbSt.setInt(1, n);
+			ResultSet rs1 = dcbSt.executeQuery();
+			boolean dcb = rs1.next();
+			switch (dc) {
+			case CommonConstants.DC30:
+				if (dcb) {
+					dc = CommonConstants.DC20;
+				}
+				break;
+			case CommonConstants.DC50:
+				if (dcb) {
+					dc = CommonConstants.DC70;
+				}
+			}
+			if (!dc.equals(ldc)) {
+				updSt.setString(1, dc);
+				updSt.setInt(2, n);
+				updSt.executeUpdate();
+			}
+		}
+		con.commit();
+	}
 	static void update(File dsFolder, File dsaFolder) throws Exception {
 		int[] rowCount = {0};
 		Row r = new Row();
@@ -66,6 +103,7 @@ public class StoreScheduleDb {
 					SqlSupport.update(con, sqlCommands);
 					con.commit();
 				}
+				updateLocalDc(con);
 			}
 		}
 		catch (Exception ex) {
@@ -171,22 +209,22 @@ public class StoreScheduleDb {
 				if (!v.isEmpty()) {
 					switch (i) {
 					case 23:
-						set(st, r, "EVT", userFile, hday, rowCount);
-						cmdty = "DCB"; break;
+						set(st, r, CommonConstants.EVT, userFile, hday, rowCount);
+						cmdty = CommonConstants.DCB; break;
 					case 32:
-						cmdty = "DCV"; break;
+						cmdty = CommonConstants.DCV; break;
 					case 24:
-						cmdty = "DCF"; break;
+						cmdty = CommonConstants.DCF; break;
 					case 28:
-						cmdty = "DCX"; break;
+						cmdty = CommonConstants.DCX; break;
 					case 29:
-						cmdty = "EVT"; break;
+						cmdty = CommonConstants.EVT; break;
 					case 30:
-						cmdty = "EVT2"; break;
+						cmdty = CommonConstants.EVT2; break;
 					case 25:
 					case 31:
 					case 33:
-						cmdty = "RX"; break;
+						cmdty = CommonConstants.RX; break;
 					}
 					if (cmdty != null) { set(st, r, cmdty, userFile, hday, rowCount);}
 				}
@@ -198,22 +236,22 @@ public class StoreScheduleDb {
 				if (!v.isEmpty()) {
 					switch (i) {
 					case 16:
-						set(st, r, "EVT", userFile, hday, rowCount);
-						cmdty = "DCB"; break;
+						set(st, r, CommonConstants.EVT, userFile, hday, rowCount);
+						cmdty = CommonConstants.DCB; break;
 					case 25:
-						cmdty = "DCV"; break;
+						cmdty = CommonConstants.DCV; break;
 					case 17:
-						cmdty = "DCF"; break;
+						cmdty = CommonConstants.DCF; break;
 					case 21:
-						cmdty = "DCX"; break;
+						cmdty = CommonConstants.DCX; break;
 					case 22:
-						cmdty = "EVT"; break;
+						cmdty = CommonConstants.EVT; break;
 					case 23:
-						cmdty = "EVT2"; break;
+						cmdty = CommonConstants.EVT2; break;
 					case 18:
 					case 24:
 					case 26:
-						cmdty = "RX"; break;
+						cmdty = CommonConstants.RX; break;
 					}
 					if (cmdty != null) { set(st, r, cmdty, userFile, hday, rowCount);}
 				}

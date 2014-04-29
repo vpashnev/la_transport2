@@ -120,7 +120,7 @@ public class SpreadSheet {
 		default: return 7;
 		}
 	}
-	private static void fill(SearchInput si, String day,
+	private static void fill(SearchInput si, String day, boolean dc10,
 		HashMap<String,ArrayList<ShipmentRow>> m) throws Exception {
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it = m.entrySet().iterator();
 			it.hasNext();) {
@@ -134,7 +134,7 @@ public class SpreadSheet {
 				rx = cmdty.equals(CommonConstants.RX),
 				sameGroup = false, sameCar = false;
 			int i = 0, ltli = 100,
-				maxStops = dcx ? 20 : (fs && si.dc.equals(CommonConstants.DC10) ? 6 : 0);
+				maxStops = dcx ? 20 : (fs && dc10 ? 6 : 0);
 			ArrayList<ShipmentRow> al = e.getValue();
 			ShipmentRow r0 = null;
 			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
@@ -160,7 +160,7 @@ public class SpreadSheet {
 					}
 					else { i += (rx ? 5 : 1);}
 				}
-				r.route = getRoute(r, cmdty, i, ltli);
+				r.route = getRoute(r, dc10, cmdty, i, ltli);
 				if (r.stop1 != -1) {
 					r.stop = r.stop1;
 				}
@@ -203,9 +203,8 @@ public class SpreadSheet {
 			}
 		}
 	}
-	static void fill(FileWriter w, SearchInput si, String day, int dc20,
-		boolean dc50, boolean dc70, HashMap<String,ArrayList<ShipmentRow>> m)
-		throws Exception {
+	static void fill(FileWriter w, SearchInput si, String day, boolean dc10, int dc20,
+		boolean dc50, boolean dc70, HashMap<String,ArrayList<ShipmentRow>> m) throws Exception {
 		w.write("DC"); w.write(si.dc); w.write(',');
 		w.write(day);
 		w.write('\r'); w.write('\n');
@@ -213,7 +212,7 @@ public class SpreadSheet {
 			addHead(w);
 		}
 		else { addHead1(w, dc50);}
-		fill(si, day, m);
+		fill(si, day, dc10, m);
 		ArrayList<ShipmentRow> al0 = null;
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it =
 			m.entrySet().iterator(); it.hasNext();) {
@@ -266,8 +265,9 @@ public class SpreadSheet {
 			}
 		}
 	}
-	private static int getRoute(ShipmentRow r, String cmdty, int i, int ltli) {
-		int sdn = r.shipDay+1, n = 0;
+	private static int getRoute(ShipmentRow r, boolean dc10, String cmdty, int i, int ltli) {
+		int sdn = r.shipDay, n = 0;
+		if (!dc10) { sdn++;}
 		switch (cmdty) {
 		case CommonConstants.FS:
 			n = sdn*1000;

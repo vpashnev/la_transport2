@@ -5,9 +5,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
 
 import com.glossium.io.SupportFile;
@@ -70,8 +67,7 @@ public class App {
 		EmailReports mr = new EmailReports(appDir);
 		RnColumns rnCols = new RnColumns(appDir);
 		ScheduledWorker sr = new ScheduledWorker(appDir, srcDir, dbPwd, dbPwdI5,
-			ftpPwd, emReadPwd, emSentPwd, ttEmSentPwd, ksPwd, appProps,
-			getLocalDC(appDir), mr, rnCols);
+			ftpPwd, emReadPwd, emSentPwd, ttEmSentPwd, ksPwd, appProps, mr, rnCols);
 		sr.start();
 		BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
 		String s = null;
@@ -88,24 +84,6 @@ public class App {
 				return;
 			}
 		}
-	}
-
-	private static HashMap<Integer,String> getLocalDC(File appDir) throws Exception {
-		File localDc = new File(appDir, "LocalDC.properties");
-		Properties localDcProps = null;
-		if (localDc.exists()) {
-			localDcProps = new Properties();
-			localDcProps.load(new FileReader(localDc));
-			HashMap<Integer,String> m = new HashMap<Integer,String>(1600, .5f);
-			for (Iterator<Map.Entry<Object,Object>> it = localDcProps.entrySet().iterator(); it.hasNext();) {
-				Map.Entry<Object,Object> e = it.next();
-				String k = e.getKey().toString(), v = e.getValue().toString();
-				Integer i = new Integer(k);
-				m.put(i, v);
-			}
-			return m;
-		}
-		return null;
 	}
 
 	private static void setSqlCommands(File appDir) throws Exception {

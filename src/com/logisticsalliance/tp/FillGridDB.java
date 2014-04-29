@@ -70,7 +70,7 @@ class FillGridDB {
 	private static PreparedStatement chk, chk1;
 	private static DsKey searchKey = new DsKey();
 
-	private static String getSql(boolean dc20, boolean holidaySQL, String cmdty) {
+	private static String getSql(int dc20, boolean dc2030, boolean holidaySQL, String cmdty) {
 		StringBuilder b = new StringBuilder(512);
 		b.append(SQL_SEL);
 		if (holidaySQL) {
@@ -87,17 +87,23 @@ class FillGridDB {
 			b.append(cmdty);
 			b.append(SQL_SHP_REG);
 		}
-		if (!dc20) {
+		if (dc20 == 0) {
 			b.append(" AND s.dc=?\r\n");
 		}
+		/*else if (dc20 == 1) {
+			if (dc2030) {
+				b.append(" AND s.dc='30'\r\n");
+			}
+			else {b.append(" AND s.dc<>'30'\r\n");}
+		}*/
 		b.append(SQL_SEL3);
 		return b.toString();
 	}
 	private static ResultSet getRowSet(Connection con, SearchInput si,
-		int idx, int dc20, boolean holidaySQL) throws Exception {
+		int idx, int dc20, boolean dc2030, boolean holidaySQL) throws Exception {
 		PreparedStatement st;
 		String cmdty = si.getCmdty(si.dc, dc20 == 1);
-		st = con.prepareStatement(getSql(dc20 != 0, holidaySQL, cmdty));
+		st = con.prepareStatement(getSql(dc20, dc2030, holidaySQL, cmdty));
 		st.setString(1, si.dc);
 		if (holidaySQL) {
 			Date d = new Date(si.fromDate.getTime() + SupportTime.DAY*idx);
@@ -109,16 +115,16 @@ class FillGridDB {
 	}
 	static void process(HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all,
 		HashMap<String,HashMap<DsKey,ShipmentRow>> m, SearchInput si, int idx,
-		int dc20, boolean hasHolidayWeeks) throws Exception {
+		int dc20, boolean dc2030, boolean hasHolidayWeeks) throws Exception {
 		Connection con = connectFactory.getConnection();
 		if (chk == null) {
 			chk = con.prepareStatement(SQL_CHK);
 			chk1 = con.prepareStatement(SQL_CHK1);
 		}
-		ResultSet rs = getRowSet(con, si, idx, dc20, false); // regular
+		ResultSet rs = getRowSet(con, si, idx, dc20, dc2030, false); // regular
 		process(all, m, si, idx, dc20, hasHolidayWeeks, false, rs);
 		rs.close();
-		rs = getRowSet(con, si, idx, dc20, true); // holidays
+		rs = getRowSet(con, si, idx, dc20, dc2030, true); // holidays
 		process(all, m, si, idx, dc20, hasHolidayWeeks, true, rs);
 		rs.close();
 	}
@@ -166,7 +172,7 @@ class FillGridDB {
 			cmdty = DsKey.toCmdty(cmdty);
 			ShipmentRow r = new ShipmentRow();
 			r.delKey.setStoreN(rs.getInt(3));
-			if (idx==5 && rs.getInt(3)==305 && cmdty.equals("RX")) {
+			if (idx==0 && rs.getInt(3)==6072 && cmdty.equals("RX")) {
 				//System.out.println(idx+", "+rs.getInt(3)+", "+cmdty);
 			}
 			if (dc == null) {

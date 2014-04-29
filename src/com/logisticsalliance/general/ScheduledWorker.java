@@ -4,7 +4,6 @@ import java.io.File;
 import java.sql.Date;
 import java.text.DecimalFormat;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 
@@ -40,7 +39,6 @@ public class ScheduledWorker implements Runnable {
 	private EmailSent ttEmailSent;
 	private EmailReports emailReports;
 	private EmailEmergency emailEmergency;
-	private HashMap<Integer,String> localDcMap;
 	private Properties appProperties;
 	private boolean stopped, sleep;
 	private RnColumns rnCols;
@@ -51,7 +49,7 @@ public class ScheduledWorker implements Runnable {
 	public ScheduledWorker(File appDirectory, File srcDirectory, String databasePassword,
 		String databasePasswordI5, String ftpPassword, String emailReadPassword,
 		String emailSentPassword, String ttEmailSentPassword, String keyStorePassword,
-		Properties appProps, HashMap<Integer, String> localDCs, EmailReports mr, RnColumns rcs) {
+		Properties appProps, EmailReports mr, RnColumns rcs) {
 		if (!srcDirectory.exists() && !srcDirectory.mkdir()) {
 			throw new IllegalArgumentException("The directory '"+srcDirectory+"' does not exist");
 		}
@@ -66,7 +64,6 @@ public class ScheduledWorker implements Runnable {
 		ttEmailSent = new EmailSent(appProps, ttEmailSentPassword, "ttE");
 		emailEmergency = new EmailEmergency(emailSent1);
 		appProperties = appProps;
-		localDcMap = localDCs;
 		emailReports = mr;
 		rnCols = rcs;
 		shipQryCarriers = getValue(appProps, "shipQryCarriers");
@@ -140,7 +137,7 @@ public class ScheduledWorker implements Runnable {
 						emailRead.rnArchiveFolder, rnFolder);
 				}
 				//database
-				ShipmentDataDb.update(rnFolder, rnaFolder, rnCols, localDcMap);
+				ShipmentDataDb.update(rnFolder, rnaFolder, rnCols);
 
 				if (storeNotifications != null) {
 					//Notify Stores

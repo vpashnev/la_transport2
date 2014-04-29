@@ -112,65 +112,76 @@ public class AppModel {
 	}
 
 	private static void process(File appDir, SearchInput si) throws Exception {
-		int dc20 = 0;
+		int dc20 = 0, logs = 1;
 		if (si.dc.equals(CommonConstants.DC20)) {
 			dc20 = 1;
+//			logs = 2;
 		}
 		else if (si.dc.toUpperCase().equals(CommonConstants.DC20F)) { dc20 = 2;}
 		boolean hasHolidayWeeks = si.holidayWeeks > 0,
+			dc10 = si.dc.equals(CommonConstants.DC10),
 			dc50 = si.dc.equals(CommonConstants.DC50),
 			dc70 = si.dc.equals(CommonConstants.DC70);
-		String a = dc20 == 2 ? "F" : "";
 		si.dc = si.dc.substring(0, 2);
+		String pfx = hasHolidayWeeks ? "TH_" : "TR_", a = "";
 		//Workbook wb = new XSSFWorkbook();
-		int count = si.toDay-si.fromDay;
-		HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all =
-			new HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>>(7, .5f);
-		for (int i = 0; i <= count; i++) {
-			HashMap<String,HashMap<DsKey,ShipmentRow>> m =
-				new HashMap<String,HashMap<DsKey,ShipmentRow>>(8, .5f);
-			FillGridDB.process(all, m, si, i, dc20, hasHolidayWeeks);
-			all.put(i, m);
+		for (int j = 0; j != logs; j++) {
+			boolean dc2030 = j == 0;
+			if (dc20 == 1) {
+//				a = (dc2030 ? "DCX30" : "DCX51");
+				a = "DCX";
+			}
+			else {
+				pfx = pfx + "DC"+si.dc;
+			}
+			int count = si.toDay-si.fromDay;
+			HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all =
+				new HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>>(7, .5f);
+			for (int i = 0; i <= count; i++) {
+				HashMap<String,HashMap<DsKey,ShipmentRow>> m =
+					new HashMap<String,HashMap<DsKey,ShipmentRow>>(8, .5f);
+				FillGridDB.process(all, m, si, i, dc20, dc2030, hasHolidayWeeks);
+				all.put(i, m);
+			}
+			ArrayList<File> al = new ArrayList<File>(8);
+			//File dir = new File(appDir, "log");
+			File dir = new File("c:/dev/temp");
+			int i = 0;
+			for (Iterator<HashMap<String,HashMap<DsKey,ShipmentRow>>> it =
+				all.values().iterator(); it.hasNext();) {
+				HashMap<String,HashMap<DsKey,ShipmentRow>> m = it.next();
+				HashMap<String,ArrayList<ShipmentRow>> m1 =
+					new HashMap<String,ArrayList<ShipmentRow>>(8, .5f);
+				for (Iterator<Map.Entry<String,HashMap<DsKey,ShipmentRow>>> it1 =
+					m.entrySet().iterator(); it1.hasNext();) {
+					Map.Entry<String,HashMap<DsKey,ShipmentRow>> e = it1.next();
+					HashMap<DsKey,ShipmentRow> v = e.getValue();
+					ArrayList<ShipmentRow> al2 = new ArrayList<ShipmentRow>(v.values());
+					Collections.sort(al2);
+					m1.put(e.getKey(), al2);
+				}
+				int di = si.fromDay+(i++);
+				String day = SupportTime.getDayOfWeek(di);
+
+				File f = new File(dir, pfx+a+"_"+day+".csv");
+				FileWriter w = new FileWriter(f);
+				try {
+					SpreadSheet.fill(w, si, day, dc10, dc20, dc50, dc70, m1);
+				}
+				finally {
+					w.close();
+				}
+				al.add(f);
+
+		        //Sheet sh = wb.createSheet(day);
+				//SpreadSheet.fill(sh, si, day, m);
+			}
+
+			dir = new File(dir, "archive");
+			String fn = pfx+a+"_"+SupportTime.MMM_dd_yy_Format.format(si.fromDate);
+			zip(dir, fn, al);
+			//write(dir, fn, wb);
 		}
-		ArrayList<File> al = new ArrayList<File>(8);
-		String pfx = hasHolidayWeeks ? "TH_DC" : "TR_DC";
-		//File dir = new File(appDir, "log");
-		File dir = new File("c:/dev/temp");
-		int i = 0;
-		for (Iterator<HashMap<String,HashMap<DsKey,ShipmentRow>>> it =
-			all.values().iterator(); it.hasNext();) {
-			HashMap<String,HashMap<DsKey,ShipmentRow>> m = it.next();
-			HashMap<String,ArrayList<ShipmentRow>> m1 =
-				new HashMap<String,ArrayList<ShipmentRow>>(8, .5f);
-			for (Iterator<Map.Entry<String,HashMap<DsKey,ShipmentRow>>> it1 =
-				m.entrySet().iterator(); it1.hasNext();) {
-				Map.Entry<String,HashMap<DsKey,ShipmentRow>> e = it1.next();
-				HashMap<DsKey,ShipmentRow> v = e.getValue();
-				ArrayList<ShipmentRow> al2 = new ArrayList<ShipmentRow>(v.values());
-				Collections.sort(al2);
-				m1.put(e.getKey(), al2);
-			}
-			int di = si.fromDay+(i++);
-			String day = SupportTime.getDayOfWeek(di);
-
-			File f = new File(dir, pfx+si.dc+a+"_"+day+".csv");
-			FileWriter w = new FileWriter(f);
-			try {
-				SpreadSheet.fill(w, si, day, dc20, dc50, dc70, m1);
-			}
-			finally {
-				w.close();
-			}
-			al.add(f);
-
-	        //Sheet sh = wb.createSheet(day);
-			//SpreadSheet.fill(sh, si, day, m);
-		}
-
-		dir = new File(dir, "archive");
-		String fn = pfx+si.dc+a+"_"+SupportTime.MMM_dd_yy_Format.format(si.fromDate);
-		zip(dir, fn, al);
-		//write(dir, fn, wb);
 	}
 	private static void zip(File dir, String file, ArrayList<File> al) throws Exception {
 		File[] fs = new File[al.size()];

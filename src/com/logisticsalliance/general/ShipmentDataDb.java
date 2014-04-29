@@ -46,7 +46,6 @@ public class ShipmentDataDb {
 		SQL_CLEAN_EVT = "{call la.clean_evt(?,?)}",
 		SQL_READ_DAILY_RN_FILES = "SELECT daily_rn_files FROM la.henvr",
 		SQL_UPDATE_DAILY_RN_FILES = "UPDATE la.henvr SET daily_rn_files=?",
-		SQL_LOCAL_STORES = "SELECT status,n,local_dc from la.hstore_profile",
 		SQL_DEL_DATE = "SELECT del_date FROM la.hstore_schedule " +
 			"WHERE store_n=? AND cmdty=? AND ship_date=?",
 		SQL_DEL_DAY = "SELECT del_day,del_week FROM la.hstore_schedule " +
@@ -59,37 +58,6 @@ public class ShipmentDataDb {
 	static HashSet<Integer> localDcMissing = new HashSet<Integer>();
 	private static int delFound;
 
-	private static void checkLocalDCs(PreparedStatement st,
-		HashMap<Integer,String> localDcMap) throws Exception {
-		if (localDcMap == null) { return;}
-		ResultSet rs = st.executeQuery();
-		int i = 0, count = 0;
-		while (rs.next()) {
-			String s = rs.getString(1);
-			int n = rs.getInt(2);
-			if (!CommonConstants.OPEN.equals(s) || n > 9000 && n < 10000) {
-				continue;
-			}
-			String dc = rs.getString(3);
-			String dc1 = localDcMap.get(n);
-			if (dc1 == null) {
-				if (!localDcMissing.contains(n)) {
-					log.warn("Missing local DC for the store "+n+", status "+s);
-					i++;
-				}
-			}
-			else if (!dc1.equals(dc) && !localDcMissing.contains(n)) {
-				log.warn("Incorrect local DC for the store "+n+", status "+s);
-				i++;
-			}
-			count++;
-		}
-		rs.close();
-		st.close();
-		if (i != 0) {
-			log.debug("Check for local DC : Properties "+localDcMap.size()+", Stores "+count);
-		}
-	}
 	static void updateDailyRnFiles(Connection con,
 		ArrayList<String> rnFiles) throws Exception {
 		if (rnFiles == null) {
@@ -132,8 +100,7 @@ public class ShipmentDataDb {
 			st.close();
 		}
 	}
-	static void update(File rnFolder, File rnaFolder, RnColumns rnCols,
-		HashMap<Integer,String> localDcMap) throws Exception {
+	static void update(File rnFolder, File rnaFolder, RnColumns rnCols) throws Exception {
 		Row r = new Row();
 		Connection con = null;
 		try {
@@ -142,7 +109,6 @@ public class ShipmentDataDb {
 				ArrayList<String> rnFiles = new ArrayList<String>(8);
 				HashMap<Long,String> evtMap = new HashMap<Long,String>(8);
 				con = ConnectFactory1.one().getConnection();
-				checkLocalDCs(con.prepareStatement(SQL_LOCAL_STORES), localDcMap);
 				PreparedStatement stDelDate = con.prepareStatement(SQL_DEL_DATE),
 					stDelDay = con.prepareStatement(SQL_DEL_DAY),
 					stDcx = con.prepareStatement(SQL_DCX);
