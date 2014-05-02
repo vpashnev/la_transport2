@@ -77,8 +77,7 @@ public class NotificationDb extends Notify1 {
 		carriersNotFound.clear();
 	}
 	public static void process(String notifyStartingTime, String notifyEndingTime,
-		long timeAhead, EmailSent1 es, HashSet<Integer> storeSubset,
-		boolean onlyTestStoresToRpt, boolean sendDelayedNotesOff) throws Exception {
+		long timeAhead, EmailSent1 es, boolean sendDelayedNotesOff) throws Exception {
 		long timeAheadInMins = timeAhead/60000;
 		Timestamp t0 = null, t1 = null;
 		if (notifyStartingTime != null) {
@@ -105,12 +104,11 @@ public class NotificationDb extends Notify1 {
 				}
 				// Select deliveries
 				Timestamp t2 = new Timestamp(t0.getTime()-1800000);// less 30 minutes
-				s = select(selDelSt, updUnsent, t2, t0, s, es,
-					storeSubset, onlyTestStoresToRpt, false);
+				s = select(selDelSt, updUnsent, t2, t0, s, es, false);
 				if (!sendDelayedNotesOff) {
 					s = select(selDelSt, updUnsent,
 						new Timestamp(t2.getTime()-SupportTime.DAY),// less 24 hours
-						t2, s, es, storeSubset, onlyTestStoresToRpt, true);
+						t2, s, es, true);
 				}
 				if (notifyEndingTime == null) {
 					updateNotifyEndingTime(con1, SQL_UPD_ENVR, t0);
@@ -135,8 +133,7 @@ public class NotificationDb extends Notify1 {
 		return dn;
 	}
 	private static Session select(PreparedStatement st, PreparedStatement updUnsent,
-		Timestamp t0, Timestamp t, Session s, EmailSent1 es, HashSet<Integer> storeSubset,
-		boolean onlyTestStoresToRpt, boolean delay) throws Exception {
+		Timestamp t0, Timestamp t, Session s, EmailSent1 es, boolean delay) throws Exception {
 		st.setTimestamp(1, t0);
 		st.setTimestamp(2, t);
 		HashMap<String,DeliveryItem> m = new HashMap<String,DeliveryItem>(64, .5f);
@@ -150,14 +147,6 @@ public class NotificationDb extends Notify1 {
 		ArrayList<DeliveryNote> al = new ArrayList<DeliveryNote>(128);
 		while (true) {
 			storeN = rs.getInt(1);
-			if (onlyTestStoresToRpt && !storeSubset.contains(storeN)) {
-				if (!rs.next()) {
-					rs.close();
-					if (dn != null) { add(al, dn);}
-					break;
-				}
-				continue;
-			}
 			String addKey = rs.getString(9).trim();
 			Time delTimeFrom = rs.getTime(12);
 			if (dn == null) {
@@ -222,7 +211,7 @@ public class NotificationDb extends Notify1 {
 			log.debug("\r\n\r\nNOTIFICATIONS for "+interval+"\r\n\r\n"+al);
 			if (es.emailUnsent == null) {
 				Thread.sleep(2000);
-				s = NotificationMail.send(s, es, storeSubset, al, interval);
+				s = NotificationMail.send(s, es, al, interval);
 			}
 			update(updUnsent, al);
 		}

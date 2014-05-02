@@ -1,7 +1,6 @@
 package com.logisticsalliance.sn;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 
 import javax.mail.Session;
@@ -25,11 +24,10 @@ public class NotificationMail {
 
 	private static Logger log = Logger.getLogger(NotificationMail.class);
 
-	static Session send(Session s, EmailSent1 es, HashSet<Integer> storeSubset,
-		ArrayList<DeliveryNote> al, String interval) throws Exception {
+	static Session send(Session s, EmailSent1 es, ArrayList<DeliveryNote> al,
+		String interval) throws Exception {
 		for (Iterator<DeliveryNote> it = al.iterator(); it.hasNext();) {
 			DeliveryNote dn = it.next();
-			if (storeSubset != null && !storeSubset.contains(dn.storeN)) { continue;}
 			StringBuilder rb = new StringBuilder(256);
 			SupportGeneral.addEmailAddress(rb, es, dn.storeN, dn.province);
 			String delDate = SupportTime.yyyy_MM_dd_Format.format(dn.delDate),

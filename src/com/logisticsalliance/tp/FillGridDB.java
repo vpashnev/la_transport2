@@ -165,27 +165,28 @@ class FillGridDB {
 			String dc = rs.getString(1),
 				cmdty = rs.getString(2),
 				prov = rs.getString(8);
-			if (ignore(si.dc, cmdty, prov)) {
+			int storeN = rs.getInt(3);
+			if (ignore(si.dc, cmdty, prov) ||
+				storeN == 5000 || storeN == 5001 || storeN == 7011) {
 				continue;
 			}
 			String cmdty1 = cmdty;
 			cmdty = DsKey.toCmdty(cmdty);
 			ShipmentRow r = new ShipmentRow();
-			r.delKey.setStoreN(rs.getInt(3));
 			if (idx==0 && rs.getInt(3)==6072 && cmdty.equals("RX")) {
-				//System.out.println(idx+", "+rs.getInt(3)+", "+cmdty);
+				//System.out.println(idx+", "+storeN+", "+cmdty);
 			}
 			if (dc == null) {
 				// missing record
 				if (cmdty1.equals(CommonConstants.DCB) || cmdty1.equals(CommonConstants.DCF)) {
 					if (dc20 == 0) {
-						if (ignore(chk, r.delKey.getStoreN(), cmdty, idx)) {
-							//System.out.println(idx+", "+rs.getInt(3)+", "+cmdty);
+						if (ignore(chk, storeN, cmdty, idx)) {
+							//System.out.println(idx+", "+storeN+", "+cmdty);
 							continue;
 						}
 					}
 					else if (dc20 == 2) {
-						if (ignore(chk1, r.delKey.getStoreN(), cmdty, idx)) {
+						if (ignore(chk1, storeN, cmdty, idx)) {
 							continue;
 						}
 					}
@@ -197,6 +198,7 @@ class FillGridDB {
 				}
 				r.missing = true;
 			}
+			r.delKey.setStoreN(storeN);
 			r.shipDay = rs.getInt(13);
 			r.shipDay1 = getInt(rs.getObject(15));
 			r.delKey.setDay(rs.getInt(20));
@@ -238,12 +240,12 @@ class FillGridDB {
 			m1.put(r.delKey, r);
 			if (r.holidays && si.dc.equals(CommonConstants.DC30)) {
 				if (rs.getString(43) != null) { //rxToFs
-					setRx(m, r, cmdty);
+					setRx(m, r, storeN, cmdty);
 				}
 			}
 			else {
 				if (rs.getString(44) != null) { //rxToFs
-					setRx(m, r, cmdty);
+					setRx(m, r, storeN, cmdty);
 				}
 			}
 			r.group = rs.getDouble(4);
@@ -365,8 +367,7 @@ class FillGridDB {
 		r.delDate = new Date(d.getTime() + SupportTime.DAY*delDays);
 	}
 	private static void setRx(HashMap<String,HashMap<DsKey,ShipmentRow>> m,
-		ShipmentRow r, String cmdty) {
-		int storeN = r.delKey.getStoreN();
+		ShipmentRow r, int storeN, String cmdty) {
 		searchKey.setStoreN(storeN);
 		searchKey.setDay(r.delKey.getDay());
 		if (CommonConstants.FS.equals(cmdty)) {

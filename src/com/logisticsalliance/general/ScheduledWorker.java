@@ -4,7 +4,6 @@ import java.io.File;
 import java.sql.Date;
 import java.text.DecimalFormat;
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -87,7 +86,6 @@ public class ScheduledWorker implements Runnable {
 			storeAlerts = getValue(appProperties, "storeAlerts"),
 			shipments = getValue(appProperties, "shipments"),
 			ttTable = getValue(appProperties, "ttTable"),
-			onlyTestStoresToRpt = getValue(appProperties, "onlyTestStoresToRpt"),
 			sendDelayedNotesOff = getValue(appProperties, "sendDelayedNotesOff"),
 			notifyHoursAhead = getValue(appProperties, "notifyHoursAhead"),
 			notifyStartingTime = getValue(appProperties, "notifyStartingTime"),
@@ -101,7 +99,6 @@ public class ScheduledWorker implements Runnable {
 		int nTime = notifyHoursAhead == null ? 30 : Integer.parseInt(notifyHoursAhead);
 		nTime *= SupportTime.HOUR;
 
-		HashSet<Integer> storeSubset = getStoreSubset(getValue(appProperties, "testStores"));
 		//database
 		ConnectFactory1 cf = ConnectFactory1.one();
 		ConnectFactory cfI5 = SupportGeneral.makeDataSource1I5(appProperties,
@@ -145,10 +142,9 @@ public class ScheduledWorker implements Runnable {
 
 				if (storeNotifications != null) {
 					//Notify Stores
-					boolean isOnlyTestStoresToRpt = onlyTestStoresToRpt != null && storeSubset != null,
-						isSendDelayedNotesOff = sendDelayedNotesOff != null;
+					boolean isSendDelayedNotesOff = sendDelayedNotesOff != null;
 					NotificationDb.process(notifyStartingTime, notifyEndingTime, nTime,
-						emailSent1, storeSubset, isOnlyTestStoresToRpt, isSendDelayedNotesOff);
+						emailSent1, isSendDelayedNotesOff);
 					notifyStartingTime = null; notifyEndingTime = null;
 				}
 
@@ -252,16 +248,6 @@ public class ScheduledWorker implements Runnable {
 		int t = c.get(Calendar.HOUR_OF_DAY);
 		if (t != 9) { return true;}
 		return false;
-	}
-	private static HashSet<Integer> getStoreSubset(String stores) {
-		if (stores == null) { return null;}
-		HashSet<Integer> hs = new HashSet<Integer>();
-		String[] arr = stores.split("\\,");
-		for (int i = 0; i != arr.length; i++) {
-			String v = arr[i].trim();
-			if (!v.isEmpty()) { hs.add(Integer.parseInt(v));}
-		}
-		return hs.size() == 0 ? null : hs;
 	}
 	static void move(File[] fs, File toFolder) {
 		for (int i = 0; i != fs.length; i++) {
