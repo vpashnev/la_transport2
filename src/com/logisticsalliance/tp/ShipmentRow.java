@@ -21,7 +21,7 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		localDc, carrierType, lhCarrier, lhService, delCarrier, delService, stagingLane,
 		specInstructs, truckSize, maxTruckSize, trailerN, driverFName, arrivalTime,
 		route1, evtFlag, nextUserFile, relNextUserFile;
-	boolean relDcx, aRoutePerGroup, holidays, sameGroup, sameCar, missing;
+	boolean relDcx, aRoutePerGroup, holidays, sameGroup, sameCar, active, missing;
 	ShipmentRow rxRow;
 	ArrayList<String> replacedRows = new ArrayList<String>(2);
 
@@ -41,15 +41,19 @@ public class ShipmentRow implements Serializable, Comparable<ShipmentRow> {
 		StringBuilder b = new StringBuilder(512);
 		String cmdty = delKey.getCommodity();
 		String vs = toValue(String.valueOf(route), route1);
+		if (missing && active) {
+			vs = CommonConstants.ACTIVE;
+		}
 		b.append(vs); b.append(',');
-		b.append(stop); b.append(',');
+		int stop2 = dc50 && CommonConstants.FS.equals(cmdty) ? 1 : stop;
+		b.append(stop2); b.append(',');
 		b.append(delKey.getStoreN()); b.append(',');
 		b.append(",,,,");
 		b.append(city); b.append(',');
 		b.append(SupportTime.getDayOfWeek(shipDay)); b.append(",");
 		boolean rx = cmdty.equals(CommonConstants.RX);
 		if (rxRow != null || rx) {
-			b.append(stop); b.append(',');
+			b.append(stop2); b.append(',');
 			if (rxRow == null) {
 				b.append(route1 == null ? route+100 : vs);
 			}

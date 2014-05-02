@@ -101,4 +101,11 @@ public class SupportTime {
 			return null;
 		}
 	}
+	public static java.sql.Date getFirstDayOfWeek(java.sql.Date d, int addWeeks) {
+		Calendar c = Calendar.getInstance();
+		c.setTime(d);
+		c.set(Calendar.DAY_OF_WEEK, 1);
+		d = new java.sql.Date(c.getTimeInMillis()+addWeeks*7*DAY);
+		return d;
+	}
 }

@@ -233,7 +233,7 @@ public class ShipmentDataDb {
 					else {
 						for (Iterator<DelDate> it = delDate.iterator(); it.hasNext();) {
 							DelDate d = it.next();
-							if (r.cmdty.equals("EVT")) {
+							if (r.cmdty.equals(CommonConstants.EVT)) {
 								delFound = -1;
 								update(st, r, d, userFile);
 								if (delFound == 1) {
@@ -241,7 +241,7 @@ public class ShipmentDataDb {
 								}
 								else { delFound = 0;}
 								r.n = 0;
-								r.cmdty = "EVT2";
+								r.cmdty = CommonConstants.EVT2;
 								update(st, r, d, userFile);
 								if (r.n != 0) {
 									evtMap.put(r.n, r.cmdty);
@@ -396,7 +396,7 @@ public class ShipmentDataDb {
 	}
 	private static String getCommodity(String dc, String lw, String ordType, int routeN) {
 		if (ordType.equals("S") || routeN >= 8000 && routeN < 9000) {
-			return "EVT";
+			return CommonConstants.EVT;
 		}
 		switch (lw) {
 		case "60":
@@ -406,31 +406,31 @@ public class ShipmentDataDb {
 		case "80":
 		case "85":
 		case "90":
-		case "95": return "EVT";
+		case "95": return CommonConstants.EVT;
 		case "10":
 		case "15":
 		case "30":
 			switch (dc) {
 			case "10":
 			case "30":
-			case "50": return "DCV";
+			case "50": return CommonConstants.DCV;
 			case "20":
-			case "70": return "DCB";
+			case "70": return CommonConstants.DCB;
 			}
 		case "20":
-		case "25": return "DCF";
+		case "25": return CommonConstants.DCF;
 		case "55":
 		case "56":
 			switch (dc) {
-			case "20": return "DCX";
+			case "20": return CommonConstants.DCX;
 			case "10":
 			case "30":
-			case "50": return "DCV";
-			case "70": return "DCB";
+			case "50": return CommonConstants.DCV;
+			case "70": return CommonConstants.DCB;
 			}
 		case "40":
 		case "45":
-		case "50": return "RX";
+		case "50": return CommonConstants.RX;
 		default: return null;
 		}
 	}

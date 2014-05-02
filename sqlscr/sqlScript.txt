@@ -291,7 +291,7 @@ db2 DROP DATABASE myDbase
 db2 UPDATE db cfg for mydbase using LOGFILSIZ 20000
 
 db2 BACKUP DATABASE mydbase ON ALL DBPARTITIONNUMS TO c:\db2\backup
-db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20140425140631 INTO mydbase REPLACE EXISTING
+db2 RESTORE DATABASE mydbase FROM c:\db2\backup TAKEN AT 20140430122546 INTO mydbase REPLACE EXISTING
 spool c:/dev/temp/sqlout.txt;
 spool off;
 

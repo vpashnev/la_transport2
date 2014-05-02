@@ -73,9 +73,10 @@ public class StoreScheduleDb {
 		}
 		con.commit();
 	}
-	static void update(File dsFolder, File dsaFolder) throws Exception {
+	static void update(File dsFolder, File dsaFolder, int weeksBeforeHolidays) throws Exception {
 		int[] rowCount = {0};
 		Row r = new Row();
+		Date curDate = new Date(System.currentTimeMillis());
 		Connection con = null;
 		try {
 			File[] fs = dsFolder.listFiles(new XslExtFilter());
@@ -86,7 +87,7 @@ public class StoreScheduleDb {
 				int n = st1.executeUpdate(SQL_RESET_IN_USE);
 				st1.close();
 				for (int i = 0; i != fs.length; i++) {
-					update(fs[i], st, r, rowCount);
+					update(fs[i], st, r, rowCount, curDate, weeksBeforeHolidays);
 					log.debug("Rows updated for the file "+fs[i]);
 				}
 				st.executeBatch();
@@ -114,8 +115,8 @@ public class StoreScheduleDb {
 			ConnectFactory.close(con);
 		}
 	}
-	private static void update(File f, CallableStatement st,
-		Row r, int[] rowCount) throws Exception {
+	private static void update(File f, CallableStatement st, Row r, int[] rowCount,
+		Date curDate, int weeksBeforeHolidays) throws Exception {
 		String userFile = f.getName();
 		BufferedReader br = new BufferedReader(new FileReader(f));
 		try {
@@ -138,8 +139,9 @@ public class StoreScheduleDb {
 				}
 				boolean hday = arr.length >= 35;
 				try {
-					setRow(r, arr, hday);
-					update(st, r, arr, userFile, hday, rowCount);
+					if (setRow(r, arr, hday, curDate, weeksBeforeHolidays)) {
+						update(st, r, arr, userFile, hday, rowCount);
+					}
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
@@ -150,7 +152,8 @@ public class StoreScheduleDb {
 		}
 		finally { br.close();}
 	}
-	private static void setRow(Row r, String[] arr, boolean hday) throws Exception {
+	private static boolean setRow(Row r, String[] arr, boolean hday,
+		Date curDate, int weeksBeforeHolidays) throws Exception {
 		if (hday) {
 			r.storeN = Integer.parseInt(arr[1]);
 			r.address = arr[2];
@@ -169,6 +172,9 @@ public class StoreScheduleDb {
 			r.shipDay = SupportTime.getDayNumber(arr[16]);
 			d = SupportTime.dd_MM_yyyy_Format.parse(arr[17]);
 			r.shipDate = new Date(d.getTime());
+			if (ignore(r.shipDate, curDate, weeksBeforeHolidays)) {
+				return false;
+			}
 			r.shipTime = SupportTime.parseTimeHHmm(arr[18]);
 			r.delDay = SupportTime.getDayNumber(arr[19]);
 			d = SupportTime.dd_MM_yyyy_Format.parse(arr[20]);
@@ -197,6 +203,16 @@ public class StoreScheduleDb {
 			r.delTimeTo = SupportTime.parseTimeHHmm(arr[14]);
 			r.delWeek = SupportTime.getWeeks(arr[15]);
 		}
+		return true;
+	}
+	private static boolean ignore(Date d, Date curDate, int weeksBeforeHolidays) {
+		if (weeksBeforeHolidays > 0) {
+			d = SupportTime.getFirstDayOfWeek(d, -weeksBeforeHolidays);
+			if (curDate.compareTo(d) < 0) {
+				return true;
+			}
+		}
+		return false;
 	}
 	private static void update(CallableStatement st, Row r, String[] arr,
 		String userFile, boolean hday, int[] rowCount) throws Exception {

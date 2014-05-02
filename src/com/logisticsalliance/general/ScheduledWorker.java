@@ -32,7 +32,7 @@ public class ScheduledWorker implements Runnable {
 
 	private File appDir, srcDir;
 	private String dbPassword, dbPasswordI5, ksPassword;
-	private int daysOutCleaning = -1;
+	private int daysOutCleaning = -1, weeksBeforeHolidays = -1;
 	private FtpManager ftpManager;
 	private EmailRead emailRead;
 	private EmailSent1 emailSent1;
@@ -96,6 +96,7 @@ public class ScheduledWorker implements Runnable {
 			alertEndingTime = getValue(appProperties, "alertEndingTime"),
 			shipmentDate = getValue(appProperties, "shipmentDate"),
 			daysOutCleaningDB = getValue(appProperties, "daysOutCleaningDB"),
+			weeksBeforeHolidaysDB = getValue(appProperties, "weeksBeforeHolidaysDB"),
 			alertStoresByPhone = getValue(appProperties, "alertStoresByPhone");
 		int nTime = notifyHoursAhead == null ? 30 : Integer.parseInt(notifyHoursAhead);
 		nTime *= SupportTime.HOUR;
@@ -124,7 +125,10 @@ public class ScheduledWorker implements Runnable {
 						emailRead.dsArchiveFolder, dsFolder);
 				}
 				//database
-				StoreScheduleDb.update(dsFolder, dsaFolder);
+				if (weeksBeforeHolidaysDB != null && weeksBeforeHolidays < 0) {
+					weeksBeforeHolidays = Integer.parseInt(weeksBeforeHolidaysDB);
+				}
+				StoreScheduleDb.update(dsFolder, dsaFolder, weeksBeforeHolidays);
 
 				//Roadnet
 				if (ftpManager.unread == null && isTimeToReadRoadnet()) {

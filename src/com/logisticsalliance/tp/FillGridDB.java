@@ -25,7 +25,7 @@ class FillGridDB {
 	"sc.distance, sc.max_truck_size, sc.truck_size, sc.trailer_n, sc.driver_fname,\r\n" +
 	"sc.arrival_time, sc.evt_flag, sc.route1, sc.stop1, sp.local_dc, sc.carrier_type,\r\n" +
 	"carrier_n, sc.aroute_per_group, sfr.dc, sc.fs_rx_flag, sdmt.store_n, s.dc,\r\n" +
-	"s.next_user_file, s1.next_user_file\r\n" +
+	"sp.status, s.next_user_file, s1.next_user_file\r\n" +
 
 	"FROM\r\n" +
 	"la.hstore_schedule s\r\n" +
@@ -90,12 +90,12 @@ class FillGridDB {
 		if (dc20 == 0) {
 			b.append(" AND s.dc=?\r\n");
 		}
-		/*else if (dc20 == 1) {
+		else if (dc20 == 1) {
 			if (dc2030) {
 				b.append(" AND s.dc='30'\r\n");
 			}
 			else {b.append(" AND s.dc<>'30'\r\n");}
-		}*/
+		}
 		b.append(SQL_SEL3);
 		return b.toString();
 	}
@@ -216,8 +216,8 @@ class FillGridDB {
 			if (dc20 == 1 && ignore(r, rs.getString(45) != null)) {
 				continue;
 			}
-			r.nextUserFile = rs.getString(47);
-			r.relNextUserFile = rs.getString(48);
+			r.nextUserFile = rs.getString(48);
+			r.relNextUserFile = rs.getString(49);
 			if (ignore(all, r, idx)) {
 				continue;
 			}
@@ -289,6 +289,7 @@ class FillGridDB {
 			r.carrierN = getInt(rs.getObject(41));
 			if (r.carrierN == -1) { r.carrierN = Integer.MAX_VALUE;}
 			r.aRoutePerGroup = rs.getString(42) != null;
+			r.active = CommonConstants.ACTIVE.equalsIgnoreCase(rs.getString(47));
 		}
 	}
 	private static boolean ignore(HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all,

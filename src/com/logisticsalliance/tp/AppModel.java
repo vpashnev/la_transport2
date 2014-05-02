@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -115,7 +116,7 @@ public class AppModel {
 		int dc20 = 0, logs = 1;
 		if (si.dc.equals(CommonConstants.DC20)) {
 			dc20 = 1;
-//			logs = 2;
+			logs = 2;
 		}
 		else if (si.dc.toUpperCase().equals(CommonConstants.DC20F)) { dc20 = 2;}
 		boolean hasHolidayWeeks = si.holidayWeeks > 0,
@@ -124,12 +125,12 @@ public class AppModel {
 			dc70 = si.dc.equals(CommonConstants.DC70);
 		si.dc = si.dc.substring(0, 2);
 		String pfx = hasHolidayWeeks ? "TH_" : "TR_", a = "";
+		HashSet<Integer> routes = new HashSet<Integer>(512, .5f);
 		//Workbook wb = new XSSFWorkbook();
 		for (int j = 0; j != logs; j++) {
 			boolean dc2030 = j == 0;
 			if (dc20 == 1) {
-//				a = (dc2030 ? "DCX30" : "DCX51");
-				a = "DCX";
+				a = (dc2030 ? "DCX30" : "DCX51");
 			}
 			else {
 				pfx = pfx + "DC"+si.dc;
@@ -162,11 +163,12 @@ public class AppModel {
 				}
 				int di = si.fromDay+(i++);
 				String day = SupportTime.getDayOfWeek(di);
+				//System.out.println(day);
 
 				File f = new File(dir, pfx+a+"_"+day+".csv");
 				FileWriter w = new FileWriter(f);
 				try {
-					SpreadSheet.fill(w, si, day, dc10, dc20, dc50, dc70, m1);
+					SpreadSheet.fill(w, si, day, dc10, dc20, dc50, dc70, m1, routes);
 				}
 				finally {
 					w.close();

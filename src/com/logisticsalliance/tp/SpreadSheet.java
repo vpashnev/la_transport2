@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -121,7 +122,7 @@ public class SpreadSheet {
 		}
 	}
 	private static void fill(SearchInput si, String day, boolean dc10,
-		HashMap<String,ArrayList<ShipmentRow>> m) throws Exception {
+		HashMap<String,ArrayList<ShipmentRow>> m, HashSet<Integer> routes) throws Exception {
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it = m.entrySet().iterator();
 			it.hasNext();) {
 			Map.Entry<String,ArrayList<ShipmentRow>> e = it.next();
@@ -133,8 +134,8 @@ public class SpreadSheet {
 				fs = cmdty.equals(CommonConstants.FS),
 				rx = cmdty.equals(CommonConstants.RX),
 				sameGroup = false, sameCar = false;
-			int i = 0, ltli = 100,
-				maxStops = dcx ? 20 : (fs && dc10 ? 6 : 0);
+			int[] iLtli = {0, 100};
+			int maxStops = dcx ? 20 : (fs && dc10 ? 6 : 0);
 			ArrayList<ShipmentRow> al = e.getValue();
 			ShipmentRow r0 = null;
 			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
@@ -145,22 +146,24 @@ public class SpreadSheet {
 						r0.carrier != null && r0.carrier.equals(r.carrier);
 				}
 				boolean ltlFs = CommonConstants.LTL.equals(r.carrierType) &&
-					CommonConstants.FS.equals(cmdty);
+					CommonConstants.FS.equals(cmdty),
+					sameRoute = false;
 				if (r.aRoutePerGroup) {
 					if (!sameGroup || !sameCar) {
 						if (ltlFs) {
-							ltli++;
+							iLtli[1]++;
 						}
-						else { i += (rx ? 5 : 1);}
+						else { iLtli[0] += (rx ? 5 : 1);}
 					}
+					else { sameRoute = true;}
 				}
 				else {
 					if (ltlFs) {
-						ltli++;
+						iLtli[1]++;
 					}
-					else { i += (rx ? 5 : 1);}
+					else { iLtli[0] += (rx ? 5 : 1);}
 				}
-				r.route = getRoute(r, dc10, cmdty, i, ltli);
+				r.route = getRoute(r, dc10, cmdty, rx, iLtli, sameRoute ? null : routes);
 				if (r.stop1 != -1) {
 					r.stop = r.stop1;
 				}
@@ -177,7 +180,7 @@ public class SpreadSheet {
 				}
 				r0 = r;
 			}
-			int stop = 0; i = 0;
+			int stop = 0, i = 0;
 			boolean sameRoute = false;
 			r0 = null;
 			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
@@ -204,7 +207,8 @@ public class SpreadSheet {
 		}
 	}
 	static void fill(FileWriter w, SearchInput si, String day, boolean dc10, int dc20,
-		boolean dc50, boolean dc70, HashMap<String,ArrayList<ShipmentRow>> m) throws Exception {
+		boolean dc50, boolean dc70, HashMap<String,ArrayList<ShipmentRow>> m,
+		HashSet<Integer> routes) throws Exception {
 		w.write("DC"); w.write(si.dc); w.write(',');
 		w.write(day);
 		w.write('\r'); w.write('\n');
@@ -212,7 +216,7 @@ public class SpreadSheet {
 			addHead(w);
 		}
 		else { addHead1(w, dc50);}
-		fill(si, day, dc10, m);
+		fill(si, day, dc10, m, routes);
 		ArrayList<ShipmentRow> al0 = null;
 		for (Iterator<Map.Entry<String,ArrayList<ShipmentRow>>> it =
 			m.entrySet().iterator(); it.hasNext();) {
@@ -265,14 +269,16 @@ public class SpreadSheet {
 			}
 		}
 	}
-	private static int getRoute(ShipmentRow r, boolean dc10, String cmdty, int i, int ltli) {
+	private static int getRoute(ShipmentRow r, boolean dc10, String cmdty,
+		boolean rx, int[] iLtli, HashSet<Integer> routes) {
 		int sdn = r.shipDay, n = 0;
 		if (!dc10) { sdn++;}
 		switch (cmdty) {
 		case CommonConstants.FS:
 			n = sdn*1000;
 			if (CommonConstants.LTL.equals(r.carrierType)) {
-				return n+ltli;
+				n = getRoute(n, false, iLtli, 1, routes);
+				return n;
 			}
 			break;
 		case CommonConstants.DCX:
@@ -286,7 +292,20 @@ public class SpreadSheet {
 			n = sdn*1000+200;
 			break;
 		}
-		n += i;
+		n = getRoute(n, rx, iLtli, 0, routes);
+		return n;
+	}
+	private static int getRoute(int n, boolean rx,
+		int[] iLtli, int idx, HashSet<Integer> routes) {
+		n += iLtli[idx];
+		if (routes != null) {
+			while (!routes.add(n)) {
+				//System.out.println("old "+n);
+				iLtli[idx] += (rx ? 5 : 1);
+				n += iLtli[idx];
+				//System.out.println("new "+n);
+			}
+		}
 		return n;
 	}
 }

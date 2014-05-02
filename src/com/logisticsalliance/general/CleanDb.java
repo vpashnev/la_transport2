@@ -8,29 +8,32 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 
+import org.apache.log4j.Logger;
+
 import com.glossium.sqla.ConnectFactory;
 import com.glossium.sqla.ConnectFactory1;
 import com.logisticsalliance.util.SupportTime;
 
 public class CleanDb {
 
+	private static Logger log = Logger.getLogger(CleanDb.class);
+	
 	private static final String
 		//SQL_CLEAN_RN = "DELETE FROM la.hrn_order " +
 		//"WHERE ship_n IN (SELECT sd.n FROM la.hship_data sd WHERE del_date<?)",
 		//SQL_CLEAN_SHP = "DELETE FROM la.hship_data WHERE del_date<?",
-		SQL_CLEAN_DS = "DELETE FROM la.hstore_schedule WHERE del_date<?",
+		SQL_CLEAN_DS = "DELETE FROM la.hstore_schedule WHERE del_date IS NOT NULL AND del_date<?",
 		SQL_SELECT_ST = "SELECT n FROM la.hstore_profile",
 		SQL_CLEAN_ST = "DELETE FROM la.hstore_profile WHERE n=?";
 
 	static void clean(Calendar now, int daysOutCleaning) throws Exception {
 		if (daysOutCleaning <= 0) { return;}
-		Date /*before = new Date(now.getTimeInMillis()-SupportTime.DAY*daysOutCleaning),*/
-			before1 = new Date(now.getTimeInMillis()-SupportTime.DAY*16);
+		Date before = new Date(now.getTimeInMillis()-SupportTime.DAY*daysOutCleaning);
 		Connection con = ConnectFactory1.one().getConnection();
 		try {
 			//clean(con, SQL_CLEAN_RN, before);
 			//clean(con, SQL_CLEAN_SHP, before);
-			clean(con, SQL_CLEAN_DS, before1);
+			clean(con, SQL_CLEAN_DS, before);
 			con.commit();
 			cleanStores(con);
 		}
@@ -41,8 +44,11 @@ public class CleanDb {
 	private static void clean(Connection con, String sql, Date before) throws Exception {
 		PreparedStatement st = con.prepareStatement(sql);
 		st.setDate(1, before);
-		st.executeUpdate();
+		int n = st.executeUpdate();
 		st.close();
+		if (n > 0) {
+			log.debug("Cleaned ("+sql.substring(0, 32)+") : "+n+" rows");
+		}
 	}
 	private static void cleanStores(Connection con) throws Exception {
 		ArrayList<Integer> al = new ArrayList<Integer>(1800);
