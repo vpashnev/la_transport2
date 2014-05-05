@@ -173,7 +173,7 @@ class FillGridDB {
 			String cmdty1 = cmdty;
 			cmdty = DsKey.toCmdty(cmdty);
 			ShipmentRow r = new ShipmentRow();
-			if (idx==0 && rs.getInt(3)==6072 && cmdty.equals("RX")) {
+			if (idx==0 && storeN==6072 && cmdty.equals("RX")) {
 				//System.out.println(idx+", "+storeN+", "+cmdty);
 			}
 			if (dc == null) {
@@ -220,7 +220,7 @@ class FillGridDB {
 			}
 			r.nextUserFile = rs.getString(48);
 			r.relNextUserFile = rs.getString(49);
-			if (ignore(all, r, idx)) {
+			if (ignore1(all, r)) {
 				continue;
 			}
 			String c1 = r.missing ? missing : cmdty;
@@ -294,15 +294,15 @@ class FillGridDB {
 			r.active = CommonConstants.ACTIVE.equalsIgnoreCase(rs.getString(47));
 		}
 	}
-	private static boolean ignore(HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all,
-		ShipmentRow r, int idx) {
+	private static boolean ignore1(HashMap<Integer,HashMap<String,HashMap<DsKey,ShipmentRow>>> all,
+		ShipmentRow r) {
 		String cmdty = r.delKey.getCommodity();
 		for (Iterator<HashMap<String,HashMap<DsKey,ShipmentRow>>> it = all.values().iterator();
 			it.hasNext();) {
 			HashMap<String,HashMap<DsKey,ShipmentRow>> m = it.next();
-			boolean v = ignore(m, cmdty, r, idx);
+			boolean v = ignore(m, cmdty, r);
 			if (!v) {
-				v = ignore(m, missing, r, idx);
+				v = ignore(m, missing, r);
 				if (v) {
 					return true;
 				}
@@ -311,7 +311,7 @@ class FillGridDB {
 		return false;
 	}
 	private static boolean ignore(HashMap<String,HashMap<DsKey,ShipmentRow>> m,
-		String cmdty, ShipmentRow r, int idx) {
+		String cmdty, ShipmentRow r) {
 		HashMap<DsKey,ShipmentRow> m1 = m.get(cmdty);
 		if (m1 != null) {
 			ShipmentRow r1 = m1.get(r.delKey);
@@ -323,7 +323,6 @@ class FillGridDB {
 					}
 				}
 				else if (r1.holidays) {
-					//System.out.println(idx+", "+r.delKey);
 					return true;
 				}
 			}

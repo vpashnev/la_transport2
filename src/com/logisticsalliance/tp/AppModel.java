@@ -163,7 +163,7 @@ public class AppModel {
 				}
 				int di = si.fromDay+(i++);
 				String day = SupportTime.getDayOfWeek(di);
-				//System.out.println(day);
+				System.out.println(day);
 
 				File f = new File(dir, pfx+a+"_"+day+".csv");
 				FileWriter w = new FileWriter(f);

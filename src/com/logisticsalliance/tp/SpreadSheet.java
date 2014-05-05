@@ -140,6 +140,9 @@ public class SpreadSheet {
 			ShipmentRow r0 = null;
 			for (Iterator<ShipmentRow> it1 = al.iterator(); it1.hasNext();) {
 				ShipmentRow r = it1.next();
+				if (r.delKey.getStoreN()==2335 || r.delKey.getStoreN()==2214) {
+					System.out.println(r.delKey.getStoreN()+", "+cmdty);
+				}
 				if (r0 != null) {
 					sameGroup = r0.group == r.group;
 					sameCar = r0.carrier == r.carrier ||
@@ -155,7 +158,10 @@ public class SpreadSheet {
 						}
 						else { iLtli[0] += (rx ? 5 : 1);}
 					}
-					else { sameRoute = true;}
+					else {
+						sameRoute = CommonConstants.DCX.equals(cmdty) &&
+							r0 != null && r0.relCmdtyShipDay == r.relCmdtyShipDay;
+					}
 				}
 				else {
 					if (ltlFs) {
@@ -299,11 +305,18 @@ public class SpreadSheet {
 		int[] iLtli, int idx, HashSet<Integer> routes) {
 		n += iLtli[idx];
 		if (routes != null) {
+			boolean first = true;
 			while (!routes.add(n)) {
-				//System.out.println("old "+n);
-				iLtli[idx] += (rx ? 5 : 1);
-				n += iLtli[idx];
-				//System.out.println("new "+n);
+				if (first) {
+					System.out.println("old "+n);
+					first = false;
+				}
+				int d = rx ? 5 : 1;
+				iLtli[idx] += d;
+				n += d;
+			}
+			if (!first) {
+				System.out.println("new "+n);
 			}
 		}
 		return n;
